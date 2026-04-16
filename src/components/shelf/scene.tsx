@@ -102,7 +102,7 @@ export function Scene({
           style={{
             paddingTop: tone === "watching" ? 80 : 28,
             alignItems: "flex-end",
-            minHeight: tone === "watching" ? 420 : 320,
+            minHeight: tone === "watching" ? 480 : 320,
           }}
         >
           {items.map((item, idx) => (

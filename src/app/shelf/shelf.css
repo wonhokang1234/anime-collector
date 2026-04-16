@@ -1,38 +1,222 @@
-/* Horizontal scroll styling for shelf rows */
+/* Shelf — visual-language tokens */
+.shelf-root {
+  --ink-0: #050710;
+  --ink-1: #0a0604;
+  --ink-2: #1a1208;
+  --indigo-deep: #0a1a3a;
+  --indigo-mid: #1a3a6a;
+  --washi: #f4e4c0;
+  --washi-aged: #d4bc8a;
+  --sumi: #2a1808;
+  --hanko: #c41e3a;
+  --lantern-glow: #f4d98a;
+  --font-display: var(--font-cinzel), Georgia, serif;
+  --font-jp: var(--font-noto-jp), "Noto Serif JP", serif;
+}
+
+/* Horizontal scroller used inside every scene */
 .shelf-scroll {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
+  scrollbar-color: rgba(244, 228, 192, 0.18) transparent;
   scroll-snap-type: x proximity;
-  scroll-padding-left: 0.5rem;
 }
-
-.shelf-scroll > * {
-  scroll-snap-align: start;
-}
-
 .shelf-scroll::-webkit-scrollbar {
   height: 6px;
 }
-
-.shelf-scroll::-webkit-scrollbar-track {
-  background: transparent;
-}
-
 .shelf-scroll::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 6px;
+  background: rgba(244, 228, 192, 0.18);
+  border-radius: 3px;
 }
 
-.shelf-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.16);
+/* ── Watching — lantern-lit hero ── */
+.scene-watching {
+  background:
+    radial-gradient(
+      ellipse at 50% -10%,
+      rgba(244, 217, 138, 0.28) 0%,
+      rgba(26, 40, 80, 0.85) 40%,
+      var(--ink-1) 80%
+    ),
+    linear-gradient(180deg, var(--ink-1), var(--ink-0));
+}
+.scene-watching::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(244, 228, 192, 0.04) 0 2px,
+    transparent 2px 12px
+  );
+  pointer-events: none;
+}
+.lantern-glow {
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 520px;
+  height: 320px;
+  background: radial-gradient(
+    ellipse,
+    var(--lantern-glow) 0%,
+    rgba(244, 217, 138, 0.25) 30%,
+    transparent 70%
+  );
+  filter: blur(20px);
+  pointer-events: none;
+}
+.stage-floor {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background:
+    linear-gradient(
+      180deg,
+      transparent,
+      rgba(0, 0, 0, 0.5) 30%,
+      rgba(0, 0, 0, 0.9)
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(60, 36, 18, 0.6) 0 2px,
+      rgba(40, 24, 12, 0.6) 2px 6px
+    );
 }
 
-/* Ambient glow behind empty-state hero */
+/* ── Plan — indigo shoji backdrop ── */
+.scene-plan {
+  background: linear-gradient(180deg, var(--indigo-deep), var(--ink-0));
+}
+.scene-plan::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(26, 58, 106, 0.35) 0 6px,
+    rgba(10, 26, 58, 0.35) 6px 12px
+  );
+  pointer-events: none;
+}
+.washi-frame {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  height: 1px;
+  border-top: 1px dashed rgba(244, 228, 192, 0.2);
+}
+
+/* ── Watched — archival wash ── */
+.scene-watched {
+  background:
+    radial-gradient(
+      ellipse at 8% 50%,
+      rgba(196, 30, 58, 0.18),
+      transparent 45%
+    ),
+    radial-gradient(
+      ellipse at 92% 50%,
+      rgba(244, 228, 192, 0.1),
+      transparent 45%
+    ),
+    linear-gradient(180deg, var(--ink-2), var(--ink-1));
+}
+.stamp-kan {
+  position: absolute;
+  top: 16px;
+  left: 20px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 900 22px var(--font-jp);
+  color: rgba(244, 228, 192, 0.92);
+  background: rgba(196, 30, 58, 0.85);
+  transform: rotate(-6deg);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  letter-spacing: 0;
+  pointer-events: none;
+}
+
+/* Spine helpers */
+.spine-foil-common {
+  background: linear-gradient(90deg, #2a1808, #5a3818, #2a1808);
+}
+.spine-foil-uncommon {
+  background: linear-gradient(90deg, #166534, #22c55e, #166534);
+}
+.spine-foil-rare {
+  background: linear-gradient(90deg, #1e40af, #3b82f6, #1e40af);
+}
+.spine-foil-epic {
+  background: linear-gradient(90deg, #b45309, #fbbf24, #b45309);
+  box-shadow: 0 0 4px rgba(251, 191, 36, 0.6);
+}
+.spine-foil-legendary {
+  background: linear-gradient(
+    90deg,
+    #ef4444,
+    #f97316,
+    #eab308,
+    #22c55e,
+    #3b82f6,
+    #8b5cf6,
+    #ec4899,
+    #ef4444
+  );
+  background-size: 200% 100%;
+  box-shadow: 0 0 6px rgba(236, 72, 153, 0.55);
+  animation: foil-shimmer 6s linear infinite;
+}
+@keyframes foil-shimmer {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 200% 0%;
+  }
+}
+
+/* Washi bookmark ribbon (hero only) */
+.spine-bookmark {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 58px;
+  background: linear-gradient(180deg, var(--washi), var(--washi-aged));
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+}
+.spine-bookmark::after {
+  content: "";
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 14px;
+  height: 14px;
+  background: var(--hanko);
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Empty-shelf ambient glow */
 .shelf-empty-glow {
   position: absolute;
-  inset: -40% -20%;
+  inset: -20%;
   background:
-    radial-gradient(ellipse at 30% 20%, rgba(99, 102, 241, 0.12), transparent 55%),
-    radial-gradient(ellipse at 75% 80%, rgba(236, 72, 153, 0.08), transparent 55%);
+    radial-gradient(
+      circle at 30% 40%,
+      rgba(99, 102, 241, 0.16),
+      transparent 50%
+    ),
+    radial-gradient(circle at 70% 70%, rgba(236, 72, 153, 0.1), transparent 55%);
+  filter: blur(30px);
   pointer-events: none;
 }

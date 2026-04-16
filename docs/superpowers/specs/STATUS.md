@@ -1,6 +1,6 @@
 # Anime Collector & Shelf — Project Status
 
-## Current Phase: Shelf Visual Redesign — Task 1 of 10 Complete
+## Current Phase: Shelf Redesign Shipped
 
 **Last updated:** 2026-04-16
 
@@ -31,25 +31,14 @@
 - [x] Wired the **Collect** button on Browse to persist to Supabase with toast feedback + collected-state UI
 - [x] Collection grid page — filterable (by rarity) + sortable (recent / title / score / rarity) view of all collected cards
 - [x] Shelf page v1 — header with stats, three collapsible sections (Currently Watching, Plan to Watch, Watched), horizontal card rows, per-card move menu + episode stepper (auto-moves to Watched when final episode hit), empty states
-- [x] Shelf visual redesign: spec + implementation plan written (`2026-04-16-shelf-visual-redesign-design.md`, `2026-04-16-shelf-visual-redesign.md`)
-- [x] Redesign Task 1 / 10: Cinzel + Noto Serif JP fonts loaded in `layout.tsx` (exposes `--font-cinzel`, `--font-noto-jp`)
+- [x] Shelf visual redesign: manga-spine UI, per-category scenes (Watching hero / Plan indigo / Watched archive), washi tab navigator, Cinzel + Noto Serif JP typography
 
 ## What's Next (in order)
 
-1. **Shelf visual redesign — tasks 2–10** ← *in progress* (plan at `docs/superpowers/plans/2026-04-16-shelf-visual-redesign.md`)
-   - T2: Rewrite `shelf.css` with visual-language tokens
-   - T3: Build `MangaSpine` base component
-   - T4: Add hero mode to `MangaSpine` (bookmark, pedestal, stepper)
-   - T5: Build `SceneBackdrop` component
-   - T6: Build `SceneTabs` component
-   - T7: Build `Scene` container with cross-fade
-   - T8: Rewrite `/shelf/page.tsx` with tabs + scenes
-   - T9: Delete retired `shelf-section.tsx` + `shelf-card.tsx`
-   - T10: Update this STATUS.md
-2. **Build the hidden Favorites flip** — full-shelf 3D flip animation (GSAP) to reveal Favorites
-3. **Drag-and-drop between shelf sections** (deferred from v1 — currently uses a move-to menu)
-4. **Build the card detail page** (`/card/[id]`) — full card view fetching fresh Jikan data
-5. **Polish** — landing page design, responsive design, loading states, transitions
+1. **Build the hidden Favorites flip** — full-shelf 3D flip animation (GSAP) to reveal Favorites
+2. **Drag-and-drop between shelf sections** (deferred from v1 — currently uses a move-to menu)
+3. **Build the card detail page** (`/card/[id]`) — full card view fetching fresh Jikan data
+4. **Polish** — landing page design, responsive design, loading states, transitions
 
 ## Resume Notes
 
@@ -66,8 +55,8 @@ src/
 │   ├── collection/page.tsx     — filterable / sortable grid of all collected cards
 │   ├── login/page.tsx          — auth form
 │   ├── shelf/
-│   │   ├── page.tsx            — stats header + 3 collapsible sections
-│   │   └── shelf.css           — horizontal-scroll styling + empty-state glow
+│   │   ├── page.tsx            — header/stats + washi tabs driving per-category scenes
+│   │   └── shelf.css           — visual-language tokens + per-tone scene backdrops
 │   ├── signup/page.tsx         — auth form
 │   ├── globals.css             — dark theme base + toast animation
 │   ├── layout.tsx              — AuthProvider + Navbar wrapper
@@ -77,8 +66,10 @@ src/
 │   │   ├── anime-card.tsx      — main card component (full + compact)
 │   │   └── card.css            — rarity effects, flip, shine, holo
 │   ├── shelf/
-│   │   ├── shelf-section.tsx   — collapsible section (GSAP expand/collapse)
-│   │   └── shelf-card.tsx      — compact card + episode stepper + move menu
+│   │   ├── manga-spine.tsx     — manga-volume spine (base + hero mode with bookmark, pedestal, stepper)
+│   │   ├── scene-backdrop.tsx  — per-tone decorative backdrop (lantern / shoji / archival)
+│   │   ├── scene-tabs.tsx      — washi tab navigator with kanji subtitles + hanko count badges
+│   │   └── scene.tsx           — active-scene container with GSAP cross-fade + empty states
 │   ├── auth-form.tsx           — login/signup form
 │   ├── auth-provider.tsx       — initializes auth + loads collection on sign-in
 │   └── navbar.tsx              — top nav (hidden when logged out)

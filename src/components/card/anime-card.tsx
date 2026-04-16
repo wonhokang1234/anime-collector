@@ -341,14 +341,39 @@ export function AnimeCard({
           }}
         >
           {collected ? (
-            <div className="w-full rounded-lg border border-emerald-500/40 bg-emerald-500/10 py-2 text-center text-xs font-semibold text-emerald-400 backdrop-blur-sm">
-              ✓ Collected
+            <div
+              className="flex w-full items-center justify-center gap-1.5 py-2 text-[10px] font-semibold uppercase tracking-[.22em] backdrop-blur-sm"
+              style={{
+                border: "1px solid rgba(244,228,192,.35)",
+                background: "rgba(10,6,4,.6)",
+                color: "var(--washi)",
+                fontFamily: "var(--font-display)",
+                borderRadius: 2,
+              }}
+            >
+              <span
+                aria-hidden
+                className="inline-flex h-4 w-4 items-center justify-center"
+                style={{
+                  background: "var(--hanko)",
+                  color: "var(--washi)",
+                  fontFamily: "var(--font-jp)",
+                  fontSize: 9,
+                  fontWeight: 900,
+                  borderRadius: 1,
+                  transform: "rotate(-4deg)",
+                }}
+              >
+                集
+              </span>
+              Collected
             </div>
           ) : (
             <button
               type="button"
               onClick={() => onCollect()}
-              className="w-full rounded-lg bg-indigo-600 py-2 text-xs font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:bg-indigo-500 hover:shadow-indigo-500/40 active:scale-[0.97]"
+              className="hanko-btn w-full"
+              style={{ padding: "0.5rem 0.9rem", fontSize: "0.7rem" }}
             >
               Collect
             </button>

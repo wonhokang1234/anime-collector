@@ -69,7 +69,13 @@ export default function CollectionPage() {
   if (authLoading || !user || !initialized) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-700 border-t-indigo-500" />
+        <div
+          className="h-8 w-8 animate-spin rounded-full border-2"
+          style={{
+            borderColor: "rgba(244,228,192,.15)",
+            borderTopColor: "var(--lantern-glow)",
+          }}
+        />
       </div>
     );
   }
@@ -77,25 +83,60 @@ export default function CollectionPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-10">
       <div className="mb-8">
-        <h1 className="text-3xl font-extrabold text-white tracking-tight">
+        <p
+          className="mb-1 text-[10px] uppercase tracking-[.4em]"
+          style={{
+            color: "var(--washi-soft)",
+            fontFamily: "var(--font-display)",
+          }}
+        >
+          <span style={{ fontFamily: "var(--font-jp)" }}>集</span> · Archive
+        </p>
+        <h1 className="display-title text-4xl font-extrabold">
           My Collection
         </h1>
-        <p className="mt-2 text-zinc-400">
+        <p
+          className="mt-2 text-sm"
+          style={{ color: "rgba(244,228,192,.6)" }}
+        >
           {items.length === 0
             ? "You haven't collected any anime yet."
-            : `${items.length} anime in your collection`}
+            : `${items.length} ${items.length === 1 ? "entry" : "entries"} in the archive.`}
         </p>
       </div>
 
       {items.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-800 py-20 text-center">
-          <div className="mb-4 text-5xl">✦</div>
-          <p className="text-zinc-400 mb-4">
-            Your collection is empty. Start by finding an anime you love.
+        <div
+          className="relative flex flex-col items-center justify-center py-20 text-center"
+          style={{
+            border: "1px dashed rgba(244,228,192,.22)",
+            background: "rgba(10,6,4,.55)",
+            borderRadius: 8,
+          }}
+        >
+          <div
+            aria-hidden
+            className="mb-5 flex h-16 w-16 items-center justify-center rounded-full"
+            style={{
+              background: "var(--washi)",
+              color: "var(--hanko)",
+              fontFamily: "var(--font-jp)",
+              fontSize: 22,
+              fontWeight: 900,
+              boxShadow: "0 2px 6px rgba(0,0,0,.5)",
+            }}
+          >
+            空
+          </div>
+          <p
+            className="mb-6 max-w-sm text-sm"
+            style={{ color: "rgba(244,228,192,.6)" }}
+          >
+            Your archive is empty. Start by finding an anime you love.
           </p>
           <button
             onClick={() => router.push("/browse")}
-            className="rounded-lg bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-500"
+            className="hanko-btn"
           >
             Browse Anime
           </button>
@@ -119,10 +160,8 @@ export default function CollectionPage() {
                 <button
                   key={key}
                   onClick={() => setFilter(key)}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                    filter === key
-                      ? "bg-indigo-600 text-white"
-                      : "bg-zinc-800/60 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+                  className={`washi-pill ${
+                    filter === key ? "washi-pill--active" : ""
                   }`}
                 >
                   {label}
@@ -132,11 +171,27 @@ export default function CollectionPage() {
 
             {/* Sort dropdown */}
             <div className="ml-auto flex items-center gap-2">
-              <span className="text-xs text-zinc-500">Sort by</span>
+              <span
+                className="text-[10px] uppercase tracking-[.3em]"
+                style={{
+                  color: "var(--washi-soft)",
+                  fontFamily: "var(--font-display)",
+                }}
+              >
+                Sort by
+              </span>
               <select
                 value={sortKey}
                 onChange={(e) => setSortKey(e.target.value as SortKey)}
-                className="rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs text-zinc-200 focus:border-indigo-500 focus:outline-none"
+                className="px-3 py-1.5 text-xs focus:outline-none"
+                style={{
+                  fontFamily: "var(--font-display)",
+                  letterSpacing: ".08em",
+                  color: "var(--washi)",
+                  background: "rgba(10,6,4,.75)",
+                  border: "1px solid rgba(244,228,192,.2)",
+                  borderRadius: 4,
+                }}
               >
                 <option value="recent">Recently added</option>
                 <option value="title">Title (A–Z)</option>
@@ -148,7 +203,10 @@ export default function CollectionPage() {
 
           {/* Grid */}
           {filtered.length === 0 ? (
-            <div className="text-center py-20 text-zinc-500 text-sm">
+            <div
+              className="py-20 text-center text-sm"
+              style={{ color: "var(--washi-soft)" }}
+            >
               No anime match this filter.
             </div>
           ) : (

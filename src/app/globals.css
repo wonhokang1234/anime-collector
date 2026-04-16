@@ -1,20 +1,229 @@
 @import "tailwindcss";
 
 :root {
-  --background: #09090b;
-  --foreground: #fafafa;
+  /* manga-library visual language — shared site-wide */
+  --ink-0: #050710;
+  --ink-1: #0a0604;
+  --ink-2: #1a1208;
+  --indigo-deep: #0a1a3a;
+  --indigo-mid: #1a3a6a;
+  --washi: #f4e4c0;
+  --washi-aged: #d4bc8a;
+  --washi-dim: rgba(244, 228, 192, 0.7);
+  --washi-soft: rgba(244, 228, 192, 0.45);
+  --sumi: #2a1808;
+  --hanko: #c41e3a;
+  --hanko-bright: #e63957;
+  --lantern-glow: #f4d98a;
+
+  --background: var(--ink-1);
+  --foreground: var(--washi);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-washi: var(--washi);
+  --color-hanko: var(--hanko);
+  --color-ink: var(--ink-1);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-cinzel), Georgia, serif;
+  --font-jp: var(--font-noto-jp), "Noto Serif JP", serif;
 }
 
 body {
-  background: var(--background);
+  background:
+    radial-gradient(
+      ellipse at 15% -10%,
+      rgba(244, 217, 138, 0.06) 0%,
+      transparent 45%
+    ),
+    radial-gradient(
+      ellipse at 85% 110%,
+      rgba(196, 30, 58, 0.05) 0%,
+      transparent 50%
+    ),
+    linear-gradient(180deg, var(--ink-1) 0%, var(--ink-0) 100%);
+  background-attachment: fixed;
   color: var(--foreground);
+}
+
+/* Shared utilities for the manga-library aesthetic */
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
+}
+.font-jp {
+  font-family: var(--font-jp);
+}
+
+/* Washi pill — a flexible tag/pill element used for stats, badges, filters */
+.washi-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid rgba(244, 228, 192, 0.22);
+  background: rgba(10, 6, 4, 0.6);
+  color: var(--washi);
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-radius: 4px;
+  transition: border-color 0.18s, color 0.18s, background 0.18s;
+}
+.washi-pill:hover {
+  border-color: rgba(244, 228, 192, 0.45);
+  color: #fff;
+}
+.washi-pill--active {
+  background: linear-gradient(180deg, var(--indigo-mid), var(--indigo-deep));
+  border-color: rgba(244, 228, 192, 0.4);
+  border-bottom: 2px solid var(--hanko);
+  color: var(--washi);
+}
+
+/* Hanko button — the site's primary CTA */
+.hanko-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.4rem;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--hanko-bright), var(--hanko));
+  color: var(--washi);
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border: 1px solid rgba(244, 228, 192, 0.15);
+  box-shadow:
+    0 6px 16px rgba(196, 30, 58, 0.35),
+    inset 0 1px 0 rgba(244, 228, 192, 0.25);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.18s, filter 0.18s;
+}
+.hanko-btn:hover {
+  filter: brightness(1.08);
+  box-shadow:
+    0 10px 22px rgba(196, 30, 58, 0.5),
+    inset 0 1px 0 rgba(244, 228, 192, 0.3);
+}
+.hanko-btn:active {
+  transform: translateY(1px);
+}
+.hanko-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Ghost button — secondary action */
+.ghost-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.4rem;
+  border-radius: 2px;
+  background: transparent;
+  color: var(--washi);
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border: 1px solid rgba(244, 228, 192, 0.3);
+  cursor: pointer;
+  transition: border-color 0.18s, background 0.18s;
+}
+.ghost-btn:hover {
+  border-color: var(--washi);
+  background: rgba(244, 228, 192, 0.05);
+}
+
+/* Washi input — used by search and auth forms */
+.washi-input {
+  width: 100%;
+  padding-block: 0.7rem;
+  padding-inline: 1rem;
+  background: rgba(10, 6, 4, 0.75);
+  border: 1px solid rgba(244, 228, 192, 0.18);
+  border-radius: 4px;
+  color: var(--washi);
+  font-size: 0.9rem;
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+.washi-input::placeholder {
+  color: rgba(244, 228, 192, 0.35);
+}
+.washi-input:focus {
+  outline: none;
+  border-color: rgba(244, 217, 138, 0.6);
+  box-shadow: 0 0 0 2px rgba(244, 217, 138, 0.12);
+}
+
+/* Display heading — for page titles */
+.display-title {
+  font-family: var(--font-display);
+  color: var(--washi);
+  letter-spacing: 0.04em;
+}
+
+/* Hairline divider — used between form groups or sections */
+.hairline {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(244, 228, 192, 0.22),
+    transparent
+  );
+}
+
+/* Ambient lantern glow — placed at page top (absolute) for dramatic pages */
+.ambient-lantern {
+  position: absolute;
+  top: -180px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 900px;
+  height: 500px;
+  background: radial-gradient(
+    ellipse,
+    rgba(244, 217, 138, 0.18) 0%,
+    rgba(244, 217, 138, 0.08) 30%,
+    transparent 70%
+  );
+  filter: blur(30px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Shoji grain — adds faint vertical stripes over a dark section */
+.shoji-grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(244, 228, 192, 0.035) 0 2px,
+    transparent 2px 14px
+  );
+  pointer-events: none;
+}
+
+/* Hanko dot — small round vermilion accent */
+.hanko-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  background: var(--hanko);
+  box-shadow: 0 0 3px rgba(196, 30, 58, 0.6);
 }
 
 @keyframes toast-in {
@@ -30,4 +239,10 @@ body {
 
 .animate-toast-in {
   animation: toast-in 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Selection — matches theme */
+::selection {
+  background: rgba(244, 217, 138, 0.35);
+  color: var(--washi);
 }

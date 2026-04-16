@@ -1,0 +1,38 @@
+/* Horizontal scroll styling for shelf rows */
+.shelf-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
+  scroll-snap-type: x proximity;
+  scroll-padding-left: 0.5rem;
+}
+
+.shelf-scroll > * {
+  scroll-snap-align: start;
+}
+
+.shelf-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.shelf-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.shelf-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+}
+
+.shelf-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+/* Ambient glow behind empty-state hero */
+.shelf-empty-glow {
+  position: absolute;
+  inset: -40% -20%;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(99, 102, 241, 0.12), transparent 55%),
+    radial-gradient(ellipse at 75% 80%, rgba(236, 72, 153, 0.08), transparent 55%);
+  pointer-events: none;
+}

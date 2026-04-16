@@ -47,6 +47,9 @@ export function AnimeCard({
   const shineRef = useRef<HTMLDivElement>(null);
   const holoRef = useRef<HTMLDivElement>(null);
   const [isFlipped, setIsFlipped] = useState(false);
+  // Ref version of isFlipped so mousemove/leave handlers see the latest value
+  // without having to re-register as callbacks.
+  const isFlippedRef = useRef(false);
   const isHovering = useRef(false);
   const flipTween = useRef<gsap.core.Tween | null>(null);
 
@@ -54,22 +57,27 @@ export function AnimeCard({
   const cardWidth = isCompact ? 180 : 280;
   const cardHeight = isCompact ? 260 : 420;
 
-  // Parallax tilt on hover
+  // Parallax tilt on hover — respects the flip state by basing rotateY
+  // on 0 or 180 depending on which face is forward.
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
       if (!cardRef.current || !innerRef.current) return;
+      // Skip tilt while the flip tween is running to avoid fighting it.
+      if (flipTween.current?.isActive()) return;
+
       const rect = cardRef.current.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
       const centerX = rect.width / 2;
       const centerY = rect.height / 2;
 
-      const rotateX = ((y - centerY) / centerY) * -12;
-      const rotateY = ((x - centerX) / centerX) * 12;
+      const tiltX = ((y - centerY) / centerY) * -10;
+      const tiltY = ((x - centerX) / centerX) * 10;
+      const base = isFlippedRef.current ? 180 : 0;
 
       gsap.to(innerRef.current, {
-        rotateX,
-        rotateY,
+        rotateX: isFlippedRef.current ? -tiltX : tiltX,
+        rotateY: base + tiltY,
         duration: 0.3,
         ease: "power2.out",
         overwrite: "auto",
@@ -111,7 +119,7 @@ export function AnimeCard({
     if (innerRef.current) {
       gsap.to(innerRef.current, {
         rotateX: 0,
-        rotateY: 0,
+        rotateY: isFlippedRef.current ? 180 : 0,
         scale: 1,
         duration: 0.5,
         ease: "power3.out",
@@ -123,15 +131,17 @@ export function AnimeCard({
   const handleFlip = useCallback(() => {
     if (!innerRef.current || flipTween.current?.isActive()) return;
 
-    const target = isFlipped ? 0 : 180;
-    setIsFlipped(!isFlipped);
+    const next = !isFlippedRef.current;
+    isFlippedRef.current = next;
+    setIsFlipped(next);
 
     flipTween.current = gsap.to(innerRef.current, {
-      rotateY: target,
+      rotateX: 0,
+      rotateY: next ? 180 : 0,
       duration: 0.6,
       ease: "power2.inOut",
     });
-  }, [isFlipped]);
+  }, []);
 
   // Cleanup
   useEffect(() => {
@@ -142,7 +152,7 @@ export function AnimeCard({
 
   return (
     <div
-      className="card-perspective inline-block"
+      className="card-perspective inline-block relative"
       style={{ width: cardWidth, height: cardHeight }}
     >
       <div
@@ -152,27 +162,44 @@ export function AnimeCard({
         onMouseMove={handleMouseMove}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        onClick={isCompact ? undefined : handleFlip}
+        onClick={(e) => {
+          if (isCompact) return;
+          // Don't flip if the click came from within a no-flip zone (info bar, buttons)
+          const target = e.target as HTMLElement;
+          if (target.closest("[data-no-flip]")) return;
+          handleFlip();
+        }}
       >
         <div ref={innerRef} className="anime-card-inner">
           {/* Rarity border glow */}
           <div className="rarity-border" />
 
           {/* Front face */}
-          <div className="card-face card-front bg-zinc-900 flex flex-col">
-            {/* Image — fills all available space */}
-            <div className="card-image-wrapper flex-1">
+          <div
+            className="card-face card-front bg-zinc-900 flex flex-col"
+            style={{ pointerEvents: isFlipped ? "none" : "auto" }}
+          >
+            {/* Image area */}
+            <div className="card-image-wrapper flex-1 relative group/image">
               <Image
                 src={imageUrl}
                 alt={title}
                 fill
-                className="object-cover"
+                className="object-cover pointer-events-none"
                 sizes={`${cardWidth}px`}
               />
+              {!isCompact && (
+                <div className="absolute top-2 right-2 z-20 rounded-full bg-black/60 backdrop-blur-sm px-2.5 py-1 text-[10px] font-medium text-white/80 opacity-0 group-hover/image:opacity-100 transition-opacity tracking-wider uppercase pointer-events-none">
+                  Flip
+                </div>
+              )}
             </div>
 
-            {/* Info bar pinned to bottom */}
-            <div className="relative z-10 px-3 py-2.5 bg-zinc-900/95 backdrop-blur-sm">
+            {/* Info bar pinned to bottom — marked no-flip */}
+            <div
+              data-no-flip
+              className="relative z-10 px-3 py-2.5 bg-zinc-900/95 backdrop-blur-sm"
+            >
               <div className="flex items-start justify-between gap-2">
                 <h3
                   className={`font-bold text-white leading-tight line-clamp-2 ${
@@ -203,37 +230,28 @@ export function AnimeCard({
                 </div>
               )}
 
-              {!isCompact && !collected && onCollect && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onCollect();
-                  }}
-                  className="mt-2 w-full rounded-lg bg-indigo-600 py-2 text-xs font-semibold text-white transition-all hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-500/25 active:scale-[0.97]"
-                >
-                  Collect
-                </button>
-              )}
-
-              {!isCompact && collected && (
-                <div className="mt-2 w-full rounded-lg border border-emerald-500/30 bg-emerald-500/10 py-2 text-center text-xs font-semibold text-emerald-400">
-                  Collected
-                </div>
-              )}
+              {/* Reserved space where the overlay action button sits */}
+              {!isCompact && <div className="mt-2 h-8" aria-hidden />}
             </div>
 
-            {/* Shine overlay */}
-            <div ref={shineRef} className="card-shine" />
+            {/* Shine overlay — never captures pointer */}
+            <div ref={shineRef} className="card-shine pointer-events-none" />
 
             {/* Holographic overlay (legendary only) */}
             {rarity === "legendary" && (
-              <div ref={holoRef} className="holo-overlay" />
+              <div
+                ref={holoRef}
+                className="holo-overlay pointer-events-none"
+              />
             )}
           </div>
 
           {/* Back face */}
           {!isCompact && (
-            <div className="card-face card-back">
+            <div
+              className="card-face card-back"
+              style={{ pointerEvents: isFlipped ? "auto" : "none" }}
+            >
               <div className="card-back-content p-5">
                 <div className="flex items-start justify-between mb-3">
                   <h3 className="text-base font-bold text-white leading-tight pr-2 line-clamp-2">
@@ -306,8 +324,37 @@ export function AnimeCard({
               <div ref={shineRef} className="card-shine" />
             </div>
           )}
+
         </div>
       </div>
+
+      {/* Action button — OUTSIDE the 3D transform entirely. Sits in normal 2D
+          stacking on top of the card, so clicks reliably land here and never
+          leak through to the card's flip handler. */}
+      {!isCompact && onCollect && (
+        <div
+          className="absolute bottom-3 left-3 right-3 z-50"
+          style={{
+            opacity: isFlipped ? 0 : 1,
+            pointerEvents: isFlipped ? "none" : "auto",
+            transition: "opacity 0.2s ease",
+          }}
+        >
+          {collected ? (
+            <div className="w-full rounded-lg border border-emerald-500/40 bg-emerald-500/10 py-2 text-center text-xs font-semibold text-emerald-400 backdrop-blur-sm">
+              ✓ Collected
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => onCollect()}
+              className="w-full rounded-lg bg-indigo-600 py-2 text-xs font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:bg-indigo-500 hover:shadow-indigo-500/40 active:scale-[0.97]"
+            >
+              Collect
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

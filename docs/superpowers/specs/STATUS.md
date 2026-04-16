@@ -1,8 +1,8 @@
 # Anime Collector & Shelf — Project Status
 
-## Current Phase: Core UI In Progress
+## Current Phase: Core UI In Progress — Shelf Shipped, Visual Redesign Pending
 
-**Last updated:** 2026-04-13
+**Last updated:** 2026-04-16
 
 ## What's Done
 
@@ -27,35 +27,43 @@
 - [x] Jikan API integration — `searchAnime()` and `getTopAnime()` utility functions
 - [x] Browse page — live search with debounce, top anime on load, loading/error/empty states
 - [x] Next.js image config for `cdn.myanimelist.net` and `myanimelist.net` hostnames
+- [x] Zustand collection store (`collection-store.ts`) — load / collect / updateCategory / updateEpisode / remove / isCollected, auto-loaded on sign-in via AuthProvider
+- [x] Wired the **Collect** button on Browse to persist to Supabase with toast feedback + collected-state UI
+- [x] Collection grid page — filterable (by rarity) + sortable (recent / title / score / rarity) view of all collected cards
+- [x] Shelf page v1 — header with stats, three collapsible sections (Currently Watching, Plan to Watch, Watched), horizontal card rows, per-card move menu + episode stepper (auto-moves to Watched when final episode hit), empty states
 
 ## What's Next (in order)
 
-1. **Wire up collect action** — clicking "Collect" saves anime to Supabase `collected_anime` table
-2. **Build the shelf page** — collapsible sections (Currently Watching, Watched, Plan to Watch), drag-and-drop between sections, episode tracking stepper
-3. **Build the hidden Favorites flip** — full-shelf 3D flip animation (GSAP) to reveal Favorites
-4. **Build the collection grid page** — filterable view of all collected cards
-5. **Build the card detail page** (`/card/[id]`) — full card view fetching fresh Jikan data
-6. **Polish** — landing page design, empty states, responsive design, loading states, transitions
+1. **Visual redesign of the shelf / overall frontend theme** ← *current focus* — move away from generic minimalist SaaS look toward a collector's library / bookshelf / "customizable display case" aesthetic
+2. **Build the hidden Favorites flip** — full-shelf 3D flip animation (GSAP) to reveal Favorites
+3. **Drag-and-drop between shelf sections** (deferred from v1 — currently uses a move-to menu)
+4. **Build the card detail page** (`/card/[id]`) — full card view fetching fresh Jikan data
+5. **Polish** — landing page design, responsive design, loading states, transitions
 
 ## Project Structure
 
 ```
 src/
 ├── app/
-│   ├── browse/page.tsx         — live Jikan search + card grid
-│   ├── collection/page.tsx     — stub
+│   ├── browse/page.tsx         — live Jikan search + collect action
+│   ├── collection/page.tsx     — filterable / sortable grid of all collected cards
 │   ├── login/page.tsx          — auth form
-│   ├── shelf/page.tsx          — stub
+│   ├── shelf/
+│   │   ├── page.tsx            — stats header + 3 collapsible sections
+│   │   └── shelf.css           — horizontal-scroll styling + empty-state glow
 │   ├── signup/page.tsx         — auth form
-│   ├── globals.css             — dark theme base
+│   ├── globals.css             — dark theme base + toast animation
 │   ├── layout.tsx              — AuthProvider + Navbar wrapper
 │   └── page.tsx                — landing page
 ├── components/
 │   ├── card/
 │   │   ├── anime-card.tsx      — main card component (full + compact)
 │   │   └── card.css            — rarity effects, flip, shine, holo
+│   ├── shelf/
+│   │   ├── shelf-section.tsx   — collapsible section (GSAP expand/collapse)
+│   │   └── shelf-card.tsx      — compact card + episode stepper + move menu
 │   ├── auth-form.tsx           — login/signup form
-│   ├── auth-provider.tsx       — initializes auth on mount
+│   ├── auth-provider.tsx       — initializes auth + loads collection on sign-in
 │   └── navbar.tsx              — top nav (hidden when logged out)
 ├── lib/
 │   ├── jikan.ts                — Jikan API v4 client (search, top anime)
@@ -66,7 +74,8 @@ src/
 │   │   └── middleware.ts       — session refresh for proxy
 │   └── types.ts                — TypeScript types + getRarityTier()
 ├── stores/
-│   └── auth-store.ts           — Zustand auth state (user, signIn, signUp, signOut)
+│   ├── auth-store.ts           — Zustand auth state (user, signIn, signUp, signOut)
+│   └── collection-store.ts     — Zustand collection state (load/collect/update/remove)
 └── proxy.ts                    — Next.js 16 proxy (replaces middleware.ts)
 ```
 

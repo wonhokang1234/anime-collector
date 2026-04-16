@@ -3,14 +3,32 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { AnimeCard } from "@/components/card/anime-card";
 import { searchAnime, getTopAnime, getAnimeYear, type JikanAnime } from "@/lib/jikan";
+import { useAuthStore } from "@/stores/auth-store";
+import { useCollectionStore } from "@/stores/collection-store";
+import { useRouter } from "next/navigation";
 import "@/components/card/card.css";
 
 export default function BrowsePage() {
+  const router = useRouter();
+  const user = useAuthStore((s) => s.user);
+  const authLoading = useAuthStore((s) => s.loading);
+  const items = useCollectionStore((s) => s.items);
+  const isCollected = useCollectionStore((s) => s.isCollected);
+  const collect = useCollectionStore((s) => s.collect);
+
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<JikanAnime[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ title: string; id: number } | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [authLoading, user, router]);
 
   // Load top anime on mount
   useEffect(() => {
@@ -47,6 +65,45 @@ export default function BrowsePage() {
       }
     }, 500);
   }, []);
+
+  const handleCollect = useCallback(
+    async (anime: JikanAnime) => {
+      if (!user) {
+        setToast({ title: "Not signed in — please log in again.", id: Date.now() });
+        return;
+      }
+
+      const result = await collect(user.id, {
+        mal_id: anime.mal_id,
+        title: anime.title,
+        image_url: anime.images.jpg.large_image_url,
+        score: anime.score ?? 0,
+        total_episodes: anime.episodes,
+      });
+
+      if (result.error) {
+        setToast({ title: `Error: ${result.error}`, id: Date.now() });
+      } else {
+        setToast({ title: `Added "${anime.title}" to your shelf`, id: Date.now() });
+      }
+    },
+    [user, collect]
+  );
+
+  // Auto-dismiss toast
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 2800);
+    return () => clearTimeout(timer);
+  }, [toast]);
+
+  if (authLoading || !user) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-700 border-t-indigo-500" />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10">
@@ -101,6 +158,13 @@ export default function BrowsePage() {
         ))}
       </div>
 
+      {/* Collection stats */}
+      {items.length > 0 && (
+        <p className="mb-6 text-xs text-zinc-500">
+          You've collected <span className="text-indigo-400 font-semibold">{items.length}</span> anime so far
+        </p>
+      )}
+
       {/* Loading state */}
       {loading && (
         <div className="flex items-center justify-center py-20">
@@ -136,9 +200,37 @@ export default function BrowsePage() {
               genres={anime.genres.map((g) => g.name)}
               studio={anime.studios[0]?.name}
               year={getAnimeYear(anime)}
-              onCollect={() => console.log(`Collecting: ${anime.title}`)}
+              collected={isCollected(anime.mal_id)}
+              onCollect={() => handleCollect(anime)}
             />
           ))}
+        </div>
+      )}
+
+      {/* Toast notification */}
+      {toast && (
+        <div
+          key={toast.id}
+          className="fixed bottom-6 right-6 z-50 rounded-xl border border-indigo-500/30 bg-zinc-900/95 px-5 py-3.5 text-sm text-white shadow-2xl shadow-indigo-500/20 backdrop-blur-sm animate-toast-in"
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500/20">
+              <svg
+                className="h-3.5 w-3.5 text-indigo-300"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={3}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </div>
+            <span>{toast.title}</span>
+          </div>
         </div>
       )}
     </div>

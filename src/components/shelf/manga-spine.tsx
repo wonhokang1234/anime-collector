@@ -36,7 +36,7 @@ export function MangaSpine({
   tone,
   hero = false,
   onMove,
-  onEpisodeChange: _onEpisodeChange,
+  onEpisodeChange,
   onRemove,
 }: MangaSpineProps) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -58,14 +58,48 @@ export function MangaSpine({
   const height = hero ? 250 : 220;
   const dimmed = tone === "watched";
 
+  const total = item.total_episodes || 0;
+  const current = item.current_episode || 0;
+  const stepEpisode = (delta: number) => {
+    const next = Math.max(
+      0,
+      total > 0 ? Math.min(total, current + delta) : current + delta
+    );
+    if (next === current) return;
+    onEpisodeChange(item.id, next);
+    if (total > 0 && next === total && item.category !== "watched") {
+      onMove(item.id, "watched");
+    }
+  };
+
   return (
     <div
       className="relative shrink-0 group/spine"
       style={{
         width,
+        transform: hero ? "translateY(-32px)" : undefined,
         filter: dimmed ? "saturate(.92) brightness(.98)" : undefined,
       }}
     >
+      {hero && (
+        <>
+          <span className="spine-bookmark" aria-hidden />
+          <div
+            aria-hidden
+            className="absolute left-1/2 -translate-x-1/2 rounded-full"
+            style={{
+              bottom: -24,
+              width: width * 1.4,
+              height: 46,
+              background:
+                "radial-gradient(ellipse, rgba(244,217,138,.55), transparent 65%)",
+              filter: "blur(6px)",
+              pointerEvents: "none",
+            }}
+          />
+        </>
+      )}
+
       <div
         className="relative overflow-hidden"
         style={{
@@ -73,8 +107,9 @@ export function MangaSpine({
           height,
           background: "linear-gradient(180deg,#2a1808,#0a0604)",
           borderRadius: "2px 2px 0 0",
-          boxShadow:
-            "0 10px 22px rgba(0,0,0,.55), inset 1px 0 0 rgba(0,0,0,.45), inset -1px 0 0 rgba(255,220,160,.12)",
+          boxShadow: hero
+            ? "0 16px 40px rgba(0,0,0,.7), 0 0 0 1px rgba(244,228,192,.15), inset 0 1px 0 rgba(244,228,192,.35)"
+            : "0 10px 22px rgba(0,0,0,.55), inset 1px 0 0 rgba(0,0,0,.45), inset -1px 0 0 rgba(255,220,160,.12)",
         }}
       >
         {/* Rarity top foil */}
@@ -141,7 +176,98 @@ export function MangaSpine({
         >
           {RARITY_LETTER[rarity]}
         </div>
+
+        {/* ✓ overlay for watched tone (non-hero) */}
+        {tone === "watched" && (
+          <div
+            aria-hidden
+            className="absolute inset-0 pointer-events-none"
+            style={{ background: "rgba(244,228,192,.08)" }}
+          />
+        )}
       </div>
+
+      {/* Episode stepper — hero + watching only */}
+      {hero && tone === "watching" && (
+        <div
+          className="absolute left-1/2 -translate-x-1/2"
+          style={{ bottom: -82, width: 200 }}
+        >
+          <div className="flex items-center gap-2 rounded-lg border border-white/20 bg-black/50 px-2 py-1.5 backdrop-blur-sm">
+            <button
+              type="button"
+              aria-label="Previous episode"
+              onClick={() => stepEpisode(-1)}
+              disabled={current <= 0}
+              className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-white/10 disabled:opacity-30"
+              style={{ color: "var(--washi)" }}
+            >
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              >
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            </button>
+            <div className="flex-1 text-center">
+              <div
+                className="text-[9px] uppercase tracking-[.2em]"
+                style={{
+                  color: "rgba(244,228,192,.55)",
+                  fontFamily: "var(--font-display)",
+                }}
+              >
+                Episode
+              </div>
+              <div
+                className="font-mono text-sm tabular-nums"
+                style={{ color: "var(--washi)" }}
+              >
+                {current} / {total || "?"}
+              </div>
+            </div>
+            <button
+              type="button"
+              aria-label="Next episode"
+              onClick={() => stepEpisode(1)}
+              disabled={total > 0 && current >= total}
+              className="flex h-6 w-6 items-center justify-center rounded transition-colors hover:bg-white/10 disabled:opacity-30"
+              style={{ color: "var(--washi)" }}
+            >
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              >
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            </button>
+          </div>
+          {total > 0 && (
+            <div className="mt-1 h-[3px] w-full overflow-hidden rounded-full bg-black/60">
+              <div
+                className="h-full transition-[width] duration-300"
+                style={{
+                  width: `${Math.min(100, (current / total) * 100)}%`,
+                  background:
+                    "linear-gradient(90deg, var(--lantern-glow), var(--hanko))",
+                  boxShadow: "0 0 6px rgba(244,217,138,.55)",
+                }}
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Menu button — hover reveal */}
       <div

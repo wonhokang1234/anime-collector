@@ -32,7 +32,7 @@ Established during the brainstorm. All three scenes pull from the same palette s
 
 ## Page Structure
 
-```
+```text
 <ShelfPage>
   ├─ Header: "My Shelf" + stats strip (restyled — washi + hanko dots)
   ├─ <SceneTabs>         washi/sumi tab bar with kanji subtitle + hanko count badge
@@ -87,7 +87,7 @@ Not dusty — *archival*. Brighter than v1, intentionally past-tense.
 
 The single reusable unit across all three scenes. Built as `<MangaSpine item={} hero={} tone={"watching"|"plan"|"watched"} />`.
 
-```
+```text
 ┌──────────────┐ ← top foil edge (rainbow if Legendary, gold if Epic, else sumi)
 │  [cover art] │   55% of spine height — cropped cover image
 │              │

@@ -1,6 +1,6 @@
 # Anime Collector & Shelf — Project Status
 
-## Current Phase: Core UI In Progress — Shelf Shipped, Visual Redesign Pending
+## Current Phase: Shelf Visual Redesign — Task 1 of 10 Complete
 
 **Last updated:** 2026-04-16
 
@@ -31,14 +31,31 @@
 - [x] Wired the **Collect** button on Browse to persist to Supabase with toast feedback + collected-state UI
 - [x] Collection grid page — filterable (by rarity) + sortable (recent / title / score / rarity) view of all collected cards
 - [x] Shelf page v1 — header with stats, three collapsible sections (Currently Watching, Plan to Watch, Watched), horizontal card rows, per-card move menu + episode stepper (auto-moves to Watched when final episode hit), empty states
+- [x] Shelf visual redesign: spec + implementation plan written (`2026-04-16-shelf-visual-redesign-design.md`, `2026-04-16-shelf-visual-redesign.md`)
+- [x] Redesign Task 1 / 10: Cinzel + Noto Serif JP fonts loaded in `layout.tsx` (exposes `--font-cinzel`, `--font-noto-jp`)
 
 ## What's Next (in order)
 
-1. **Visual redesign of the shelf / overall frontend theme** ← *current focus* — move away from generic minimalist SaaS look toward a collector's library / bookshelf / "customizable display case" aesthetic
+1. **Shelf visual redesign — tasks 2–10** ← *in progress* (plan at `docs/superpowers/plans/2026-04-16-shelf-visual-redesign.md`)
+   - T2: Rewrite `shelf.css` with visual-language tokens
+   - T3: Build `MangaSpine` base component
+   - T4: Add hero mode to `MangaSpine` (bookmark, pedestal, stepper)
+   - T5: Build `SceneBackdrop` component
+   - T6: Build `SceneTabs` component
+   - T7: Build `Scene` container with cross-fade
+   - T8: Rewrite `/shelf/page.tsx` with tabs + scenes
+   - T9: Delete retired `shelf-section.tsx` + `shelf-card.tsx`
+   - T10: Update this STATUS.md
 2. **Build the hidden Favorites flip** — full-shelf 3D flip animation (GSAP) to reveal Favorites
 3. **Drag-and-drop between shelf sections** (deferred from v1 — currently uses a move-to menu)
 4. **Build the card detail page** (`/card/[id]`) — full card view fetching fresh Jikan data
 5. **Polish** — landing page design, responsive design, loading states, transitions
+
+## Resume Notes
+
+- Execution mode chosen: **subagent-driven-development** (one implementer subagent per task, then spec-review + code-quality-review before moving on).
+- Task 1 was completed directly (not via subagent) and committed as `480e297`.
+- Next session: pick up at Task 2. Either continue dispatching subagents per task, or execute inline.
 
 ## Project Structure
 
@@ -100,3 +117,4 @@ src/
 - Two Supabase client patterns exist: simple (`lib/supabase.ts`) for client components, SSR (`lib/supabase/`) for server components and proxy
 - `.env.local` contains Supabase credentials (gitignored via `.env*` pattern)
 - Full design spec is in `2026-04-13-anime-collector-shelf-design.md`
+- Shelf redesign spec/plan are `2026-04-16-shelf-visual-redesign-design.md` + `docs/superpowers/plans/2026-04-16-shelf-visual-redesign.md`

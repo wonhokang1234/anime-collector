@@ -162,10 +162,17 @@ export const FavoritesReveal = forwardRef<
 
   return (
     <div className="relative" style={{ minHeight: 400 }}>
+      {/* Gallery — fixed fullscreen below navbar */}
       <div
         ref={galleryRef}
-        className="absolute inset-0 rounded-2xl overflow-hidden"
-        style={{ opacity: 0, transform: "translateY(40px)" }}
+        className="fixed left-0 right-0 bottom-0 overflow-hidden"
+        style={{
+          top: "3.5rem",
+          opacity: 0,
+          transform: "translateY(40px)",
+          zIndex: 40,
+          pointerEvents: isOpen ? "auto" : "none",
+        }}
       >
         <FavoritesScene
           items={favorites}
@@ -175,25 +182,23 @@ export const FavoritesReveal = forwardRef<
         />
       </div>
 
-      <div ref={slitRef} className="moon-slit rounded-2xl" aria-hidden />
+      {/* Slit — absolute within wrapper */}
+      <div ref={slitRef} className="moon-slit" aria-hidden />
 
-      <div
-        ref={doorLeftRef}
-        className="fusuma-door fusuma-door-left rounded-l-2xl"
-      >
+      {/* Door left — absolute within wrapper */}
+      <div ref={doorLeftRef} className="fusuma-door fusuma-door-left">
         <div className="fusuma-content">{children}</div>
       </div>
 
-      <div
-        ref={doorRightRef}
-        className="fusuma-door fusuma-door-right rounded-r-2xl"
-      >
+      {/* Door right — absolute within wrapper */}
+      <div ref={doorRightRef} className="fusuma-door fusuma-door-right">
         <div className="fusuma-content">{children}</div>
       </div>
 
+      {/* Hint — fixed at bottom of viewport */}
       <div
         ref={hintRef}
-        className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20"
+        className="fixed bottom-4 left-1/2 -translate-x-1/2"
         style={{
           opacity: 0,
           fontSize: "0.6rem",
@@ -201,6 +206,7 @@ export const FavoritesReveal = forwardRef<
           textTransform: "uppercase" as const,
           color: "rgba(200, 208, 224, 0.5)",
           fontFamily: "var(--font-display)",
+          zIndex: 41,
         }}
       >
         ESC to return

@@ -38,7 +38,7 @@ export function FavoritesScene({
 
   return (
     <div
-      className="moon-gallery absolute inset-0"
+      className="moon-gallery relative w-full h-full"
       style={{
         background:
           "linear-gradient(180deg, var(--moon-ink-0), var(--moon-ink-1))",
@@ -67,7 +67,7 @@ export function FavoritesScene({
       </div>
 
       {/* Content */}
-      <div className="relative z-10 h-full px-8 py-10">
+      <div className="relative z-10 flex flex-col h-full px-8 py-10">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-baseline gap-3">
@@ -118,7 +118,7 @@ export function FavoritesScene({
 
         {/* Spines or empty state */}
         {items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center min-h-[280px] gap-3">
+          <div className="flex flex-col items-center justify-center flex-1 gap-3">
             <div
               className="flex items-center justify-center w-16 h-16 rounded-full"
               style={{
@@ -153,8 +153,8 @@ export function FavoritesScene({
           </div>
         ) : (
           <div
-            className="shelf-scroll flex gap-3 overflow-x-auto pb-6"
-            style={{ paddingTop: 28, alignItems: "flex-end", minHeight: 320 }}
+            className="shelf-scroll flex gap-3 overflow-x-auto pb-6 flex-1"
+            style={{ paddingTop: 28, alignItems: "flex-end" }}
           >
             {items.map((item) => (
               <MangaSpine

@@ -1,0 +1,210 @@
+"use client";
+
+import {
+  type ReactNode,
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
+import gsap from "gsap";
+import type { AnimeCategory, CollectedAnime } from "@/lib/types";
+import { FavoritesScene } from "./favorites-scene";
+
+interface FavoritesRevealProps {
+  children: ReactNode;
+  favorites: CollectedAnime[];
+  onMove: (id: string, category: AnimeCategory) => void;
+  onEpisodeChange: (id: string, episode: number) => void;
+  onRemove: (id: string) => void;
+}
+
+export interface FavoritesRevealHandle {
+  toggle: () => void;
+  isOpen: boolean;
+}
+
+export const FavoritesReveal = forwardRef<
+  FavoritesRevealHandle,
+  FavoritesRevealProps
+>(function FavoritesReveal(
+  { children, favorites, onMove, onEpisodeChange, onRemove },
+  ref
+) {
+  const [isOpen, setIsOpen] = useState(false);
+  const animating = useRef(false);
+  const doorLeftRef = useRef<HTMLDivElement>(null);
+  const doorRightRef = useRef<HTMLDivElement>(null);
+  const slitRef = useRef<HTMLDivElement>(null);
+  const galleryRef = useRef<HTMLDivElement>(null);
+  const hintRef = useRef<HTMLDivElement>(null);
+  const tlRef = useRef<gsap.core.Timeline | null>(null);
+
+  const open = useCallback(() => {
+    if (animating.current) return;
+    animating.current = true;
+
+    const tl = gsap.timeline({
+      onComplete: () => {
+        animating.current = false;
+      },
+    });
+
+    tl.to(slitRef.current, {
+      width: 8,
+      boxShadow:
+        "0 0 40px 12px rgba(200,220,255,0.3), 0 0 80px 30px rgba(180,200,240,0.15)",
+      background:
+        "linear-gradient(90deg, transparent 0%, rgba(210,225,255,0.7) 25%, rgba(255,255,255,0.95) 50%, rgba(210,225,255,0.7) 75%, transparent 100%)",
+      duration: 0.3,
+      ease: "power2.in",
+    });
+
+    tl.to(slitRef.current, {
+      width: 20,
+      background:
+        "linear-gradient(90deg, transparent 0%, rgba(180,200,240,0.3) 20%, rgba(220,230,255,0.6) 50%, rgba(180,200,240,0.3) 80%, transparent 100%)",
+      boxShadow:
+        "0 0 50px 15px rgba(180,200,240,0.12), 0 0 100px 40px rgba(180,200,240,0.06)",
+      duration: 0.4,
+      ease: "power1.out",
+    });
+    tl.to(
+      doorLeftRef.current,
+      { x: "-100%", duration: 1.1, ease: "power3.inOut" },
+      "<"
+    );
+    tl.to(
+      doorRightRef.current,
+      { x: "100%", duration: 1.1, ease: "power3.inOut" },
+      "<"
+    );
+    tl.fromTo(
+      galleryRef.current,
+      { y: 40, opacity: 0 },
+      { y: 0, opacity: 1, duration: 1.0, ease: "power3.out" },
+      "<"
+    );
+
+    tl.to(slitRef.current, {
+      width: 0,
+      opacity: 0,
+      duration: 0.3,
+      ease: "power1.out",
+    }, "-=0.6");
+
+    tl.to(hintRef.current, { opacity: 1, duration: 0.4 }, "-=0.2");
+
+    tlRef.current = tl;
+    setIsOpen(true);
+  }, []);
+
+  const close = useCallback(() => {
+    if (animating.current) return;
+    animating.current = true;
+
+    const tl = gsap.timeline({
+      onComplete: () => {
+        animating.current = false;
+        gsap.set(slitRef.current, {
+          width: 0,
+          opacity: 1,
+          boxShadow: "none",
+          background: "none",
+        });
+      },
+    });
+
+    tl.to(hintRef.current, { opacity: 0, duration: 0.2 });
+    tl.to(
+      galleryRef.current,
+      { y: 40, opacity: 0, duration: 0.5, ease: "power2.in" },
+      "<"
+    );
+    tl.to(
+      doorLeftRef.current,
+      { x: "0%", duration: 1.0, ease: "power3.inOut" },
+      "-=0.3"
+    );
+    tl.to(
+      doorRightRef.current,
+      { x: "0%", duration: 1.0, ease: "power3.inOut" },
+      "<"
+    );
+
+    tlRef.current = tl;
+    setIsOpen(false);
+  }, []);
+
+  const toggle = useCallback(() => {
+    if (isOpen) close();
+    else open();
+  }, [isOpen, open, close]);
+
+  useImperativeHandle(ref, () => ({ toggle, isOpen }), [toggle, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") close();
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [isOpen, close]);
+
+  useEffect(() => {
+    return () => {
+      tlRef.current?.kill();
+    };
+  }, []);
+
+  return (
+    <div className="relative" style={{ minHeight: 400 }}>
+      <div
+        ref={galleryRef}
+        className="absolute inset-0 rounded-2xl overflow-hidden"
+        style={{ opacity: 0, transform: "translateY(40px)" }}
+      >
+        <FavoritesScene
+          items={favorites}
+          onMove={onMove}
+          onEpisodeChange={onEpisodeChange}
+          onRemove={onRemove}
+        />
+      </div>
+
+      <div ref={slitRef} className="moon-slit rounded-2xl" aria-hidden />
+
+      <div
+        ref={doorLeftRef}
+        className="fusuma-door fusuma-door-left rounded-l-2xl"
+      >
+        <div className="fusuma-content">{children}</div>
+      </div>
+
+      <div
+        ref={doorRightRef}
+        className="fusuma-door fusuma-door-right rounded-r-2xl"
+      >
+        <div className="fusuma-content">{children}</div>
+      </div>
+
+      <div
+        ref={hintRef}
+        className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20"
+        style={{
+          opacity: 0,
+          fontSize: "0.6rem",
+          letterSpacing: "0.2em",
+          textTransform: "uppercase" as const,
+          color: "rgba(200, 208, 224, 0.5)",
+          fontFamily: "var(--font-display)",
+        }}
+      >
+        ESC to return
+      </div>
+    </div>
+  );
+});

@@ -220,3 +220,107 @@
   filter: blur(30px);
   pointer-events: none;
 }
+
+/* ── Moonlit gallery (favorites) ── */
+.moon-gallery {
+  --moon-ink-0: #060818;
+  --moon-ink-1: #0a0614;
+  --moon-silver: #c8d0e0;
+  --moon-silver-dim: rgba(200, 208, 224, 0.5);
+  --moon-silver-border: rgba(200, 208, 224, 0.18);
+  --moon-indigo: #1a2a5a;
+}
+
+/* Stars */
+.moon-star {
+  position: absolute;
+  background: white;
+  border-radius: 50%;
+  animation: twinkle 3s ease-in-out infinite;
+}
+@keyframes twinkle {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.75; }
+}
+
+/* Moonlight pool from above */
+.moon-pool {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 130%;
+  height: 75%;
+  background: radial-gradient(
+    ellipse at 50% -5%,
+    rgba(180, 200, 240, 0.2) 0%,
+    rgba(180, 200, 240, 0.08) 30%,
+    rgba(140, 170, 220, 0.03) 55%,
+    transparent 75%
+  );
+  pointer-events: none;
+}
+
+/* Ground reflection */
+.moon-ground {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50%;
+  height: 25%;
+  background: radial-gradient(
+    ellipse at 50% 100%,
+    rgba(180, 200, 240, 0.07) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+/* Spine overrides inside moonlit gallery */
+.moon-gallery .spine-foil-common,
+.moon-gallery .spine-foil-uncommon,
+.moon-gallery .spine-foil-rare,
+.moon-gallery .spine-foil-epic {
+  background: linear-gradient(90deg, #8a9ab0, #c8d0e0, #8a9ab0);
+}
+.moon-gallery .spine-foil-legendary {
+  background: linear-gradient(90deg, #8a9ab0, #c8d0e0, #e8eaf0, #c8d0e0, #8a9ab0);
+  background-size: 200% 100%;
+  animation: foil-shimmer 6s linear infinite;
+  box-shadow: 0 0 6px rgba(180, 200, 240, 0.4);
+}
+
+/* ── Fusuma door system ── */
+.fusuma-door {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  overflow: hidden;
+  z-index: 10;
+  will-change: transform;
+}
+.fusuma-door-left { left: 0; }
+.fusuma-door-right { right: 0; }
+
+.fusuma-content {
+  position: absolute;
+  top: 0;
+  width: 200%;
+  height: 100%;
+}
+.fusuma-door-left .fusuma-content { left: 0; }
+.fusuma-door-right .fusuma-content { left: -100%; }
+
+/* Moon slit */
+.moon-slit {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  z-index: 9;
+  pointer-events: none;
+}

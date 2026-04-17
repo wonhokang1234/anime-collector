@@ -1,6 +1,6 @@
 # Anime Collector & Shelf — Project Status
 
-## Current Phase: Favorites Reveal Shipped
+## Current Phase: Drag-and-Drop Shipped
 
 **Last updated:** 2026-04-17
 
@@ -33,19 +33,19 @@
 - [x] Shelf page v1 — header with stats, three collapsible sections (Currently Watching, Plan to Watch, Watched), horizontal card rows, per-card move menu + episode stepper (auto-moves to Watched when final episode hit), empty states
 - [x] Shelf visual redesign: manga-spine UI, per-category scenes (Watching hero / Plan indigo / Watched archive), washi tab navigator, Cinzel + Noto Serif JP typography
 - [x] Favorites Reveal: fusuma sliding-door animation with moonlit gallery (秘 seal trigger, GSAP three-phase animation, starfield, moonlight pool, 秘蔵 watermark, full-viewport gallery, Escape + seal close)
+- [x] Drag-and-drop between shelf sections: @dnd-kit integration with draggable spines, droppable tabs + 秘 seal, drag overlay, scene desaturation, badge pop animations, full keyboard + screen reader accessibility, DoorMirrorContext to prevent duplicate draggable IDs from fusuma doors
 
 ## What's Next (in order)
 
-1. **Drag-and-drop between shelf sections** (deferred from v1 — currently uses a move-to menu)
-2. **Build the card detail page** (`/card/[id]`) — full card view fetching fresh Jikan data
-3. **Polish** — landing page design, responsive design, loading states, transitions
+1. **Build the card detail page** (`/card/[id]`) — full card view fetching fresh Jikan data
+2. **Polish** — landing page design, responsive design, loading states, transitions
 
 ## Resume Notes
 
-- Favorites Reveal feature completed across 6 tasks using subagent-driven-development.
-- Design spec: `docs/superpowers/specs/2026-04-17-favorites-flip-design.md`
-- Implementation plan: `docs/superpowers/plans/2026-04-17-favorites-reveal.md`
-- Mockup (not committed): `mockup-favorites-flip.html`
+- Drag-and-drop feature completed across 6 tasks + review fixes using subagent-driven-development.
+- Design spec: `docs/superpowers/specs/2026-04-17-shelf-drag-drop-design.md`
+- Implementation plan: `docs/superpowers/plans/2026-04-17-shelf-drag-drop.md`
+- Review fixes: duplicate draggable IDs (DoorMirrorContext), stale animating ref (getter), onDragCancel handler, seal hover/drag style guards
 
 ## Project Structure
 
@@ -69,9 +69,9 @@ src/
 │   ├── shelf/
 │   │   ├── favorites-reveal.tsx — fusuma door wrapper with GSAP open/close animation
 │   │   ├── favorites-scene.tsx  — moonlit gallery (stars, moonlight pool, header, spines, empty state)
-│   │   ├── manga-spine.tsx     — manga-volume spine (base + hero mode with bookmark, pedestal, stepper)
+│   │   ├── manga-spine.tsx     — manga-volume spine (base + hero mode, draggable via @dnd-kit)
 │   │   ├── scene-backdrop.tsx  — per-tone decorative backdrop (lantern / shoji / archival)
-│   │   ├── scene-tabs.tsx      — washi tab navigator with kanji subtitles + hanko count badges
+│   │   ├── scene-tabs.tsx      — washi tab navigator with kanji subtitles + hanko count badges + droppable tabs
 │   │   └── scene.tsx           — active-scene container with GSAP cross-fade + empty states
 │   ├── auth-form.tsx           — login/signup form
 │   ├── auth-provider.tsx       — initializes auth + loads collection on sign-in
@@ -102,6 +102,7 @@ src/
 | Client State | Zustand |
 | Card rarity | Based on Jikan score (Common through Legendary) |
 | Favorites | Hidden shelf revealed by fusuma sliding-door animation with moonlit gallery |
+| Drag-and-drop | @dnd-kit/core + @dnd-kit/utilities — PointerSensor (250ms delay) + KeyboardSensor |
 | UI Quality | Professional/creative — no generic AI aesthetic |
 
 ## Notes
@@ -113,3 +114,4 @@ src/
 - Full design spec is in `2026-04-13-anime-collector-shelf-design.md`
 - Shelf redesign spec/plan are `2026-04-16-shelf-visual-redesign-design.md` + `docs/superpowers/plans/2026-04-16-shelf-visual-redesign.md`
 - Favorites reveal spec/plan are `2026-04-17-favorites-flip-design.md` + `docs/superpowers/plans/2026-04-17-favorites-reveal.md`
+- Drag-and-drop spec/plan are `2026-04-17-shelf-drag-drop-design.md` + `docs/superpowers/plans/2026-04-17-shelf-drag-drop.md`

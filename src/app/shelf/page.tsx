@@ -2,6 +2,18 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  useDroppable,
+  type DragStartEvent,
+  type DragEndEvent,
+} from "@dnd-kit/core";
 import { useAuthStore } from "@/stores/auth-store";
 import { useCollectionStore } from "@/stores/collection-store";
 import { Scene } from "@/components/shelf/scene";
@@ -11,8 +23,68 @@ import {
   type FavoritesRevealHandle,
 } from "@/components/shelf/favorites-reveal";
 import type { SpineTone } from "@/components/shelf/manga-spine";
-import type { CollectedAnime } from "@/lib/types";
+import type { AnimeCategory, CollectedAnime } from "@/lib/types";
 import "./shelf.css";
+
+const TARGET_MAP: Record<string, AnimeCategory> = {
+  "drop-watching": "watching",
+  "drop-plan": "plan_to_watch",
+  "drop-watched": "watched",
+  "drop-favorite": "favorite",
+};
+
+interface DroppableSealProps {
+  isDragActive: boolean;
+  onClick: () => void;
+}
+
+function DroppableSeal({ isDragActive, onClick }: DroppableSealProps) {
+  const { setNodeRef, isOver } = useDroppable({ id: "drop-favorite" });
+
+  const sealClass = isDragActive
+    ? isOver
+      ? "seal-drop-hover"
+      : "seal-drag-hint"
+    : "";
+
+  return (
+    <button
+      ref={setNodeRef}
+      type="button"
+      onClick={() => {
+        if (!isDragActive) onClick();
+      }}
+      title="秘蔵 — Hidden Collection"
+      aria-label="Toggle hidden collection"
+      className={`flex items-center justify-center transition-all ${sealClass}`}
+      style={{
+        width: 32,
+        height: 32,
+        borderRadius: 2,
+        background: "var(--hanko)",
+        color: "var(--washi)",
+        fontFamily: "var(--font-jp)",
+        fontSize: 14,
+        fontWeight: 900,
+        opacity: 0.35,
+        transform: "rotate(-4deg)",
+        cursor: "pointer",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.opacity = "1";
+        e.currentTarget.style.transform = "rotate(2deg)";
+        e.currentTarget.style.boxShadow = "0 0 12px rgba(196,30,58,0.5)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.opacity = "0.35";
+        e.currentTarget.style.transform = "rotate(-4deg)";
+        e.currentTarget.style.boxShadow = "none";
+      }}
+    >
+      秘
+    </button>
+  );
+}
 
 export default function ShelfPage() {
   const router = useRouter();
@@ -25,12 +97,25 @@ export default function ShelfPage() {
   const remove = useCollectionStore((s) => s.remove);
 
   const [tone, setTone] = useState<SpineTone>("watching");
+  const [activeDragId, setActiveDragId] = useState<string | null>(null);
 
   const revealRef = useRef<FavoritesRevealHandle>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { delay: 250, tolerance: 5 },
+    }),
+    useSensor(KeyboardSensor)
+  );
 
   const favorites = useMemo(
     () => items.filter((i) => i.category === "favorite"),
     [items]
+  );
+
+  const activeDragItem = useMemo<CollectedAnime | undefined>(
+    () => (activeDragId ? items.find((i) => i.id === activeDragId) : undefined),
+    [activeDragId, items]
   );
 
   useEffect(() => {
@@ -57,6 +142,26 @@ export default function ShelfPage() {
     watched: grouped.watched.length,
   };
   const total = items.length;
+
+  function handleDragStart(event: DragStartEvent) {
+    setActiveDragId(String(event.active.id));
+    document.body.style.cursor = "grabbing";
+  }
+
+  function handleDragEnd(event: DragEndEvent) {
+    const overId = event.over?.id ? String(event.over.id) : null;
+    if (overId && activeDragId) {
+      const targetCategory = TARGET_MAP[overId];
+      if (targetCategory) {
+        const draggedItem = items.find((i) => i.id === activeDragId);
+        if (draggedItem && draggedItem.category !== targetCategory) {
+          updateCategory(activeDragId, targetCategory);
+        }
+      }
+    }
+    setActiveDragId(null);
+    document.body.style.cursor = "";
+  }
 
   if (authLoading || !user || !initialized) {
     return (
@@ -148,59 +253,72 @@ export default function ShelfPage() {
             <Stat label="Watched" value={counts.watched} />
           </div>
 
-          <button
-            type="button"
+          <DroppableSeal
+            isDragActive={!!activeDragId}
             onClick={() => revealRef.current?.toggle()}
-            title="秘蔵 — Hidden Collection"
-            aria-label="Toggle hidden collection"
-            className="flex items-center justify-center transition-all"
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 2,
-              background: "var(--hanko)",
-              color: "var(--washi)",
-              fontFamily: "var(--font-jp)",
-              fontSize: 14,
-              fontWeight: 900,
-              opacity: 0.35,
-              transform: "rotate(-4deg)",
-              cursor: "pointer",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.opacity = "1";
-              e.currentTarget.style.transform = "rotate(2deg)";
-              e.currentTarget.style.boxShadow = "0 0 12px rgba(196,30,58,0.5)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.opacity = "0.35";
-              e.currentTarget.style.transform = "rotate(-4deg)";
-              e.currentTarget.style.boxShadow = "none";
-            }}
-          >
-            秘
-          </button>
+          />
         </div>
       </div>
 
-      <FavoritesReveal
-        ref={revealRef}
-        favorites={favorites}
-        onMove={updateCategory}
-        onEpisodeChange={updateEpisode}
-        onRemove={remove}
+      <DndContext
+        sensors={sensors}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
       >
-        <div>
-          <SceneTabs active={tone} counts={counts} onChange={setTone} />
-          <Scene
-            tone={tone}
-            items={grouped[tone]}
-            onMove={updateCategory}
-            onEpisodeChange={updateEpisode}
-            onRemove={remove}
-          />
-        </div>
-      </FavoritesReveal>
+        <FavoritesReveal
+          ref={revealRef}
+          favorites={favorites}
+          onMove={updateCategory}
+          onEpisodeChange={updateEpisode}
+          onRemove={remove}
+        >
+          <div>
+            <SceneTabs
+              active={tone}
+              counts={counts}
+              onChange={setTone}
+              isDragActive={!!activeDragId}
+            />
+            <div className={!!activeDragId ? "scene-desaturate" : ""}>
+              <Scene
+                tone={tone}
+                items={grouped[tone]}
+                activeDragId={activeDragId}
+                onMove={updateCategory}
+                onEpisodeChange={updateEpisode}
+                onRemove={remove}
+              />
+            </div>
+          </div>
+        </FavoritesReveal>
+
+        <DragOverlay dropAnimation={null}>
+          {activeDragItem ? (
+            <div
+              style={{
+                width: 80,
+                opacity: 0.7,
+                transform: "rotate(3deg)",
+                borderRadius: 4,
+                boxShadow: "0 8px 24px rgba(0,0,0,.6)",
+                overflow: "hidden",
+                aspectRatio: "2/3",
+                position: "relative",
+              }}
+            >
+              {activeDragItem.image_url && (
+                <Image
+                  src={activeDragItem.image_url}
+                  alt={activeDragItem.title}
+                  fill
+                  sizes="80px"
+                  className="object-cover"
+                />
+              )}
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
     </div>
   );
 }

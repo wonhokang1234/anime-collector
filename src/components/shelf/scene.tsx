@@ -9,6 +9,7 @@ import { SceneBackdrop } from "./scene-backdrop";
 interface SceneProps {
   tone: SpineTone;
   items: CollectedAnime[];
+  activeDragId?: string | null;
   onMove: (id: string, category: AnimeCategory) => void;
   onEpisodeChange: (id: string, episode: number) => void;
   onRemove: (id: string) => void;
@@ -38,6 +39,7 @@ const EMPTY_COPY: Record<
 export function Scene({
   tone,
   items,
+  activeDragId,
   onMove,
   onEpisodeChange,
   onRemove,
@@ -111,6 +113,7 @@ export function Scene({
               item={item}
               tone={tone}
               hero={tone === "watching" && idx === 0}
+              isDragging={item.id === activeDragId}
               onMove={onMove}
               onEpisodeChange={onEpisodeChange}
               onRemove={onRemove}

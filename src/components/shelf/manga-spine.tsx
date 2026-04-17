@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { useDraggable } from "@dnd-kit/core";
+import { CSS } from "@dnd-kit/utilities";
 import { getRarityTier } from "@/lib/types";
 import type { AnimeCategory, CollectedAnime, RarityTier } from "@/lib/types";
 
@@ -11,6 +13,7 @@ interface MangaSpineProps {
   item: CollectedAnime;
   tone: SpineTone;
   hero?: boolean;
+  isDragging?: boolean;
   onMove: (id: string, category: AnimeCategory) => void;
   onEpisodeChange: (id: string, episode: number) => void;
   onRemove: (id: string) => void;
@@ -35,12 +38,20 @@ export function MangaSpine({
   item,
   tone,
   hero = false,
+  isDragging = false,
   onMove,
   onEpisodeChange,
   onRemove,
 }: MangaSpineProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+  } = useDraggable({ id: item.id });
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -72,12 +83,21 @@ export function MangaSpine({
     }
   };
 
+  const transformStyle = transform
+    ? CSS.Translate.toString(transform)
+    : hero
+    ? "translateY(-32px)"
+    : undefined;
+
   return (
     <div
-      className="relative shrink-0 group/spine"
+      ref={setNodeRef}
+      {...listeners}
+      {...attributes}
+      className={`relative shrink-0 group/spine${isDragging ? " spine-ghost" : ""}`}
       style={{
         width,
-        transform: hero ? "translateY(-32px)" : undefined,
+        transform: transformStyle,
         filter: dimmed ? "saturate(.92) brightness(.98)" : undefined,
       }}
     >

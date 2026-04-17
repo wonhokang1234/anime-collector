@@ -223,6 +223,41 @@ export default function ShelfPage() {
       sensors={sensors}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      accessibility={{
+        announcements: {
+          onDragStart({ active }) {
+            const item = items.find((i) => i.id === active.id);
+            return item ? `${item.title} picked up` : "Item picked up";
+          },
+          onDragOver({ active, over }) {
+            if (!over) return "Not over a drop target";
+            const labels: Record<string, string> = {
+              "drop-watching": "Currently Watching",
+              "drop-plan": "Plan to Watch",
+              "drop-watched": "Watched",
+              "drop-favorite": "Favorites",
+            };
+            return `Over ${labels[over.id as string] ?? "drop target"}`;
+          },
+          onDragEnd({ active, over }) {
+            const item = items.find((i) => i.id === active.id);
+            const title = item?.title ?? "Item";
+            if (!over) return `${title} dropped, returned to shelf`;
+            const labels: Record<string, string> = {
+              "drop-watching": "Currently Watching",
+              "drop-plan": "Plan to Watch",
+              "drop-watched": "Watched",
+              "drop-favorite": "Favorites",
+            };
+            const target = labels[over.id as string];
+            return target ? `${title} moved to ${target}` : `${title} dropped`;
+          },
+          onDragCancel({ active }) {
+            const item = items.find((i) => i.id === active.id);
+            return `${item?.title ?? "Item"} drag cancelled`;
+          },
+        },
+      }}
     >
     <div className="shelf-root mx-auto max-w-6xl px-4 py-10">
       {/* Header */}

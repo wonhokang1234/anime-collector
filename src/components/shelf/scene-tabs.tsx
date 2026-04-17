@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { useDroppable } from "@dnd-kit/core";
+import gsap from "gsap";
 import type { SpineTone } from "./manga-spine";
 
 interface SceneTabsProps {
@@ -38,6 +40,19 @@ function DroppableTab({
   onChange,
 }: DroppableTabProps) {
   const { setNodeRef, isOver } = useDroppable({ id: droppableId });
+  const badgeRef = useRef<HTMLDivElement>(null);
+  const prevCount = useRef(count);
+
+  useEffect(() => {
+    if (count > prevCount.current && badgeRef.current) {
+      gsap.fromTo(
+        badgeRef.current,
+        { scale: 1 },
+        { scale: 1.15, duration: 0.1, ease: "power2.out", yoyo: true, repeat: 1 }
+      );
+    }
+    prevCount.current = count;
+  }, [count]);
 
   return (
     <button
@@ -72,6 +87,7 @@ function DroppableTab({
       </div>
       {count > 0 && (
         <div
+          ref={badgeRef}
           className="absolute -top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold"
           style={{
             background: "var(--hanko)",

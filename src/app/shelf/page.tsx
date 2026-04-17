@@ -219,6 +219,11 @@ export default function ShelfPage() {
   }
 
   return (
+    <DndContext
+      sensors={sensors}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
     <div className="shelf-root mx-auto max-w-6xl px-4 py-10">
       {/* Header */}
       <div className="mb-8 flex flex-wrap items-end justify-between gap-6">
@@ -260,11 +265,6 @@ export default function ShelfPage() {
         </div>
       </div>
 
-      <DndContext
-        sensors={sensors}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
         <FavoritesReveal
           ref={revealRef}
           favorites={favorites}
@@ -318,8 +318,8 @@ export default function ShelfPage() {
             </div>
           ) : null}
         </DragOverlay>
-      </DndContext>
     </div>
+    </DndContext>
   );
 }
 

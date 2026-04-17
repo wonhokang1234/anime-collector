@@ -152,6 +152,7 @@ export default function ShelfPage() {
             type="button"
             onClick={() => revealRef.current?.toggle()}
             title="秘蔵 — Hidden Collection"
+            aria-label="Toggle hidden collection"
             className="flex items-center justify-center transition-all"
             style={{
               width: 32,

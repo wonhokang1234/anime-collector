@@ -23,7 +23,7 @@ export function FavoritesScene({
 
   useEffect(() => {
     const container = starsRef.current;
-    if (!container || container.childElementCount > 0) return;
+    if (!container) return;
     for (let i = 0; i < 100; i++) {
       const star = document.createElement("span");
       star.className = "moon-star";
@@ -36,6 +36,9 @@ export function FavoritesScene({
       star.style.animationDuration = `${2 + Math.random() * 4}s`;
       container.appendChild(star);
     }
+    return () => {
+      while (container.firstChild) container.removeChild(container.firstChild);
+    };
   }, []);
 
   return (

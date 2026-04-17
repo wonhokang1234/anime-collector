@@ -1,8 +1,8 @@
 # Anime Collector & Shelf — Project Status
 
-## Current Phase: Shelf Redesign Shipped
+## Current Phase: Favorites Reveal Shipped
 
-**Last updated:** 2026-04-16
+**Last updated:** 2026-04-17
 
 ## What's Done
 
@@ -32,19 +32,20 @@
 - [x] Collection grid page — filterable (by rarity) + sortable (recent / title / score / rarity) view of all collected cards
 - [x] Shelf page v1 — header with stats, three collapsible sections (Currently Watching, Plan to Watch, Watched), horizontal card rows, per-card move menu + episode stepper (auto-moves to Watched when final episode hit), empty states
 - [x] Shelf visual redesign: manga-spine UI, per-category scenes (Watching hero / Plan indigo / Watched archive), washi tab navigator, Cinzel + Noto Serif JP typography
+- [x] Favorites Reveal: fusuma sliding-door animation with moonlit gallery (秘 seal trigger, GSAP three-phase animation, starfield, moonlight pool, 秘蔵 watermark, full-viewport gallery, Escape + seal close)
 
 ## What's Next (in order)
 
-1. **Build the hidden Favorites flip** — full-shelf 3D flip animation (GSAP) to reveal Favorites
-2. **Drag-and-drop between shelf sections** (deferred from v1 — currently uses a move-to menu)
-3. **Build the card detail page** (`/card/[id]`) — full card view fetching fresh Jikan data
-4. **Polish** — landing page design, responsive design, loading states, transitions
+1. **Drag-and-drop between shelf sections** (deferred from v1 — currently uses a move-to menu)
+2. **Build the card detail page** (`/card/[id]`) — full card view fetching fresh Jikan data
+3. **Polish** — landing page design, responsive design, loading states, transitions
 
 ## Resume Notes
 
-- Execution mode chosen: **subagent-driven-development** (one implementer subagent per task, then spec-review + code-quality-review before moving on).
-- Task 1 was completed directly (not via subagent) and committed as `480e297`.
-- Next session: pick up at Task 2. Either continue dispatching subagents per task, or execute inline.
+- Favorites Reveal feature completed across 6 tasks using subagent-driven-development.
+- Design spec: `docs/superpowers/specs/2026-04-17-favorites-flip-design.md`
+- Implementation plan: `docs/superpowers/plans/2026-04-17-favorites-reveal.md`
+- Mockup (not committed): `mockup-favorites-flip.html`
 
 ## Project Structure
 
@@ -66,6 +67,8 @@ src/
 │   │   ├── anime-card.tsx      — main card component (full + compact)
 │   │   └── card.css            — rarity effects, flip, shine, holo
 │   ├── shelf/
+│   │   ├── favorites-reveal.tsx — fusuma door wrapper with GSAP open/close animation
+│   │   ├── favorites-scene.tsx  — moonlit gallery (stars, moonlight pool, header, spines, empty state)
 │   │   ├── manga-spine.tsx     — manga-volume spine (base + hero mode with bookmark, pedestal, stepper)
 │   │   ├── scene-backdrop.tsx  — per-tone decorative backdrop (lantern / shoji / archival)
 │   │   ├── scene-tabs.tsx      — washi tab navigator with kanji subtitles + hanko count badges
@@ -98,7 +101,7 @@ src/
 | Styling | Tailwind CSS 4 |
 | Client State | Zustand |
 | Card rarity | Based on Jikan score (Common through Legendary) |
-| Favorites | Hidden shelf revealed by full-page flip animation |
+| Favorites | Hidden shelf revealed by fusuma sliding-door animation with moonlit gallery |
 | UI Quality | Professional/creative — no generic AI aesthetic |
 
 ## Notes
@@ -109,3 +112,4 @@ src/
 - `.env.local` contains Supabase credentials (gitignored via `.env*` pattern)
 - Full design spec is in `2026-04-13-anime-collector-shelf-design.md`
 - Shelf redesign spec/plan are `2026-04-16-shelf-visual-redesign-design.md` + `docs/superpowers/plans/2026-04-16-shelf-visual-redesign.md`
+- Favorites reveal spec/plan are `2026-04-17-favorites-flip-design.md` + `docs/superpowers/plans/2026-04-17-favorites-reveal.md`

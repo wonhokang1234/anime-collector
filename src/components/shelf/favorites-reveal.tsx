@@ -41,14 +41,24 @@ export const FavoritesReveal = forwardRef<
   const galleryRef = useRef<HTMLDivElement>(null);
   const hintRef = useRef<HTMLDivElement>(null);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
+  const openRef = useRef(false);
 
   const open = useCallback(() => {
     if (animating.current) return;
+    if (
+      !doorLeftRef.current ||
+      !doorRightRef.current ||
+      !galleryRef.current ||
+      !slitRef.current
+    )
+      return;
     animating.current = true;
+    openRef.current = true;
 
     const tl = gsap.timeline({
       onComplete: () => {
         animating.current = false;
+        setIsOpen(true);
       },
     });
 
@@ -84,30 +94,42 @@ export const FavoritesReveal = forwardRef<
     tl.fromTo(
       galleryRef.current,
       { y: 40, opacity: 0 },
-      { y: 0, opacity: 1, duration: 1.0, ease: "cubic-bezier(0.22, 1, 0.36, 1)" },
+      {
+        y: 0,
+        opacity: 1,
+        duration: 1.0,
+        ease: "cubic-bezier(0.22, 1, 0.36, 1)",
+      },
       "<"
     );
 
-    tl.to(slitRef.current, {
-      width: 0,
-      opacity: 0,
-      duration: 0.3,
-      ease: "power1.out",
-    }, "-=0.6");
+    tl.to(
+      slitRef.current,
+      {
+        width: 0,
+        opacity: 0,
+        duration: 0.3,
+        ease: "power1.out",
+      },
+      "-=0.6"
+    );
 
     tl.to(hintRef.current, { opacity: 1, duration: 0.4 }, "-=0.2");
 
     tlRef.current = tl;
-    setIsOpen(true);
   }, []);
 
   const close = useCallback(() => {
     if (animating.current) return;
+    if (!doorLeftRef.current || !doorRightRef.current || !galleryRef.current)
+      return;
     animating.current = true;
+    openRef.current = false;
 
     const tl = gsap.timeline({
       onComplete: () => {
         animating.current = false;
+        setIsOpen(false);
         gsap.set(slitRef.current, {
           width: 0,
           opacity: 1,
@@ -135,13 +157,12 @@ export const FavoritesReveal = forwardRef<
     );
 
     tlRef.current = tl;
-    setIsOpen(false);
   }, []);
 
   const toggle = useCallback(() => {
-    if (isOpen) close();
+    if (openRef.current) close();
     else open();
-  }, [isOpen, open, close]);
+  }, [open, close]);
 
   useImperativeHandle(ref, () => ({ toggle, isOpen }), [toggle, isOpen]);
 

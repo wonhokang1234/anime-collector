@@ -1,11 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/auth-store";
 import { useCollectionStore } from "@/stores/collection-store";
 import { Scene } from "@/components/shelf/scene";
 import { SceneTabs } from "@/components/shelf/scene-tabs";
+import {
+  FavoritesReveal,
+  type FavoritesRevealHandle,
+} from "@/components/shelf/favorites-reveal";
 import type { SpineTone } from "@/components/shelf/manga-spine";
 import type { CollectedAnime } from "@/lib/types";
 import "./shelf.css";
@@ -21,6 +25,13 @@ export default function ShelfPage() {
   const remove = useCollectionStore((s) => s.remove);
 
   const [tone, setTone] = useState<SpineTone>("watching");
+
+  const revealRef = useRef<FavoritesRevealHandle>(null);
+
+  const favorites = useMemo(
+    () => items.filter((i) => i.category === "favorite"),
+    [items]
+  );
 
   useEffect(() => {
     if (!authLoading && !user) router.push("/login");
@@ -122,29 +133,73 @@ export default function ShelfPage() {
           </p>
         </div>
 
-        <div
-          className="flex items-stretch gap-2 rounded-xl border p-1.5"
-          style={{
-            borderColor: "rgba(244,228,192,.2)",
-            background: "rgba(10,6,4,.6)",
-          }}
-        >
-          <Stat label="Watching" value={counts.watching} />
-          <div className="w-px" style={{ background: "rgba(244,228,192,.1)" }} />
-          <Stat label="Plan" value={counts.plan} />
-          <div className="w-px" style={{ background: "rgba(244,228,192,.1)" }} />
-          <Stat label="Watched" value={counts.watched} />
+        <div className="flex items-center gap-4">
+          <div
+            className="flex items-stretch gap-2 rounded-xl border p-1.5"
+            style={{
+              borderColor: "rgba(244,228,192,.2)",
+              background: "rgba(10,6,4,.6)",
+            }}
+          >
+            <Stat label="Watching" value={counts.watching} />
+            <div className="w-px" style={{ background: "rgba(244,228,192,.1)" }} />
+            <Stat label="Plan" value={counts.plan} />
+            <div className="w-px" style={{ background: "rgba(244,228,192,.1)" }} />
+            <Stat label="Watched" value={counts.watched} />
+          </div>
+
+          <button
+            type="button"
+            onClick={() => revealRef.current?.toggle()}
+            title="秘蔵 — Hidden Collection"
+            className="flex items-center justify-center transition-all"
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 2,
+              background: "var(--hanko)",
+              color: "var(--washi)",
+              fontFamily: "var(--font-jp)",
+              fontSize: 14,
+              fontWeight: 900,
+              opacity: 0.35,
+              transform: "rotate(-4deg)",
+              cursor: "pointer",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.opacity = "1";
+              e.currentTarget.style.transform = "rotate(2deg)";
+              e.currentTarget.style.boxShadow = "0 0 12px rgba(196,30,58,0.5)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.opacity = "0.35";
+              e.currentTarget.style.transform = "rotate(-4deg)";
+              e.currentTarget.style.boxShadow = "none";
+            }}
+          >
+            秘
+          </button>
         </div>
       </div>
 
-      <SceneTabs active={tone} counts={counts} onChange={setTone} />
-      <Scene
-        tone={tone}
-        items={grouped[tone]}
+      <FavoritesReveal
+        ref={revealRef}
+        favorites={favorites}
         onMove={updateCategory}
         onEpisodeChange={updateEpisode}
         onRemove={remove}
-      />
+      >
+        <div>
+          <SceneTabs active={tone} counts={counts} onChange={setTone} />
+          <Scene
+            tone={tone}
+            items={grouped[tone]}
+            onMove={updateCategory}
+            onEpisodeChange={updateEpisode}
+            onRemove={remove}
+          />
+        </div>
+      </FavoritesReveal>
     </div>
   );
 }

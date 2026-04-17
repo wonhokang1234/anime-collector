@@ -9,6 +9,7 @@ interface FavoritesSceneProps {
   onMove: (id: string, category: AnimeCategory) => void;
   onEpisodeChange: (id: string, episode: number) => void;
   onRemove: (id: string) => void;
+  onClose?: () => void;
 }
 
 export function FavoritesScene({
@@ -16,6 +17,7 @@ export function FavoritesScene({
   onMove,
   onEpisodeChange,
   onRemove,
+  onClose,
 }: FavoritesSceneProps) {
   const starsRef = useRef<HTMLDivElement>(null);
 
@@ -92,27 +94,64 @@ export function FavoritesScene({
               秘蔵
             </span>
           </div>
-          <div
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded"
-            style={{
-              border: "1px solid var(--moon-silver-border)",
-              background: "rgba(26, 42, 90, 0.4)",
-              color: "var(--moon-silver)",
-              fontFamily: "var(--font-display)",
-              fontSize: "0.7rem",
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-            }}
-          >
-            <span
-              aria-hidden
-              className="inline-block w-1.5 h-1.5 rounded-sm"
+          <div className="flex items-center gap-3">
+            <div
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded"
               style={{
-                background: "var(--moon-silver)",
-                boxShadow: "0 0 4px rgba(200,208,224,0.4)",
+                border: "1px solid var(--moon-silver-border)",
+                background: "rgba(26, 42, 90, 0.4)",
+                color: "var(--moon-silver)",
+                fontFamily: "var(--font-display)",
+                fontSize: "0.7rem",
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
               }}
-            />
-            {items.length} {items.length === 1 ? "Title" : "Titles"}
+            >
+              <span
+                aria-hidden
+                className="inline-block w-1.5 h-1.5 rounded-sm"
+                style={{
+                  background: "var(--moon-silver)",
+                  boxShadow: "0 0 4px rgba(200,208,224,0.4)",
+                }}
+              />
+              {items.length} {items.length === 1 ? "Title" : "Titles"}
+            </div>
+            {onClose && (
+              <button
+                type="button"
+                onClick={onClose}
+                title="秘蔵 — Return to shelf"
+                className="flex items-center justify-center transition-all"
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 2,
+                  background: "rgba(26, 42, 90, 0.5)",
+                  border: "1px solid var(--moon-silver-border)",
+                  color: "var(--moon-silver)",
+                  fontFamily: "var(--font-jp)",
+                  fontSize: 14,
+                  fontWeight: 900,
+                  cursor: "pointer",
+                  boxShadow: "0 0 8px rgba(200, 208, 224, 0.15)",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.boxShadow =
+                    "0 0 16px rgba(200, 208, 224, 0.35)";
+                  e.currentTarget.style.borderColor =
+                    "rgba(200, 208, 224, 0.4)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow =
+                    "0 0 8px rgba(200, 208, 224, 0.15)";
+                  e.currentTarget.style.borderColor =
+                    "rgba(200, 208, 224, 0.18)";
+                }}
+              >
+                秘
+              </button>
+            )}
           </div>
         </div>
 

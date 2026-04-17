@@ -73,18 +73,18 @@ export const FavoritesReveal = forwardRef<
     });
     tl.to(
       doorLeftRef.current,
-      { x: "-100%", duration: 1.1, ease: "power3.inOut" },
+      { x: "-100%", duration: 1.1, ease: "cubic-bezier(0.4, 0, 0.2, 1)" },
       "<"
     );
     tl.to(
       doorRightRef.current,
-      { x: "100%", duration: 1.1, ease: "power3.inOut" },
+      { x: "100%", duration: 1.1, ease: "cubic-bezier(0.4, 0, 0.2, 1)" },
       "<"
     );
     tl.fromTo(
       galleryRef.current,
       { y: 40, opacity: 0 },
-      { y: 0, opacity: 1, duration: 1.0, ease: "power3.out" },
+      { y: 0, opacity: 1, duration: 1.0, ease: "cubic-bezier(0.22, 1, 0.36, 1)" },
       "<"
     );
 
@@ -125,12 +125,12 @@ export const FavoritesReveal = forwardRef<
     );
     tl.to(
       doorLeftRef.current,
-      { x: "0%", duration: 1.0, ease: "power3.inOut" },
+      { x: "0%", duration: 1.0, ease: "cubic-bezier(0.4, 0, 0.2, 1)" },
       "-=0.3"
     );
     tl.to(
       doorRightRef.current,
-      { x: "0%", duration: 1.0, ease: "power3.inOut" },
+      { x: "0%", duration: 1.0, ease: "cubic-bezier(0.4, 0, 0.2, 1)" },
       "<"
     );
 
@@ -179,6 +179,7 @@ export const FavoritesReveal = forwardRef<
           onMove={onMove}
           onEpisodeChange={onEpisodeChange}
           onRemove={onRemove}
+          onClose={close}
         />
       </div>
 
@@ -207,6 +208,7 @@ export const FavoritesReveal = forwardRef<
           color: "rgba(200, 208, 224, 0.5)",
           fontFamily: "var(--font-display)",
           zIndex: 41,
+          pointerEvents: isOpen ? "auto" : "none",
         }}
       >
         ESC to return

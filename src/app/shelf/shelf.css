@@ -229,6 +229,7 @@
   --moon-silver-dim: rgba(200, 208, 224, 0.5);
   --moon-silver-border: rgba(200, 208, 224, 0.18);
   --moon-indigo: #1a2a5a;
+  --moon-glow: rgba(180, 200, 240, 0.12);
 }
 
 /* Stars */
@@ -289,6 +290,16 @@
   background-size: 200% 100%;
   animation: foil-shimmer 6s linear infinite;
   box-shadow: 0 0 6px rgba(180, 200, 240, 0.4);
+}
+.moon-gallery img {
+  filter: saturate(0.85);
+}
+.moon-gallery .group\/spine:hover img {
+  filter: saturate(0.85) brightness(1.1);
+  transition: filter 0.3s;
+}
+.moon-gallery .group\/spine:hover {
+  box-shadow: 0 0 12px rgba(200, 208, 224, 0.15);
 }
 
 /* ── Fusuma door system ── */

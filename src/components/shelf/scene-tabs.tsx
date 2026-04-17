@@ -42,6 +42,7 @@ function DroppableTab({
   const { setNodeRef, isOver } = useDroppable({ id: droppableId });
   const badgeRef = useRef<HTMLDivElement>(null);
   const prevCount = useRef(count);
+  const wasOver = useRef(false);
 
   useEffect(() => {
     if (count > prevCount.current && badgeRef.current) {
@@ -53,6 +54,17 @@ function DroppableTab({
     }
     prevCount.current = count;
   }, [count]);
+
+  useEffect(() => {
+    if (isOver && isDragActive && !wasOver.current && badgeRef.current) {
+      gsap.fromTo(
+        badgeRef.current,
+        { scale: 1 },
+        { scale: 1.1, duration: 0.1, ease: "power2.out", yoyo: true, repeat: 1 }
+      );
+    }
+    wasOver.current = isOver;
+  }, [isOver, isDragActive]);
 
   return (
     <button

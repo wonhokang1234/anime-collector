@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
+import { DoorMirrorContext } from "./favorites-reveal";
 import { getRarityTier } from "@/lib/types";
 import type { AnimeCategory, CollectedAnime, RarityTier } from "@/lib/types";
 
@@ -45,13 +46,14 @@ export function MangaSpine({
 }: MangaSpineProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const isMirror = useContext(DoorMirrorContext);
 
   const {
     attributes,
     listeners,
     setNodeRef,
     transform,
-  } = useDraggable({ id: item.id });
+  } = useDraggable({ id: item.id, disabled: isMirror });
 
   useEffect(() => {
     if (!menuOpen) return;

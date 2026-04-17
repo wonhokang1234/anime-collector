@@ -2,6 +2,7 @@
 
 import {
   type ReactNode,
+  createContext,
   forwardRef,
   useCallback,
   useEffect,
@@ -12,6 +13,8 @@ import {
 import gsap from "gsap";
 import type { AnimeCategory, CollectedAnime } from "@/lib/types";
 import { FavoritesScene } from "./favorites-scene";
+
+export const DoorMirrorContext = createContext(false);
 
 interface FavoritesRevealProps {
   children: ReactNode;
@@ -24,6 +27,7 @@ interface FavoritesRevealProps {
 export interface FavoritesRevealHandle {
   toggle: () => void;
   isOpen: boolean;
+  animating: boolean;
 }
 
 export const FavoritesReveal = forwardRef<
@@ -164,7 +168,15 @@ export const FavoritesReveal = forwardRef<
     else open();
   }, [open, close]);
 
-  useImperativeHandle(ref, () => ({ toggle, isOpen }), [toggle, isOpen]);
+  useImperativeHandle(
+    ref,
+    () => ({
+      toggle,
+      isOpen,
+      get animating() { return animating.current; },
+    }),
+    [toggle, isOpen]
+  );
 
   useEffect(() => {
     if (!isOpen) return;
@@ -212,9 +224,13 @@ export const FavoritesReveal = forwardRef<
         <div className="fusuma-content">{children}</div>
       </div>
 
-      {/* Door right — absolute within wrapper */}
+      {/* Door right — absolute within wrapper (mirror: draggables disabled) */}
       <div ref={doorRightRef} className="fusuma-door fusuma-door-right">
-        <div className="fusuma-content">{children}</div>
+        <div className="fusuma-content">
+          <DoorMirrorContext.Provider value={true}>
+            {children}
+          </DoorMirrorContext.Provider>
+        </div>
       </div>
 
       {/* Hint — fixed at bottom of viewport */}

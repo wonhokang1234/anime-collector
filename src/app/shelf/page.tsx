@@ -33,6 +33,20 @@ const TARGET_MAP: Record<string, AnimeCategory> = {
   "drop-favorite": "favorite",
 };
 
+const DROP_LABELS: Record<string, string> = {
+  "drop-watching": "Currently Watching",
+  "drop-plan": "Plan to Watch",
+  "drop-watched": "Watched",
+  "drop-favorite": "Favorites",
+};
+
+const CATEGORY_LABELS: Record<string, string> = {
+  watching: "Currently Watching",
+  plan_to_watch: "Plan to Watch",
+  watched: "Watched",
+  favorite: "Favorites",
+};
+
 interface DroppableSealProps {
   isDragActive: boolean;
   onClick: () => void;
@@ -71,11 +85,13 @@ function DroppableSeal({ isDragActive, onClick }: DroppableSealProps) {
         cursor: "pointer",
       }}
       onMouseEnter={(e) => {
+        if (isDragActive) return;
         e.currentTarget.style.opacity = "1";
         e.currentTarget.style.transform = "rotate(2deg)";
         e.currentTarget.style.boxShadow = "0 0 12px rgba(196,30,58,0.5)";
       }}
       onMouseLeave={(e) => {
+        if (isDragActive) return;
         e.currentTarget.style.opacity = "0.35";
         e.currentTarget.style.transform = "rotate(-4deg)";
         e.currentTarget.style.boxShadow = "none";
@@ -144,6 +160,7 @@ export default function ShelfPage() {
   const total = items.length;
 
   function handleDragStart(event: DragStartEvent) {
+    if (revealRef.current?.animating) return;
     setActiveDragId(String(event.active.id));
     document.body.style.cursor = "grabbing";
   }
@@ -159,6 +176,11 @@ export default function ShelfPage() {
         }
       }
     }
+    setActiveDragId(null);
+    document.body.style.cursor = "";
+  }
+
+  function handleDragCancel() {
     setActiveDragId(null);
     document.body.style.cursor = "";
   }
@@ -223,38 +245,31 @@ export default function ShelfPage() {
       sensors={sensors}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onDragCancel={handleDragCancel}
       accessibility={{
         announcements: {
           onDragStart({ active }) {
             const item = items.find((i) => i.id === active.id);
-            return item ? `${item.title} picked up` : "Item picked up";
+            if (!item) return "Item picked up";
+            const section = CATEGORY_LABELS[item.category] ?? "shelf";
+            return `${item.title} picked up from ${section}`;
           },
           onDragOver({ active, over }) {
             if (!over) return "Not over a drop target";
-            const labels: Record<string, string> = {
-              "drop-watching": "Currently Watching",
-              "drop-plan": "Plan to Watch",
-              "drop-watched": "Watched",
-              "drop-favorite": "Favorites",
-            };
-            return `Over ${labels[over.id as string] ?? "drop target"}`;
+            return `Over ${DROP_LABELS[over.id as string] ?? "drop target"}`;
           },
           onDragEnd({ active, over }) {
             const item = items.find((i) => i.id === active.id);
             const title = item?.title ?? "Item";
             if (!over) return `${title} dropped, returned to shelf`;
-            const labels: Record<string, string> = {
-              "drop-watching": "Currently Watching",
-              "drop-plan": "Plan to Watch",
-              "drop-watched": "Watched",
-              "drop-favorite": "Favorites",
-            };
-            const target = labels[over.id as string];
+            const target = DROP_LABELS[over.id as string];
             return target ? `${title} moved to ${target}` : `${title} dropped`;
           },
           onDragCancel({ active }) {
             const item = items.find((i) => i.id === active.id);
-            return `${item?.title ?? "Item"} drag cancelled`;
+            const title = item?.title ?? "Item";
+            const section = item ? (CATEGORY_LABELS[item.category] ?? "shelf") : "shelf";
+            return `${title} dropped, returned to ${section}`;
           },
         },
       }}
@@ -335,7 +350,7 @@ export default function ShelfPage() {
                 opacity: 0.7,
                 transform: "rotate(3deg)",
                 borderRadius: 4,
-                boxShadow: "0 8px 24px rgba(0,0,0,.6)",
+                boxShadow: "0 8px 24px rgba(0,0,0,.4)",
                 overflow: "hidden",
                 aspectRatio: "2/3",
                 position: "relative",

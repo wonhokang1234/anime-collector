@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { AnimeCard } from "@/components/card/anime-card";
 import { useAuthStore } from "@/stores/auth-store";
 import { useCollectionStore } from "@/stores/collection-store";
@@ -212,14 +213,19 @@ export default function CollectionPage() {
           ) : (
             <div className="flex flex-wrap gap-6 justify-start">
               {filtered.map((item) => (
-                <AnimeCard
+                <Link
                   key={item.id}
-                  title={item.title}
-                  imageUrl={item.image_url}
-                  score={item.score}
-                  episodes={item.total_episodes || null}
-                  collected
-                />
+                  href={`/card/${item.mal_id}`}
+                  className="block transition-transform hover:scale-[1.02]"
+                >
+                  <AnimeCard
+                    title={item.title}
+                    imageUrl={item.image_url}
+                    score={item.score}
+                    episodes={item.total_episodes || null}
+                    collected
+                  />
+                </Link>
               ))}
             </div>
           )}

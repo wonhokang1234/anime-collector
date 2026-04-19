@@ -16,11 +16,27 @@ export function Navbar() {
   const { user, signOut } = useAuthStore();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!drawerOpen) return;
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") setDrawerOpen(false);
+      if (e.key === "Tab" && drawerRef.current) {
+        const focusable = drawerRef.current.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
@@ -29,6 +45,7 @@ export function Navbar() {
   useEffect(() => {
     if (drawerOpen) {
       document.body.style.overflow = "hidden";
+      closeRef.current?.focus();
     } else {
       document.body.style.overflow = "";
     }
@@ -173,7 +190,9 @@ export function Navbar() {
       <div
         ref={drawerRef}
         role="dialog"
+        aria-modal="true"
         aria-label="Navigation"
+        inert={!drawerOpen}
         className="fixed right-0 top-0 z-50 flex h-full w-[280px] flex-col sm:hidden"
         style={{
           background: "rgba(10,6,4,.95)",
@@ -182,9 +201,9 @@ export function Navbar() {
           transition: "transform 300ms ease-out",
         }}
       >
-        {/* Drawer header with close button */}
         <div className="flex h-14 items-center justify-end px-4">
           <button
+            ref={closeRef}
             type="button"
             aria-label="Close navigation menu"
             onClick={() => setDrawerOpen(false)}

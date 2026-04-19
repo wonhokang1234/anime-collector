@@ -27,6 +27,8 @@ import type { SpineTone } from "@/components/shelf/manga-spine";
 import type { AnimeCategory, CollectedAnime } from "@/lib/types";
 import "./shelf.css";
 
+const POINTER_SENSOR_OPTIONS = { activationConstraint: { delay: 250, tolerance: 5 } };
+
 const TARGET_MAP: Record<string, AnimeCategory> = {
   "drop-watching": "watching",
   "drop-plan": "plan_to_watch",
@@ -119,9 +121,7 @@ export default function ShelfPage() {
   const revealRef = useRef<FavoritesRevealHandle>(null);
   const isMobile = useMediaQuery("(max-width: 639px)");
 
-  const pointerSensor = useSensor(PointerSensor, {
-    activationConstraint: { delay: 250, tolerance: 5 },
-  });
+  const pointerSensor = useSensor(PointerSensor, POINTER_SENSOR_OPTIONS);
   const keyboardSensor = useSensor(KeyboardSensor);
 
   const sensors = useSensors(

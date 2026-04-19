@@ -1,8 +1,8 @@
 # Anime Collector & Shelf — Project Status
 
-## Current Phase: Drag-and-Drop Shipped
+## Current Phase: Card Detail Page Shipped
 
-**Last updated:** 2026-04-17
+**Last updated:** 2026-04-19
 
 ## What's Done
 
@@ -34,18 +34,19 @@
 - [x] Shelf visual redesign: manga-spine UI, per-category scenes (Watching hero / Plan indigo / Watched archive), washi tab navigator, Cinzel + Noto Serif JP typography
 - [x] Favorites Reveal: fusuma sliding-door animation with moonlit gallery (秘 seal trigger, GSAP three-phase animation, starfield, moonlight pool, 秘蔵 watermark, full-viewport gallery, Escape + seal close)
 - [x] Drag-and-drop between shelf sections: @dnd-kit integration with draggable spines, droppable tabs + 秘 seal, drag overlay, scene desaturation, badge pop animations, full keyboard + screen reader accessibility, DoorMirrorContext to prevent duplicate draggable IDs from fusuma doors
+- [x] Card detail page (`/card/[mal_id]`): showcase-first page with AnimeCard on rarity-themed stage (ambient glow, pedestal, hue-rotate for Legendary), GSAP entrance animation, stats bar (score/episodes/year/studio), genre pills, episode tracker with progress bar, category pills, synopsis — lazy Jikan fetch with skeleton placeholders, navigation from collection grid (Link) and shelf spines (cover click)
 
 ## What's Next (in order)
 
-1. **Build the card detail page** (`/card/[id]`) — full card view fetching fresh Jikan data
-2. **Polish** — landing page design, responsive design, loading states, transitions
+1. **Polish** — landing page design, responsive design, loading states, transitions
 
 ## Resume Notes
 
-- Drag-and-drop feature completed across 6 tasks + review fixes using subagent-driven-development.
-- Design spec: `docs/superpowers/specs/2026-04-17-shelf-drag-drop-design.md`
-- Implementation plan: `docs/superpowers/plans/2026-04-17-shelf-drag-drop.md`
-- Review fixes: duplicate draggable IDs (DoorMirrorContext), stale animating ref (getter), onDragCancel handler, seal hover/drag style guards
+- Card detail page completed across 6 tasks using subagent-driven-development.
+- Design spec: `docs/superpowers/specs/2026-04-19-card-detail-design.md`
+- Implementation plan: `docs/superpowers/plans/2026-04-19-card-detail.md`
+- New Jikan function: `getAnimeById(mal_id)` in `src/lib/jikan.ts`
+- Navigation: collection grid cards wrapped in `<Link>`, shelf spine covers have `onClick` → `router.push`
 
 ## Project Structure
 
@@ -53,7 +54,10 @@
 src/
 ├── app/
 │   ├── browse/page.tsx         — live Jikan search + collect action
-│   ├── collection/page.tsx     — filterable / sortable grid of all collected cards
+│   ├── card/[mal_id]/
+│   │   ├── page.tsx            — card detail page (hero stage + info sections)
+│   │   └── card-detail.css     — rarity stage glow, pedestal, skeleton styles
+│   ├── collection/page.tsx     — filterable / sortable grid of all collected cards (links to /card/[mal_id])
 │   ├── login/page.tsx          — auth form
 │   ├── shelf/
 │   │   ├── page.tsx            — header/stats + washi tabs driving per-category scenes
@@ -77,7 +81,7 @@ src/
 │   ├── auth-provider.tsx       — initializes auth + loads collection on sign-in
 │   └── navbar.tsx              — top nav (hidden when logged out)
 ├── lib/
-│   ├── jikan.ts                — Jikan API v4 client (search, top anime)
+│   ├── jikan.ts                — Jikan API v4 client (search, top anime, getAnimeById)
 │   ├── supabase.ts             — browser Supabase client
 │   ├── supabase/
 │   │   ├── client.ts           — SSR browser client (@supabase/ssr)
@@ -115,3 +119,4 @@ src/
 - Shelf redesign spec/plan are `2026-04-16-shelf-visual-redesign-design.md` + `docs/superpowers/plans/2026-04-16-shelf-visual-redesign.md`
 - Favorites reveal spec/plan are `2026-04-17-favorites-flip-design.md` + `docs/superpowers/plans/2026-04-17-favorites-reveal.md`
 - Drag-and-drop spec/plan are `2026-04-17-shelf-drag-drop-design.md` + `docs/superpowers/plans/2026-04-17-shelf-drag-drop.md`
+- Card detail spec/plan are `2026-04-19-card-detail-design.md` + `docs/superpowers/plans/2026-04-19-card-detail.md`

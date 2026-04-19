@@ -218,6 +218,7 @@ export default function CardDetailPage() {
           <div className="hidden h-8 w-px sm:block" style={{ background: "rgba(244,228,192,0.1)" }} />
           <StatCell label="Episodes" value={total > 0 ? String(total) : "—"} />
           <div className="hidden h-8 w-px sm:block" style={{ background: "rgba(244,228,192,0.1)" }} />
+          <div className="col-span-2 h-px block sm:hidden" style={{ background: "rgba(244,228,192,0.08)" }} />
           <StatCell
             label="Year"
             value={year ? String(year) : null}

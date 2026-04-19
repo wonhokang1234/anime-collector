@@ -55,7 +55,7 @@ export async function getAnimeById(
   malId: number
 ): Promise<JikanAnime | null> {
   try {
-    const res = await fetch(`https://api.jikan.moe/v4/anime/${malId}`);
+    const res = await fetch(`${JIKAN_BASE}/anime/${malId}`);
     if (!res.ok) return null;
     const json = await res.json();
     return json.data ?? null;

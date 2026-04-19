@@ -29,7 +29,8 @@ const CATEGORY_OPTIONS: { category: AnimeCategory; label: string }[] = [
 export default function CardDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const malId = Number(params.mal_id);
+  const rawMalId = Number(params.mal_id);
+  const malId = Number.isInteger(rawMalId) && rawMalId > 0 ? rawMalId : 0;
 
   const user = useAuthStore((s) => s.user);
   const authLoading = useAuthStore((s) => s.loading);
@@ -44,7 +45,6 @@ export default function CardDetailPage() {
   const [jikanFailed, setJikanFailed] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState(false);
 
-  const heroRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const labelRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
@@ -126,20 +126,23 @@ export default function CardDetailPage() {
   const genres = jikanData?.genres?.map((g) => g.name) ?? [];
   const synopsis = jikanData?.synopsis ?? null;
 
+  const itemId = item.id;
+  const itemCategory = item.category;
+
   function stepEpisode(delta: number) {
     const next = Math.max(
       0,
       total > 0 ? Math.min(total, current + delta) : current + delta
     );
     if (next === current) return;
-    updateEpisode(item!.id, next);
-    if (total > 0 && next === total && item!.category !== "watched") {
-      updateCategory(item!.id, "watched");
+    updateEpisode(itemId, next);
+    if (total > 0 && next === total && itemCategory !== "watched") {
+      updateCategory(itemId, "watched");
     }
   }
 
   async function handleRemove() {
-    await remove(item!.id);
+    await remove(itemId);
     router.push("/collection");
   }
 
@@ -149,7 +152,6 @@ export default function CardDetailPage() {
       data-rarity={rarity}
     >
       <div
-        ref={heroRef}
         className="relative flex min-h-[70vh] flex-col items-center justify-center px-4 py-16"
         style={{
           background: "linear-gradient(180deg, #0a0a10 0%, #0d0d18 100%)",
@@ -157,6 +159,7 @@ export default function CardDetailPage() {
       >
         <button
           type="button"
+          aria-label="Go back"
           onClick={() => router.back()}
           className="absolute left-5 top-5 text-[11px] uppercase tracking-[0.15em] transition-opacity hover:opacity-80"
           style={{ color: "rgba(244,228,192,0.5)" }}
@@ -267,6 +270,7 @@ export default function CardDetailPage() {
           <div className="flex items-center gap-4">
             <button
               type="button"
+              aria-label="Previous episode"
               onClick={() => stepEpisode(-1)}
               className="flex h-7 w-7 items-center justify-center rounded text-sm transition-colors"
               style={{
@@ -280,6 +284,11 @@ export default function CardDetailPage() {
               {total > 0 ? (
                 <>
                   <div
+                    role="progressbar"
+                    aria-valuenow={current}
+                    aria-valuemin={0}
+                    aria-valuemax={total}
+                    aria-label={`Episode progress: ${current} of ${total}`}
                     className="h-1.5 overflow-hidden rounded-full"
                     style={{ background: "rgba(244,228,192,0.08)" }}
                   >
@@ -317,6 +326,7 @@ export default function CardDetailPage() {
             </div>
             <button
               type="button"
+              aria-label="Next episode"
               onClick={() => stepEpisode(1)}
               className="flex h-7 w-7 items-center justify-center rounded text-sm transition-colors"
               style={{
@@ -347,8 +357,9 @@ export default function CardDetailPage() {
                   <button
                     key={category}
                     type="button"
+                    aria-pressed={active}
                     onClick={() => {
-                      if (!active) updateCategory(item!.id, category);
+                      if (!active) updateCategory(item.id, category);
                     }}
                     className="rounded-md px-3.5 py-1.5 text-[11px] tracking-[0.08em] transition-colors"
                     style={{
@@ -492,7 +503,7 @@ function StatCell({
           className="text-base font-bold"
           style={{ color: "var(--washi)" }}
         >
-          {value ?? "—"}
+          {failed ? "—" : (value ?? "—")}
         </div>
       )}
       <div

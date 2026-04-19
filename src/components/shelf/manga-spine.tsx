@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useContext, useEffect, useRef, useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
@@ -44,6 +45,7 @@ export function MangaSpine({
   onEpisodeChange,
   onRemove,
 }: MangaSpineProps) {
+  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const isMirror = useContext(DoorMirrorContext);
@@ -140,7 +142,13 @@ export function MangaSpine({
         />
 
         {/* Cover art — upper 55% */}
-        <div className="absolute top-[3px] left-0 right-0 h-[55%] overflow-hidden">
+        <div
+          className="absolute top-[3px] left-0 right-0 h-[55%] overflow-hidden cursor-pointer"
+          onClick={(e) => {
+            e.stopPropagation();
+            router.push(`/card/${item.mal_id}`);
+          }}
+        >
           {item.image_url && (
             <Image
               src={item.image_url}

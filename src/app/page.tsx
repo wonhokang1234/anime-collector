@@ -58,7 +58,7 @@ export default function HomePage() {
         </p>
 
         <h1
-          className="display-title text-6xl font-extrabold leading-[0.95] sm:text-7xl md:text-[5.75rem]"
+          className="display-title text-5xl font-extrabold leading-[0.95] sm:text-6xl md:text-[5.75rem]"
           style={{ letterSpacing: "0.06em" }}
         >
           ANIME
@@ -90,7 +90,7 @@ export default function HomePage() {
           sanctuary.
         </p>
 
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+        <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
           {loading ? null : user ? (
             <Link href="/browse" className="hanko-btn">
               Enter the Library →
@@ -109,7 +109,7 @@ export default function HomePage() {
 
         {/* footer meta */}
         <div
-          className="mt-14 flex items-center gap-5 text-[10px] uppercase tracking-[.3em]"
+          className="mt-14 flex flex-wrap items-center justify-center gap-3 text-[10px] uppercase tracking-[.3em] sm:gap-5"
           style={{
             color: "rgba(244,228,192,.4)",
             fontFamily: "var(--font-display)",

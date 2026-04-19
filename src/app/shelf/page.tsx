@@ -119,15 +119,14 @@ export default function ShelfPage() {
   const revealRef = useRef<FavoritesRevealHandle>(null);
   const isMobile = useMediaQuery("(max-width: 639px)");
 
+  const pointerSensor = useSensor(PointerSensor, {
+    activationConstraint: { delay: 250, tolerance: 5 },
+  });
+  const keyboardSensor = useSensor(KeyboardSensor);
+
   const sensors = useSensors(
-    ...(!isMobile
-      ? [
-          useSensor(PointerSensor, {
-            activationConstraint: { delay: 250, tolerance: 5 },
-          }),
-        ]
-      : []),
-    useSensor(KeyboardSensor)
+    isMobile ? undefined : pointerSensor,
+    keyboardSensor
   );
 
   const favorites = useMemo(

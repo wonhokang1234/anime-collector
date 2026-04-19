@@ -1,0 +1,57 @@
+.card-detail-root {
+  --cd-accent: #8a8a8a;
+  --cd-glow: rgba(138, 138, 138, 0.1);
+}
+.card-detail-root[data-rarity="uncommon"] {
+  --cd-accent: #22c55e;
+  --cd-glow: rgba(34, 197, 94, 0.12);
+}
+.card-detail-root[data-rarity="rare"] {
+  --cd-accent: #3b82f6;
+  --cd-glow: rgba(59, 130, 246, 0.12);
+}
+.card-detail-root[data-rarity="epic"] {
+  --cd-accent: #fbbf24;
+  --cd-glow: rgba(251, 191, 36, 0.12);
+}
+.card-detail-root[data-rarity="legendary"] {
+  --cd-accent: #ec4899;
+  --cd-glow: rgba(236, 72, 153, 0.1);
+}
+
+.card-stage-glow {
+  position: absolute;
+  inset: -60px;
+  background: radial-gradient(ellipse, var(--cd-glow), transparent 70%);
+  filter: blur(20px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.card-detail-root[data-rarity="legendary"] .card-stage-glow {
+  animation: legendary-hue 6s linear infinite;
+}
+@keyframes legendary-hue {
+  0% { filter: blur(20px) hue-rotate(0deg); }
+  100% { filter: blur(20px) hue-rotate(360deg); }
+}
+
+.card-stage-pedestal {
+  width: 320px;
+  height: 40px;
+  margin-top: 8px;
+  background: radial-gradient(ellipse at 50% 0%, var(--cd-glow), transparent 70%);
+  filter: blur(6px);
+  pointer-events: none;
+}
+
+.skeleton-line {
+  height: 14px;
+  border-radius: 4px;
+  background: rgba(244, 228, 192, 0.06);
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}

@@ -51,6 +51,19 @@ export async function getTopAnime(): Promise<JikanAnime[]> {
   return json.data;
 }
 
+export async function getAnimeById(
+  malId: number
+): Promise<JikanAnime | null> {
+  try {
+    const res = await fetch(`https://api.jikan.moe/v4/anime/${malId}`);
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.data ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export function getAnimeYear(anime: JikanAnime): number | null {
   return anime.year ?? anime.aired?.prop?.from?.year ?? null;
 }

@@ -443,6 +443,29 @@ export default function CardDetailPage() {
               Synopsis unavailable
             </p>
           )}
+          <div className="flex flex-wrap gap-1.5 mt-4">
+            {jikanLoading ? (
+              <>
+                <span className="skeleton-line" style={{ width: 60, height: 22 }} />
+                <span className="skeleton-line" style={{ width: 72, height: 22 }} />
+                <span className="skeleton-line" style={{ width: 54, height: 22 }} />
+              </>
+            ) : genres.length > 0 ? (
+              genres.map((g) => (
+                <span
+                  key={g}
+                  className="rounded px-2.5 py-1 text-[10px]"
+                  style={{
+                    background: "rgba(244,228,192,0.06)",
+                    border: "1px solid rgba(244,228,192,0.1)",
+                    color: "rgba(244,228,192,0.5)",
+                  }}
+                >
+                  {g}
+                </span>
+              ))
+            ) : null}
+          </div>
         </div>
       </div>
     </div>

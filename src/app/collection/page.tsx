@@ -145,7 +145,7 @@ export default function CollectionPage() {
       ) : (
         <>
           {/* Controls */}
-          <div className="mb-8 flex flex-wrap items-center gap-4">
+          <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
             {/* Filter pills */}
             <div className="flex flex-wrap gap-1.5">
               {(
@@ -171,7 +171,7 @@ export default function CollectionPage() {
             </div>
 
             {/* Sort dropdown */}
-            <div className="ml-auto flex items-center gap-2">
+            <div className="flex items-center gap-2 sm:ml-auto">
               <span
                 className="text-[10px] uppercase tracking-[.3em]"
                 style={{
@@ -211,7 +211,7 @@ export default function CollectionPage() {
               No anime match this filter.
             </div>
           ) : (
-            <div className="flex flex-wrap gap-6 justify-start">
+            <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:gap-6">
               {filtered.map((item) => (
                 <Link
                   key={item.id}

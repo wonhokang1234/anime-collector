@@ -221,7 +221,7 @@ export function MangaSpine({
       {hero && tone === "watching" && (
         <div
           className="absolute left-1/2 -translate-x-1/2"
-          style={{ bottom: -82, width: 200 }}
+          style={{ bottom: -82, width: "clamp(160px, 50vw, 200px)" }}
         >
           <div className="flex items-center gap-2 rounded-lg border border-white/20 bg-black/50 px-2 py-1.5 backdrop-blur-sm">
             <button

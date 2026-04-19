@@ -14,6 +14,7 @@ import {
   type DragStartEvent,
   type DragEndEvent,
 } from "@dnd-kit/core";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { useAuthStore } from "@/stores/auth-store";
 import { useCollectionStore } from "@/stores/collection-store";
 import { Scene } from "@/components/shelf/scene";
@@ -116,11 +117,16 @@ export default function ShelfPage() {
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
 
   const revealRef = useRef<FavoritesRevealHandle>(null);
+  const isMobile = useMediaQuery("(max-width: 639px)");
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: { delay: 250, tolerance: 5 },
-    }),
+    ...(!isMobile
+      ? [
+          useSensor(PointerSensor, {
+            activationConstraint: { delay: 250, tolerance: 5 },
+          }),
+        ]
+      : []),
     useSensor(KeyboardSensor)
   );
 
@@ -276,7 +282,7 @@ export default function ShelfPage() {
     >
     <div className="shelf-root mx-auto max-w-6xl px-4 py-10">
       {/* Header */}
-      <div className="mb-8 flex flex-wrap items-end justify-between gap-6">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between sm:gap-6">
         <div>
           <h1
             className="text-3xl font-extrabold tracking-tight"
@@ -293,7 +299,7 @@ export default function ShelfPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="relative flex w-full items-center gap-4 sm:w-auto">
           <div
             className="flex items-stretch gap-2 rounded-xl border p-1.5"
             style={{
@@ -375,7 +381,7 @@ export default function ShelfPage() {
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="flex min-w-[72px] flex-col items-center justify-center px-3 py-1">
+    <div className="flex min-w-[72px] flex-1 flex-col items-center justify-center px-3 py-1 sm:flex-initial">
       <div
         className="flex items-center gap-1.5 font-mono text-lg font-semibold tabular-nums"
         style={{ color: "var(--washi)" }}

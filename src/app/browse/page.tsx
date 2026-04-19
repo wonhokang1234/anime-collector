@@ -6,6 +6,7 @@ import { searchAnime, getTopAnime, getAnimeYear, type JikanAnime } from "@/lib/j
 import { useAuthStore } from "@/stores/auth-store";
 import { useCollectionStore } from "@/stores/collection-store";
 import { useRouter } from "next/navigation";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import "@/components/card/card.css";
 
 export default function BrowsePage() {
@@ -15,6 +16,7 @@ export default function BrowsePage() {
   const items = useCollectionStore((s) => s.items);
   const isCollected = useCollectionStore((s) => s.isCollected);
   const collect = useCollectionStore((s) => s.collect);
+  const isMobile = useMediaQuery("(max-width: 639px)");
 
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<JikanAnime[]>([]);
@@ -113,7 +115,7 @@ export default function BrowsePage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10">
-      <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
+      <div className="mb-10 flex flex-col items-start gap-2 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
         <div>
           <p
             className="mb-1 text-[10px] uppercase tracking-[.4em]"
@@ -191,7 +193,7 @@ export default function BrowsePage() {
       </div>
 
       {/* Rarity legend */}
-      <div className="mb-10 flex flex-wrap items-center gap-2">
+      <div className="mb-10 flex flex-wrap items-center gap-1 sm:gap-2">
         <span
           className="mr-1 text-[10px] uppercase tracking-[.3em]"
           style={{
@@ -272,7 +274,7 @@ export default function BrowsePage() {
 
       {/* Card grid */}
       {!loading && !error && results.length > 0 && (
-        <div className="flex flex-wrap gap-6 justify-start">
+        <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:gap-6">
           {results.map((anime) => (
             <AnimeCard
               key={anime.mal_id}
@@ -284,6 +286,7 @@ export default function BrowsePage() {
               genres={anime.genres.map((g) => g.name)}
               studio={anime.studios[0]?.name}
               year={getAnimeYear(anime)}
+              variant={isMobile ? "compact" : "full"}
               collected={isCollected(anime.mal_id)}
               onCollect={() => handleCollect(anime)}
             />

@@ -195,7 +195,7 @@ export default function CardDetailPage() {
 
         <h1
           ref={titleRef}
-          className="mt-5 max-w-lg text-center text-[22px] font-extrabold tracking-[0.04em]"
+          className="mt-5 max-w-lg text-center text-[18px] font-extrabold tracking-[0.04em] sm:text-[22px]"
           style={{
             fontFamily: "var(--font-display)",
             color: "var(--washi)",
@@ -208,23 +208,23 @@ export default function CardDetailPage() {
 
       <div className="mx-auto max-w-[640px] px-6 pb-16">
         <div
-          className="flex items-center justify-center gap-6 py-5"
+          className="grid grid-cols-2 gap-4 py-5 sm:flex sm:items-center sm:justify-center sm:gap-6"
           style={{
             borderTop: "1px solid rgba(244,228,192,0.08)",
             borderBottom: "1px solid rgba(244,228,192,0.08)",
           }}
         >
           <StatCell label="Score" value={item.score ? item.score.toFixed(2) : "—"} />
-          <div className="h-8 w-px" style={{ background: "rgba(244,228,192,0.1)" }} />
+          <div className="hidden h-8 w-px sm:block" style={{ background: "rgba(244,228,192,0.1)" }} />
           <StatCell label="Episodes" value={total > 0 ? String(total) : "—"} />
-          <div className="h-8 w-px" style={{ background: "rgba(244,228,192,0.1)" }} />
+          <div className="hidden h-8 w-px sm:block" style={{ background: "rgba(244,228,192,0.1)" }} />
           <StatCell
             label="Year"
             value={year ? String(year) : null}
             loading={jikanLoading}
             failed={jikanFailed}
           />
-          <div className="h-8 w-px" style={{ background: "rgba(244,228,192,0.1)" }} />
+          <div className="hidden h-8 w-px sm:block" style={{ background: "rgba(244,228,192,0.1)" }} />
           <StatCell
             label="Studio"
             value={studio}
@@ -340,7 +340,7 @@ export default function CardDetailPage() {
         </div>
 
         <div
-          className="flex items-center justify-between gap-4 py-6"
+          className="flex flex-col gap-4 py-6 sm:flex-row sm:items-center sm:justify-between"
           style={{ borderTop: "1px solid rgba(244,228,192,0.08)" }}
         >
           <div>

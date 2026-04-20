@@ -18,6 +18,13 @@
   cursor: pointer;
 }
 
+/* Separator color inherited by info panel border-top */
+.rarity-common     { --rarity-separator-color: rgba(161, 161, 170, 0.25); }
+.rarity-uncommon   { --rarity-separator-color: rgba(52, 211, 153, 0.25); }
+.rarity-rare       { --rarity-separator-color: rgba(96, 165, 250, 0.25); }
+.rarity-epic       { --rarity-separator-color: rgba(251, 191, 36, 0.25); }
+.rarity-legendary  { --rarity-separator-color: rgba(232, 121, 249, 0.3); }
+
 .anime-card-inner {
   position: relative;
   width: 100%;
@@ -34,6 +41,7 @@
   -webkit-backface-visibility: hidden;
   border-radius: 16px;
   overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(244, 228, 192, 0.08);
 }
 
 .card-front {
@@ -265,7 +273,7 @@
 
 /* === Card Back Styles === */
 .card-back-content {
-  background: linear-gradient(180deg, #18181b 0%, #0f0f12 100%);
+  background: linear-gradient(180deg, var(--ink-2) 0%, var(--ink-0) 100%);
   height: 100%;
   overflow-y: auto;
   scrollbar-width: thin;
@@ -299,14 +307,43 @@
   border-radius: 12px;
 }
 
+/* === Rarity Stripe — 2px color band at top of card-front === */
+.rarity-stripe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 3;
+  pointer-events: none;
+}
+.rarity-common   .rarity-stripe { background: #a1a1aa; }
+.rarity-uncommon .rarity-stripe { background: linear-gradient(90deg, #059669, #34d399, #059669); }
+.rarity-rare     .rarity-stripe { background: linear-gradient(90deg, #2563eb, #60a5fa, #2563eb); }
+.rarity-epic     .rarity-stripe { background: linear-gradient(90deg, #b45309, #fbbf24, #b45309); }
+.rarity-legendary .rarity-stripe {
+  background: linear-gradient(
+    90deg,
+    #ef4444, #f97316, #eab308, #22c55e, #3b82f6, #8b5cf6, #ec4899, #ef4444
+  );
+  background-size: 200% 100%;
+  animation: card-foil-shimmer 4s linear infinite;
+}
+
+/* foil-shimmer is defined in shelf.css (shelf-only scope); define independently for card pages */
+@keyframes card-foil-shimmer {
+  0%   { background-position: 0% 0%; }
+  100% { background-position: 200% 0%; }
+}
+
 /* === Genre Tags === */
 .genre-tag {
   font-size: 0.65rem;
   padding: 2px 7px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(244, 228, 192, 0.06);
+  color: rgba(244, 228, 192, 0.5);
+  border: 1px solid rgba(244, 228, 192, 0.08);
   white-space: nowrap;
 }
 

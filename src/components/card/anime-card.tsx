@@ -198,6 +198,8 @@ export function AnimeCard({
             className="card-face card-front bg-zinc-900 flex flex-col"
             style={{ pointerEvents: isFlipped ? "none" : "auto" }}
           >
+            <div className="rarity-stripe" aria-hidden />
+
             {/* Image area */}
             <div className="card-image-wrapper flex-1 relative group/image">
               <Image
@@ -214,10 +216,44 @@ export function AnimeCard({
               )}
             </div>
 
+            {/* Collected ownership stamp — hanko seal in top-right corner */}
+            {collected && (
+              <div
+                aria-label="Collected"
+                style={{
+                  position: "absolute",
+                  top: 8,
+                  right: 8,
+                  zIndex: 15,
+                  width: 32,
+                  height: 32,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "var(--hanko)",
+                  color: "var(--washi)",
+                  fontFamily: "var(--font-jp)",
+                  fontSize: 14,
+                  fontWeight: 900,
+                  borderRadius: 2,
+                  transform: "rotate(-5deg)",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.5), 0 0 0 1px rgba(244,228,192,0.15)",
+                  pointerEvents: "none",
+                }}
+              >
+                集
+              </div>
+            )}
+
             {/* Info bar pinned to bottom — marked no-flip */}
             <div
               data-no-flip
-              className="relative z-10 px-3 py-2.5 bg-zinc-900/95 backdrop-blur-sm"
+              className="relative z-10 px-3 py-2.5"
+              style={{
+                background: "linear-gradient(to top, rgba(5,7,16,0.98), rgba(10,6,4,0.92))",
+                backdropFilter: "blur(4px)",
+                borderTop: "1px solid var(--rarity-separator-color, rgba(244,228,192,0.12))",
+              }}
             >
               <div className="flex items-start justify-between gap-2">
                 <h3
@@ -249,8 +285,19 @@ export function AnimeCard({
                 </div>
               )}
 
-              {/* Reserved space where the overlay action button sits */}
-              {!isCompact && <div className="mt-2 h-8" aria-hidden />}
+              {/* Collect button — inside 3D transform, moves with card on hover */}
+              {!isCompact && onCollect && !collected && (
+                <div className="mt-2">
+                  <button
+                    type="button"
+                    onClick={() => onCollect()}
+                    className="hanko-btn w-full"
+                    style={{ padding: "0.5rem 0.9rem", fontSize: "0.7rem" }}
+                  >
+                    Collect
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Shine overlay — never captures pointer */}
@@ -347,58 +394,6 @@ export function AnimeCard({
         </div>
       </div>
 
-      {/* Action button — OUTSIDE the 3D transform entirely. Sits in normal 2D
-          stacking on top of the card, so clicks reliably land here and never
-          leak through to the card's flip handler. */}
-      {!isCompact && onCollect && (
-        <div
-          className="absolute bottom-3 left-3 right-3 z-50"
-          style={{
-            opacity: isFlipped ? 0 : 1,
-            pointerEvents: isFlipped ? "none" : "auto",
-            transition: "opacity 0.2s ease",
-          }}
-        >
-          {collected ? (
-            <div
-              className="flex w-full items-center justify-center gap-1.5 py-2 text-[10px] font-semibold uppercase tracking-[.22em] backdrop-blur-sm"
-              style={{
-                border: "1px solid rgba(244,228,192,.35)",
-                background: "rgba(10,6,4,.6)",
-                color: "var(--washi)",
-                fontFamily: "var(--font-display)",
-                borderRadius: 2,
-              }}
-            >
-              <span
-                aria-hidden
-                className="inline-flex h-4 w-4 items-center justify-center"
-                style={{
-                  background: "var(--hanko)",
-                  color: "var(--washi)",
-                  fontFamily: "var(--font-jp)",
-                  fontSize: 9,
-                  fontWeight: 900,
-                  borderRadius: 1,
-                  transform: "rotate(-4deg)",
-                }}
-              >
-                集
-              </span>
-              Collected
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => onCollect()}
-              className="hanko-btn w-full"
-              style={{ padding: "0.5rem 0.9rem", fontSize: "0.7rem" }}
-            >
-              Collect
-            </button>
-          )}
-        </div>
-      )}
     </div>
   );
 }

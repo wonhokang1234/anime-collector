@@ -52,6 +52,7 @@ export function AnimeCard({
   const isFlippedRef = useRef(false);
   const isHovering = useRef(false);
   const flipTween = useRef<gsap.core.Tween | null>(null);
+  const perspectiveRef = useRef<HTMLDivElement>(null);
 
   const isCompact = variant === "compact";
   const cardWidth = isCompact ? 180 : 280;
@@ -112,6 +113,14 @@ export function AnimeCard({
         ease: "power2.out",
       });
     }
+    if (perspectiveRef.current) {
+      gsap.to(perspectiveRef.current, {
+        y: -6,
+        duration: 0.2,
+        ease: "power2.out",
+        overwrite: "auto",
+      });
+    }
   }, []);
 
   const handleMouseLeave = useCallback(() => {
@@ -123,6 +132,14 @@ export function AnimeCard({
         scale: 1,
         duration: 0.5,
         ease: "power3.out",
+      });
+    }
+    if (perspectiveRef.current) {
+      gsap.to(perspectiveRef.current, {
+        y: 0,
+        duration: 0.35,
+        ease: "power2.in",
+        overwrite: "auto",
       });
     }
   }, []);
@@ -152,6 +169,7 @@ export function AnimeCard({
 
   return (
     <div
+      ref={perspectiveRef}
       className="card-perspective inline-block relative"
       style={{ width: cardWidth, height: cardHeight }}
     >

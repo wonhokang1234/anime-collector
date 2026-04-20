@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/stores/auth-store";
+import gsap from "gsap";
 
 const navLinks = [
   { href: "/browse", label: "Browse", kanji: "探" },
@@ -17,6 +18,7 @@ export function Navbar() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const sealRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     if (!drawerOpen) return;
@@ -52,6 +54,15 @@ export function Navbar() {
     return () => { document.body.style.overflow = ""; };
   }, [drawerOpen]);
 
+  useEffect(() => {
+    if (!sealRef.current) return;
+    gsap.fromTo(
+      sealRef.current,
+      { scale: 0, rotation: -25, opacity: 0 },
+      { scale: 1, rotation: -4, opacity: 1, duration: 0.7, ease: "elastic.out(1.2, 0.5)", delay: 0.1 }
+    );
+  }, [user]);
+
   if (!user) return null;
 
   return (
@@ -72,13 +83,13 @@ export function Navbar() {
             aria-label="Anime Collector home"
           >
             <span
+              ref={sealRef}
               aria-hidden
               className="flex h-7 w-7 items-center justify-center rounded-[2px] text-[13px] font-black"
               style={{
                 background: "var(--hanko)",
                 color: "var(--washi)",
                 fontFamily: "var(--font-jp)",
-                transform: "rotate(-4deg)",
                 boxShadow: "0 2px 4px rgba(0,0,0,.45)",
               }}
             >
@@ -111,6 +122,14 @@ export function Navbar() {
                     color: active
                       ? "var(--washi)"
                       : "rgba(244,228,192,.5)",
+                  }}
+                  onMouseEnter={(e) => {
+                    const kanji = e.currentTarget.children[0] as HTMLElement;
+                    gsap.to(kanji, { scale: 1.3, duration: 0.12, ease: "power2.out", overwrite: true });
+                  }}
+                  onMouseLeave={(e) => {
+                    const kanji = e.currentTarget.children[0] as HTMLElement;
+                    gsap.to(kanji, { scale: 1, duration: 0.2, ease: "power2.in", overwrite: true });
                   }}
                 >
                   <span

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
+import gsap from "gsap";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AnimeCard } from "@/components/card/anime-card";
@@ -67,16 +68,44 @@ export default function CollectionPage() {
     return sorted;
   }, [items, filter, sortKey]);
 
+  const gridRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!initialized || !gridRef.current) return;
+    const cards = Array.from(gridRef.current.children);
+    if (cards.length === 0) return;
+    gsap.fromTo(
+      cards,
+      { opacity: 0, y: 12, scale: 0.96 },
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.4,
+        stagger: { each: 0.05, from: "center" },
+        ease: "power2.out",
+      }
+    );
+  }, [initialized]);
+
   if (authLoading || !user || !initialized) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div
-          className="h-8 w-8 animate-spin rounded-full border-2"
-          style={{
-            borderColor: "rgba(244,228,192,.15)",
-            borderTopColor: "var(--lantern-glow)",
-          }}
-        />
+      <div className="mx-auto max-w-7xl px-4 py-10">
+        {/* Header skeleton */}
+        <div className="mb-8">
+          <div className="skeleton-line mb-2" style={{ width: 140, height: 28 }} />
+          <div className="skeleton-line" style={{ width: 200, height: 14 }} />
+        </div>
+        {/* Card skeleton grid */}
+        <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:gap-6">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div
+              key={i}
+              className="skeleton-block"
+              style={{ width: 280, height: 420, flexShrink: 0 }}
+            />
+          ))}
+        </div>
       </div>
     );
   }
@@ -211,7 +240,7 @@ export default function CollectionPage() {
               No anime match this filter.
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:gap-6">
+            <div ref={gridRef} className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:gap-6">
               {filtered.map((item) => (
                 <Link
                   key={item.id}

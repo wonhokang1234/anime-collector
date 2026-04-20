@@ -19,7 +19,7 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
   }, [pathname]);
 
   return (
-    <div ref={ref} style={{ opacity: 0 }}>
+    <div ref={ref}>
       {children}
     </div>
   );

@@ -91,7 +91,11 @@ export default function HomePage() {
         </p>
 
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-          {loading ? null : user ? (
+          {loading ? (
+            <div className="mt-10 flex justify-center">
+              <div className="skeleton-block" style={{ width: 200, height: 44, borderRadius: 4 }} />
+            </div>
+          ) : user ? (
             <Link href="/browse" className="hanko-btn">
               Enter the Library →
             </Link>

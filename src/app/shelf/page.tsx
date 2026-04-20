@@ -155,6 +155,7 @@ export default function ShelfPage() {
     // Count up stat numbers from 0
     const animateStat = (ref: React.RefObject<HTMLSpanElement | null>, target: number) => {
       if (!ref.current) return;
+      ref.current.textContent = "00";
       const obj = { value: 0 };
       gsap.to(obj, {
         value: target,

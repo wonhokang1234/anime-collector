@@ -28,7 +28,7 @@
   --color-ink: var(--ink-1);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-display: var(--font-cinzel), Georgia, serif;
+  --font-display: var(--font-geist-sans), system-ui, sans-serif;
   --font-jp: var(--font-noto-jp), "Noto Serif JP", serif;
 }
 
@@ -92,7 +92,7 @@ body {
   justify-content: center;
   gap: 0.5rem;
   padding: 0.65rem 1.4rem;
-  border-radius: 2px;
+  border-radius: 6px;
   background: linear-gradient(180deg, var(--hanko-bright), var(--hanko));
   color: var(--washi);
   font-family: var(--font-display);

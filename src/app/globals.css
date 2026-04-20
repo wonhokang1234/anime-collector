@@ -246,3 +246,25 @@ body {
   background: rgba(244, 217, 138, 0.35);
   color: var(--washi);
 }
+
+/* ── Skeleton loading ──────────────────────────────── */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.8; }
+}
+
+.skeleton-line {
+  height: 14px;
+  border-radius: 4px;
+  background: rgba(244, 228, 192, 0.06);
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+  display: block;
+}
+
+.skeleton-block {
+  border-radius: 8px;
+  background: rgba(244, 228, 192, 0.04);
+  border: 1px solid rgba(244, 228, 192, 0.06);
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+  display: block;
+}

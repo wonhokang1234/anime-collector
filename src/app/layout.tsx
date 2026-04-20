@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Cinzel, Noto_Serif_JP } from "next/font/google";
 import { AuthProvider } from "@/components/auth-provider";
 import { Navbar } from "@/components/navbar";
+import { PageTransition } from "@/components/page-transition";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -44,7 +45,9 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col text-[color:var(--washi)]">
         <AuthProvider>
           <Navbar />
-          <main className="flex-1">{children}</main>
+          <main className="flex-1">
+            <PageTransition>{children}</PageTransition>
+          </main>
         </AuthProvider>
       </body>
     </html>

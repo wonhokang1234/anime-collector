@@ -45,6 +45,7 @@ export function AnimeCard({
   const cardRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const shineRef = useRef<HTMLDivElement>(null);
+  const shineBackRef = useRef<HTMLDivElement>(null);
   const holoRef = useRef<HTMLDivElement>(null);
   const [isFlipped, setIsFlipped] = useState(false);
   // Ref version of isFlipped so mousemove/leave handlers see the latest value
@@ -339,7 +340,7 @@ export function AnimeCard({
               </div>
 
               {/* Shine overlay on back too */}
-              <div ref={shineRef} className="card-shine" />
+              <div ref={shineBackRef} className="card-shine" />
             </div>
           )}
 

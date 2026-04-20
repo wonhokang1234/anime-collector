@@ -151,23 +151,26 @@ export default function ShelfPage() {
 
   useEffect(() => {
     if (!initialized) return;
+    const tweens: gsap.core.Tween[] = [];
 
     // Count up stat numbers from 0
     const animateStat = (ref: React.RefObject<HTMLSpanElement | null>, target: number) => {
       if (!ref.current) return;
       ref.current.textContent = "00";
       const obj = { value: 0 };
-      gsap.to(obj, {
-        value: target,
-        duration: 0.9,
-        ease: "power2.out",
-        delay: 0.2,
-        onUpdate() {
-          if (ref.current) {
-            ref.current.textContent = Math.round(obj.value).toString().padStart(2, "0");
-          }
-        },
-      });
+      tweens.push(
+        gsap.to(obj, {
+          value: target,
+          duration: 0.9,
+          ease: "power2.out",
+          delay: 0.2,
+          onUpdate() {
+            if (ref.current) {
+              ref.current.textContent = Math.round(obj.value).toString().padStart(2, "0");
+            }
+          },
+        })
+      );
     };
     animateStat(watchingNumRef, counts.watching);
     animateStat(planNumRef, counts.plan);
@@ -175,12 +178,16 @@ export default function ShelfPage() {
 
     // Slide the scene area in from below
     if (sceneRef.current) {
-      gsap.fromTo(
-        sceneRef.current,
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.5, ease: "power2.out", delay: 0.15 }
+      tweens.push(
+        gsap.fromTo(
+          sceneRef.current,
+          { opacity: 0, y: 20 },
+          { opacity: 1, y: 0, duration: 0.5, ease: "power2.out", delay: 0.15 }
+        )
       );
     }
+
+    return () => { tweens.forEach((t) => t.kill()); };
   }, [initialized]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const grouped = useMemo(() => {

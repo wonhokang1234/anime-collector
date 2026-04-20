@@ -56,11 +56,12 @@ export function Navbar() {
 
   useEffect(() => {
     if (!sealRef.current) return;
-    gsap.fromTo(
+    const tween = gsap.fromTo(
       sealRef.current,
       { scale: 0, rotation: -25, opacity: 0 },
       { scale: 1, rotation: -4, opacity: 1, duration: 0.7, ease: "elastic.out(1.2, 0.5)", delay: 0.1 }
     );
+    return () => { tween.kill(); };
   }, [user]);
 
   if (!user) return null;

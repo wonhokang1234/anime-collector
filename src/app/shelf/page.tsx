@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import gsap from "gsap";
 import Image from "next/image";
 import {
   DndContext,
@@ -121,6 +122,11 @@ export default function ShelfPage() {
   const revealRef = useRef<FavoritesRevealHandle>(null);
   const isMobile = useMediaQuery("(max-width: 639px)");
 
+  const watchingNumRef = useRef<HTMLSpanElement>(null);
+  const planNumRef = useRef<HTMLSpanElement>(null);
+  const watchedNumRef = useRef<HTMLSpanElement>(null);
+  const sceneRef = useRef<HTMLDivElement>(null);
+
   const pointerSensor = useSensor(PointerSensor, POINTER_SENSOR_OPTIONS);
   const keyboardSensor = useSensor(KeyboardSensor);
 
@@ -142,6 +148,39 @@ export default function ShelfPage() {
   useEffect(() => {
     if (!authLoading && !user) router.push("/login");
   }, [authLoading, user, router]);
+
+  useEffect(() => {
+    if (!initialized) return;
+
+    // Count up stat numbers from 0
+    const animateStat = (ref: React.RefObject<HTMLSpanElement | null>, target: number) => {
+      if (!ref.current) return;
+      const obj = { value: 0 };
+      gsap.to(obj, {
+        value: target,
+        duration: 0.9,
+        ease: "power2.out",
+        delay: 0.2,
+        onUpdate() {
+          if (ref.current) {
+            ref.current.textContent = Math.round(obj.value).toString().padStart(2, "0");
+          }
+        },
+      });
+    };
+    animateStat(watchingNumRef, counts.watching);
+    animateStat(planNumRef, counts.plan);
+    animateStat(watchedNumRef, counts.watched);
+
+    // Slide the scene area in from below
+    if (sceneRef.current) {
+      gsap.fromTo(
+        sceneRef.current,
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "power2.out", delay: 0.15 }
+      );
+    }
+  }, [initialized]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const grouped = useMemo(() => {
     const buckets: Record<SpineTone, CollectedAnime[]> = {
@@ -325,11 +364,11 @@ export default function ShelfPage() {
               background: "rgba(10,6,4,.6)",
             }}
           >
-            <Stat label="Watching" value={counts.watching} />
+            <Stat label="Watching" value={counts.watching} numRef={watchingNumRef} />
             <div className="w-px" style={{ background: "rgba(244,228,192,.1)" }} />
-            <Stat label="Plan" value={counts.plan} />
+            <Stat label="Plan" value={counts.plan} numRef={planNumRef} />
             <div className="w-px" style={{ background: "rgba(244,228,192,.1)" }} />
-            <Stat label="Watched" value={counts.watched} />
+            <Stat label="Watched" value={counts.watched} numRef={watchedNumRef} />
           </div>
 
           <DroppableSeal
@@ -346,7 +385,7 @@ export default function ShelfPage() {
           onEpisodeChange={updateEpisode}
           onRemove={remove}
         >
-          <div>
+          <div ref={sceneRef}>
             <SceneTabs
               active={tone}
               counts={counts}
@@ -397,7 +436,7 @@ export default function ShelfPage() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: number }) {
+function Stat({ label, value, numRef }: { label: string; value: number; numRef?: React.RefObject<HTMLSpanElement | null> }) {
   return (
     <div className="flex min-w-[72px] flex-1 flex-col items-center justify-center px-3 py-1 sm:flex-initial">
       <div
@@ -409,7 +448,7 @@ function Stat({ label, value }: { label: string; value: number }) {
           className="inline-block h-2 w-2 rounded-sm"
           style={{ background: "var(--hanko)" }}
         />
-        {value.toString().padStart(2, "0")}
+        <span ref={numRef}>{value.toString().padStart(2, "0")}</span>
       </div>
       <div
         className="text-[10px] uppercase tracking-[0.12em]"

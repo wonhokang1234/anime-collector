@@ -316,6 +316,7 @@
   height: 2px;
   z-index: 3;
   pointer-events: none;
+  border-radius: 16px 16px 0 0;
 }
 .rarity-common   .rarity-stripe { background: #a1a1aa; }
 .rarity-uncommon .rarity-stripe { background: linear-gradient(90deg, #059669, #34d399, #059669); }

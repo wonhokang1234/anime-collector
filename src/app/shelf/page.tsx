@@ -192,8 +192,27 @@ export default function ShelfPage() {
 
   if (authLoading || !user || !initialized) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-700 border-t-indigo-500" />
+      <div className="mx-auto max-w-6xl px-4 py-10">
+        {/* Header skeleton */}
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
+          <div>
+            <div className="skeleton-line mb-2" style={{ width: 120, height: 32 }} />
+            <div className="skeleton-line" style={{ width: 200, height: 14 }} />
+          </div>
+          <div className="skeleton-block" style={{ width: 260, height: 52 }} />
+        </div>
+        {/* Tab skeleton */}
+        <div className="mb-6 flex gap-2">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="skeleton-block" style={{ width: 100, height: 44 }} />
+          ))}
+        </div>
+        {/* Spine skeleton */}
+        <div className="flex gap-3 pt-4">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="skeleton-block" style={{ width: 48, height: 260 }} />
+          ))}
+        </div>
       </div>
     );
   }

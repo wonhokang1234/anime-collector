@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Karuta">
+  <title>Karuta</title>
+  <defs>
+    <!-- Subtle lacquer depth: highlight at top, shadow at bottom -->
+    <radialGradient id="kg-depth" cx="50%" cy="28%" r="62%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.10)"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,0.18)"/>
+    </radialGradient>
+  </defs>
+
+  <!-- ── Seal body — vermilion red ── -->
+  <rect x="3" y="3" width="94" height="94" rx="6" fill="#c41e3a"/>
+  <!-- Lacquer depth overlay -->
+  <rect x="3" y="3" width="94" height="94" rx="6" fill="url(#kg-depth)"/>
+  <!-- Outer edge shadow -->
+  <rect x="3" y="3" width="94" height="94" rx="6" fill="none"
+        stroke="rgba(0,0,0,0.28)" stroke-width="1"/>
+
+  <!-- ── Double inner border — hanko convention ── -->
+  <rect x="8" y="8" width="84" height="84" rx="4.5"
+        fill="none" stroke="#f4e4c0" stroke-width="1.5" stroke-opacity="0.40"/>
+  <rect x="12" y="12" width="76" height="76" rx="2.5"
+        fill="none" stroke="#f4e4c0" stroke-width="0.7" stroke-opacity="0.20"/>
+
+  <!-- ── Gold rarity stripe — card motif ── -->
+  <rect x="8" y="8" width="84" height="3" rx="1.5"
+        fill="#f4d98a" fill-opacity="0.52"/>
+
+  <!-- ── Corner register marks — trading card edge motif ── -->
+  <path d="M8,15 L8,8 L15,8"  fill="none" stroke="#f4e4c0" stroke-width="0.9"
+        stroke-opacity="0.22" stroke-linecap="square"/>
+  <path d="M85,8 L92,8 L92,15" fill="none" stroke="#f4e4c0" stroke-width="0.9"
+        stroke-opacity="0.22" stroke-linecap="square"/>
+  <path d="M8,85 L8,92 L15,92" fill="none" stroke="#f4e4c0" stroke-width="0.9"
+        stroke-opacity="0.22" stroke-linecap="square"/>
+  <path d="M85,92 L92,92 L92,85" fill="none" stroke="#f4e4c0" stroke-width="0.9"
+        stroke-opacity="0.22" stroke-linecap="square"/>
+
+  <!-- ── 集 kanji — washi cream ── -->
+  <!--
+    Font note: Noto Serif JP is loaded by Next.js in the app context.
+    For standalone SVG use, falls back to system Japanese serif fonts.
+    To make font-independent, convert text to paths in Figma/Illustrator.
+  -->
+  <text x="50" y="64"
+        text-anchor="middle"
+        font-family="'Noto Serif JP', 'Hiragino Mincho Pro', 'YuMincho', 'Yu Mincho', 'MS Mincho', serif"
+        font-weight="900"
+        font-size="52"
+        fill="#f4e4c0">集</text>
+
+  <!-- ── Bottom ornament — line · dot · line ── -->
+  <line x1="24" y1="82.5" x2="43" y2="82.5"
+        stroke="#f4e4c0" stroke-width="0.75" stroke-opacity="0.30" stroke-linecap="round"/>
+  <circle cx="50" cy="82.5" r="1.5"
+          fill="#f4e4c0" fill-opacity="0.30"/>
+  <line x1="57" y1="82.5" x2="76" y2="82.5"
+        stroke="#f4e4c0" stroke-width="0.75" stroke-opacity="0.30" stroke-linecap="round"/>
+</svg>

@@ -285,18 +285,9 @@ export function AnimeCard({
                 </div>
               )}
 
-              {/* Collect button — inside 3D transform, moves with card on hover */}
+              {/* Reserved space so the image doesn't expand into the button slot */}
               {!isCompact && onCollect && !collected && (
-                <div className="mt-2">
-                  <button
-                    type="button"
-                    onClick={() => onCollect()}
-                    className="hanko-btn w-full"
-                    style={{ padding: "0.5rem 0.9rem", fontSize: "0.7rem" }}
-                  >
-                    Collect
-                  </button>
-                </div>
+                <div className="mt-2 h-10" aria-hidden />
               )}
             </div>
 
@@ -392,6 +383,29 @@ export function AnimeCard({
           )}
 
         </div>
+
+        {/* Collect button — outside anime-card-inner so it's not in the 3D
+            preserve-3d stacking context; pointer events work reliably here. */}
+        {!isCompact && onCollect && !collected && (
+          <div
+            data-no-flip
+            className="absolute bottom-0 left-0 right-0 z-50 px-3 pb-3"
+            style={{
+              opacity: isFlipped ? 0 : 1,
+              pointerEvents: isFlipped ? "none" : "auto",
+              transition: "opacity 0.2s ease",
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => onCollect()}
+              className="hanko-btn w-full"
+              style={{ padding: "0.5rem 0.9rem", fontSize: "0.7rem" }}
+            >
+              Collect
+            </button>
+          </div>
+        )}
       </div>
 
     </div>

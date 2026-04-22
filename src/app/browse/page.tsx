@@ -134,7 +134,25 @@ export default function BrowsePage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10">
+    <div className="mx-auto max-w-7xl px-4 py-10 relative overflow-hidden">
+      {/* Ambient lantern glow behind the header */}
+      <div className="ambient-lantern" aria-hidden />
+
+      {/* Faded watermark kanji — decorative depth */}
+      <div
+        aria-hidden
+        className="pointer-events-none select-none absolute -top-6 right-0 z-0"
+        style={{
+          fontFamily: "var(--font-jp)",
+          fontSize: 300,
+          lineHeight: 1,
+          color: "rgba(244,228,192,0.04)",
+        }}
+      >
+        探
+      </div>
+
+      <div className="relative z-10">
       <div className="mb-10 flex flex-col items-start gap-2 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
         <div>
           <p
@@ -240,6 +258,9 @@ export default function BrowsePage() {
         ))}
       </div>
 
+      {/* Section separator */}
+      <div className="hairline mb-8" />
+
       {/* Loading state — skeleton cards */}
       {loading && (
         <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:gap-6">
@@ -318,7 +339,9 @@ export default function BrowsePage() {
         </div>
       )}
 
-      {/* Toast notification */}
+      </div>{/* end relative z-10 */}
+
+      {/* Toast notification — fixed so lives outside the z-10 wrapper */}
       {toast && (
         <div
           key={toast.id}

@@ -111,7 +111,25 @@ export default function CollectionPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10">
+    <div className="mx-auto max-w-7xl px-4 py-10 relative overflow-hidden">
+      {/* Ambient lantern glow */}
+      <div className="ambient-lantern" aria-hidden />
+
+      {/* Faded watermark kanji */}
+      <div
+        aria-hidden
+        className="pointer-events-none select-none absolute -top-6 right-0 z-0"
+        style={{
+          fontFamily: "var(--font-jp)",
+          fontSize: 300,
+          lineHeight: 1,
+          color: "rgba(244,228,192,0.04)",
+        }}
+      >
+        集
+      </div>
+
+      <div className="relative z-10">
       <div className="mb-8">
         <p
           className="mb-1 text-[10px] uppercase tracking-[.4em]"
@@ -231,6 +249,9 @@ export default function CollectionPage() {
             </div>
           </div>
 
+          {/* Section separator */}
+          <div className="hairline mb-8" />
+
           {/* Grid */}
           {filtered.length === 0 ? (
             <div
@@ -260,6 +281,7 @@ export default function CollectionPage() {
           )}
         </>
       )}
+      </div>{/* end relative z-10 */}
     </div>
   );
 }

@@ -69,8 +69,11 @@ export function MangaSpine({
   }, [menuOpen]);
 
   const rarity = getRarityTier(item.score ?? 0);
-  const width = hero ? 170 : 36;
-  const height = hero ? 250 : 220;
+  // Watching (non-hero) and plan spines are wider so cover art is legible.
+  // Watched spines stay narrow — the thin "archived" look fits the done-pile aesthetic.
+  const isWide = !hero && tone !== "watched";
+  const width = hero ? 170 : isWide ? 72 : 36;
+  const height = hero ? 250 : isWide ? 240 : 220;
   const dimmed = tone === "watched";
 
   const total = item.total_episodes || 0;
@@ -166,7 +169,7 @@ export function MangaSpine({
           className="absolute left-0 right-0"
           style={{
             top: "55%",
-            bottom: hero ? 44 : 30,
+            bottom: hero ? 44 : isWide ? 34 : 30,
             background:
               "linear-gradient(180deg, rgba(244,228,192,.95), rgba(212,188,138,.9))",
             boxShadow: "inset 0 0 12px rgba(100,60,20,.2)",
@@ -177,10 +180,10 @@ export function MangaSpine({
             className="absolute left-1/2 top-2 -translate-x-1/2 whitespace-nowrap overflow-hidden"
             style={{
               writingMode: "vertical-rl",
-              font: `700 ${hero ? 14 : 10}px/1 var(--font-jp), var(--font-display)`,
+              font: `700 ${hero ? 14 : isWide ? 12 : 10}px/1 var(--font-jp), var(--font-display)`,
               color: "var(--sumi)",
               letterSpacing: ".18em",
-              maxHeight: hero ? 140 : 100,
+              maxHeight: hero ? 140 : isWide ? 120 : 100,
               textOverflow: "ellipsis",
             }}
           >

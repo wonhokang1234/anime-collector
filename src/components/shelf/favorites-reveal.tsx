@@ -193,6 +193,48 @@ export const FavoritesReveal = forwardRef<
     };
   }, []);
 
+  // Sync horizontal scroll between the two door content copies so they never
+  // show different scroll positions, which would create a visible "cut" at
+  // the door boundary.  Scroll events don't bubble, so we use capture-phase
+  // listeners on each door element and push the scrollLeft to the other door's
+  // .shelf-scroll elements.
+  useEffect(() => {
+    const left  = doorLeftRef.current;
+    const right = doorRightRef.current;
+    if (!left || !right) return;
+
+    // Track which side initiated the last scroll so we don't ping-pong
+    let propagating = false;
+
+    const syncToRight = (e: Event) => {
+      if (propagating) return;
+      const scrollLeft = (e.target as HTMLElement).scrollLeft;
+      propagating = true;
+      right.querySelectorAll(".shelf-scroll").forEach((el) => {
+        (el as HTMLElement).scrollLeft = scrollLeft;
+      });
+      propagating = false;
+    };
+
+    const syncToLeft = (e: Event) => {
+      if (propagating) return;
+      const scrollLeft = (e.target as HTMLElement).scrollLeft;
+      propagating = true;
+      left.querySelectorAll(".shelf-scroll").forEach((el) => {
+        (el as HTMLElement).scrollLeft = scrollLeft;
+      });
+      propagating = false;
+    };
+
+    left.addEventListener("scroll",  syncToRight, true);
+    right.addEventListener("scroll", syncToLeft,  true);
+
+    return () => {
+      left.removeEventListener("scroll",  syncToRight, true);
+      right.removeEventListener("scroll", syncToLeft,  true);
+    };
+  }, []);
+
   return (
     <div className="relative" style={{ minHeight: 400 }}>
       {/* Gallery — fixed fullscreen below navbar */}
@@ -213,6 +255,7 @@ export const FavoritesReveal = forwardRef<
           onEpisodeChange={onEpisodeChange}
           onRemove={onRemove}
           onClose={close}
+          isOpen={isOpen}
         />
       </div>
 

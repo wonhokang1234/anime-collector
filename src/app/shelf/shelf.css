@@ -10,7 +10,7 @@
   --sumi: #2a1808;
   --hanko: #c41e3a;
   --lantern-glow: #f4d98a;
-  --font-display: var(--font-cinzel), Georgia, serif;
+  --font-display: var(--font-geist-sans), system-ui, sans-serif;
   --font-jp: var(--font-noto-jp), "Noto Serif JP", serif;
 }
 
@@ -312,7 +312,14 @@
   z-index: 10;
   will-change: transform;
 }
-.fusuma-door-left { left: 0; }
+.fusuma-door-left {
+  left: 0;
+  /* 1 extra pixel closes the sub-pixel rendering gap at the seam.
+     z-index: 11 ensures the left door's content paints on top of the right
+     door in the 1px overlap zone, so there is no visible hairline. */
+  width: calc(50% + 1px);
+  z-index: 11;
+}
 .fusuma-door-right { right: 0; }
 
 .fusuma-content {
@@ -363,4 +370,69 @@
   box-shadow: 0 0 12px rgba(196, 30, 58, 0.5) !important;
   transform: rotate(2deg) !important;
   transition: opacity 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+/* ── Shrine spotlight (hidden collection — legendary Pokémon mode) ── */
+.shrine-beam {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 130%;
+  height: 100%;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(160, 195, 255, 0.04) 40%,
+    rgba(185, 215, 255, 0.14) 100%
+  );
+  clip-path: polygon(38% 0%, 62% 0%, 100% 100%, 0% 100%);
+  pointer-events: none;
+}
+
+@keyframes shrine-pulse {
+  0%, 100% { opacity: 0.52; }
+  50%       { opacity: 1;    }
+}
+
+.shrine-beam-animated {
+  animation: shrine-pulse 4.5s ease-in-out infinite;
+}
+
+@keyframes water-ripple {
+  0%   { left: -45%; }
+  100% { left: 120%; }
+}
+
+.water-ripple {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 45%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(155, 205, 255, 0.18),
+    transparent
+  );
+  animation: water-ripple 4s ease-in-out infinite;
+}
+
+@keyframes shrine-ring-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px rgba(180, 210, 255, 0.15),
+      0 0 18px rgba(140, 180, 255, 0.1),
+      0 0 45px rgba(120, 160, 255, 0.05);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgba(210, 232, 255, 0.34),
+      0 0 28px rgba(170, 205, 255, 0.24),
+      0 0 65px rgba(150, 190, 255, 0.11);
+  }
+}
+
+.shrine-ring {
+  animation: shrine-ring-pulse 3.5s ease-in-out infinite;
 }

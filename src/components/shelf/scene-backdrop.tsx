@@ -10,7 +10,7 @@ export function SceneBackdrop({ tone, children }: SceneBackdropProps) {
   return (
     <div
       className={`relative overflow-hidden rounded-2xl border border-white/5 scene-${tone}`}
-      style={{ minHeight: tone === "watching" ? 480 : 320 }}
+      style={{ minHeight: tone === "watching" ? 430 : 300 }}
     >
       {tone === "watching" && (
         <>

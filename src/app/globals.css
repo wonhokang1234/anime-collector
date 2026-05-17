@@ -1207,7 +1207,8 @@ body::after {
   transform: scaleX(1);
 }
 .search-underline-input:focus {
-  outline: none !important;
-  box-shadow: none !important;
-  border-color: transparent !important;
+  outline: none;
+  box-shadow: none;
+  border-color: transparent;
+  background: var(--bg-panel);
 }

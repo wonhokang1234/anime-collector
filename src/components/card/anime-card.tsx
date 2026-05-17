@@ -57,8 +57,8 @@ export function AnimeCard({
   const flipTween = useRef<gsap.core.Tween | null>(null);
 
   const isCompact = variant === "compact";
-  const cardWidth = isCompact ? 180 : 280;
-  const cardHeight = isCompact ? 260 : 420;
+  const cardWidth = isCompact ? 155 : 280;
+  const cardHeight = isCompact ? 224 : 420;
 
   // Card spotlight — desktop hover only, sets CSS vars for globals.css ::before pseudo
   useEffect(() => {

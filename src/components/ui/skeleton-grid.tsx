@@ -4,28 +4,38 @@ interface SkeletonGridProps {
 }
 
 /**
- * SkeletonGrid — loading placeholder grid matching the real card grid layout.
+ * SkeletonGrid — loading placeholder matching the scatter card grid layout.
  *
- * Uses the same responsive column pattern as the card grid:
- *   2 cols mobile → 3 cols sm → 4 cols lg → 5 cols xl
+ * Uses the same flex-wrap layout as the card grid:
+ *   flex flex-wrap gap-4 sm:gap-6 justify-center px-1
  *
- * Each skeleton card uses 2:3 aspect ratio via paddingBottom with
- * `skeleton-block` CSS animation from globals.css.
+ * Each skeleton card has fixed dimensions matching AnimeCard compact/full sizes:
+ *   compact: 155px × 224px (mobile)
+ *   full:    280px × 420px (desktop)
+ *
+ * The `isCompact` prop mirrors the browse page isMobile check.
  *
  * No GSAP — skeletons appear immediately and transition out when content loads.
  */
-export function SkeletonGrid({ count = 12, className }: SkeletonGridProps) {
+export function SkeletonGrid({
+  count = 12,
+  className,
+  isCompact = false,
+}: SkeletonGridProps & { isCompact?: boolean }) {
+  const w = isCompact ? 155 : 280;
+  const h = isCompact ? 224 : 420;
+
   return (
     <div
       role="status"
       aria-label="Loading..."
-      className={`grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 sm:gap-6${className ? ` ${className}` : ""}`}
+      className={`flex flex-wrap gap-4 sm:gap-6 justify-center px-1${className ? ` ${className}` : ""}`}
     >
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="skeleton-block w-full rounded-lg"
-          style={{ position: "relative", paddingBottom: "150%" }}
+          className="skeleton-block rounded-lg flex-shrink-0"
+          style={{ width: w, height: h }}
         />
       ))}
     </div>

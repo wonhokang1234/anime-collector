@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import gsap from "gsap";
-import { DURATION, EASE } from "@/lib/motion";
+import { EASE, SCATTER } from "@/lib/motion";
 import { AnimeCard } from "@/components/card/anime-card";
+import { ScatterCard } from "@/components/scatter-card";
 import {
   searchAnime,
   getTopAnime,
@@ -41,6 +42,7 @@ export default function BrowsePage() {
   const isMobile = useMediaQuery("(max-width: 639px)");
 
   const [query, setQuery] = useState("");
+  const [activeQuery, setActiveQuery] = useState("");
   const [results, setResults] = useState<JikanAnime[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,24 +52,59 @@ export default function BrowsePage() {
 
   useEffect(() => {
     if (loading || !gridRef.current) return;
-    const cards = Array.from(gridRef.current.children);
+    const cards = Array.from(gridRef.current.children) as HTMLElement[];
     if (cards.length === 0) return;
-    gsap.fromTo(
-      cards,
-      { opacity: 0, y: 16 },
-      {
-        opacity: 1,
-        y: 0,
-        duration: DURATION.reveal,
-        stagger: {
-          each: DURATION.revealStagger,
-          amount: 12 * DURATION.revealStagger,
+
+    const total = cards.length;
+    cards.forEach((el, i) => {
+      const fraction = i / Math.max(total - 1, 1);
+      const fromRight = fraction > 0.6;
+      const fromTop = fraction < 0.28;
+
+      gsap.fromTo(
+        el,
+        {
+          opacity: 0,
+          x: fromRight ? 70 : fromTop ? 0 : -45,
+          y: fromTop ? -70 : fromRight ? 0 : 28,
         },
-        ease: EASE.emphasized,
-        clearProps: "opacity,transform",
-      },
-    );
+        {
+          opacity: 1,
+          x: 0,
+          y: 0,
+          duration: SCATTER.dealIn,
+          delay: Math.min(i * SCATTER.dealInStagger, SCATTER.dealInMaxDelay),
+          ease: EASE.emphasized,
+        },
+      );
+    });
   }, [loading]);
+
+  // Filter recede — dims cards while search query is in-flight
+  useEffect(() => {
+    if (!gridRef.current) return;
+    const cards = Array.from(gridRef.current.children) as HTMLElement[];
+    if (cards.length === 0) return;
+
+    if (activeQuery !== "") {
+      gsap.to(cards, {
+        opacity: 0.45,
+        scale: 0.95,
+        duration: SCATTER.filterFade,
+        ease: EASE.out,
+        stagger: 0.015,
+      });
+    } else {
+      gsap.to(cards, {
+        opacity: 1,
+        scale: 1,
+        duration: SCATTER.filterFade,
+        ease: EASE.out,
+        clearProps: "opacity,scale",
+        stagger: 0.015,
+      });
+    }
+  }, [activeQuery]);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -158,7 +195,7 @@ export default function BrowsePage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 relative">
+    <div className="mx-auto max-w-7xl px-4 relative washi-surface">
       <div className="relative z-10 pt-10">
         {/* Page header */}
         <div className="mb-8 flex flex-col items-start gap-2 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
@@ -181,6 +218,7 @@ export default function BrowsePage() {
             >
               <span className="hanko-dot" aria-hidden />
               <span
+                data-collect-target="true"
                 className="font-mono text-base tabular-nums"
                 style={{ color: "var(--text-primary)" }}
               >
@@ -234,11 +272,15 @@ export default function BrowsePage() {
         }}
       >
         {/* Search input with icon and clear button */}
-        <div className="relative max-w-xl">
+        <div className="relative max-w-xl search-underline-wrap">
           <input
+            className="search-underline-input"
             type="text"
             value={query}
-            onChange={(e) => handleSearch(e.target.value)}
+            onChange={(e) => {
+              handleSearch(e.target.value);
+              setActiveQuery(e.target.value);
+            }}
             placeholder="Search the library..."
             style={{
               width: "100%",
@@ -251,16 +293,6 @@ export default function BrowsePage() {
               color: "var(--text-primary)",
               fontFamily: "var(--font-sans)",
               fontSize: "0.9rem",
-              outline: "none",
-              transition: "border-color 150ms ease, box-shadow 150ms ease",
-            }}
-            onFocus={(e) => {
-              e.currentTarget.style.borderColor = "var(--accent)";
-              e.currentTarget.style.boxShadow = "0 0 0 3px var(--accent-tint)";
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.borderColor = "var(--border-default)";
-              e.currentTarget.style.boxShadow = "none";
             }}
           />
           <svg
@@ -284,6 +316,7 @@ export default function BrowsePage() {
               aria-label="Clear search"
               onClick={() => {
                 handleSearch("");
+                setActiveQuery("");
               }}
               className="absolute right-3 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded transition-opacity hover:opacity-70"
               style={{ color: "var(--text-muted)" }}
@@ -299,7 +332,7 @@ export default function BrowsePage() {
         <div className="hairline mt-6 mb-8" />
 
         {/* Loading state — skeleton grid */}
-        {loading && <SkeletonGrid count={10} />}
+        {loading && <SkeletonGrid count={10} isCompact={isMobile} />}
 
         {/* Error state — designed panel instead of raw red div */}
         {error && !loading && (
@@ -345,24 +378,25 @@ export default function BrowsePage() {
           >
             <div
               ref={gridRef}
-              className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 sm:gap-6"
+              className="flex flex-wrap gap-4 sm:gap-6 justify-center px-1"
             >
               {results.map((anime) => (
-                <AnimeCard
-                  key={anime.mal_id}
-                  title={anime.title}
-                  imageUrl={anime.images.jpg.large_image_url}
-                  score={anime.score ?? 0}
-                  episodes={anime.episodes}
-                  synopsis={anime.synopsis ?? undefined}
-                  genres={anime.genres.map((g) => g.name)}
-                  studio={anime.studios[0]?.name}
-                  year={getAnimeYear(anime)}
-                  variant={isMobile ? "compact" : "full"}
-                  collected={isCollected(anime.mal_id)}
-                  onCollect={() => handleCollect(anime)}
-                  isJustCollected={justCollectedId === anime.mal_id}
-                />
+                <ScatterCard key={anime.mal_id} malId={anime.mal_id ?? 0}>
+                  <AnimeCard
+                    title={anime.title}
+                    imageUrl={anime.images.jpg.large_image_url}
+                    score={anime.score ?? 0}
+                    episodes={anime.episodes}
+                    synopsis={anime.synopsis ?? undefined}
+                    genres={anime.genres.map((g) => g.name)}
+                    studio={anime.studios[0]?.name}
+                    year={getAnimeYear(anime)}
+                    variant={isMobile ? "compact" : "full"}
+                    collected={isCollected(anime.mal_id)}
+                    onCollect={() => handleCollect(anime)}
+                    isJustCollected={justCollectedId === anime.mal_id}
+                  />
+                </ScatterCard>
               ))}
             </div>
           </ErrorBoundary>

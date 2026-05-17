@@ -40,3 +40,18 @@ export const EASE = {
   count: "power2.out",
   linear: "none",
 } as const;
+
+export const COLLECT = {
+  freeze: 0.1,
+  stamp: 0.3,
+  flip: 0.4,
+  arc: 0.45,
+} as const;
+
+export const SCATTER = {
+  dealIn: 0.35,
+  dealInStagger: 0.055,
+  dealInMaxDelay: 0.75,
+  burstOut: 0.28,
+  filterFade: 0.18,
+} as const;

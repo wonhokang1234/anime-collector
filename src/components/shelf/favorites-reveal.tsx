@@ -35,7 +35,7 @@ export const FavoritesReveal = forwardRef<
   FavoritesRevealProps
 >(function FavoritesReveal(
   { children, favorites, onMove, onEpisodeChange, onRemove },
-  ref
+  ref,
 ) {
   const [isOpen, setIsOpen] = useState(false);
   const animating = useRef(false);
@@ -69,9 +69,9 @@ export const FavoritesReveal = forwardRef<
     tl.to(slitRef.current, {
       width: 8,
       boxShadow:
-        "0 0 40px 12px rgba(200,220,255,0.3), 0 0 80px 30px rgba(180,200,240,0.15)",
+        "0 0 40px 12px rgba(196,156,80,0.3), 0 0 80px 30px rgba(196,156,80,0.15)",
       background:
-        "linear-gradient(90deg, transparent 0%, rgba(210,225,255,0.7) 25%, rgba(255,255,255,0.95) 50%, rgba(210,225,255,0.7) 75%, transparent 100%)",
+        "linear-gradient(90deg, transparent 0%, rgba(196,156,80,0.5) 25%, rgba(255,240,200,0.95) 50%, rgba(196,156,80,0.5) 75%, transparent 100%)",
       duration: 0.3,
       ease: "power2.in",
     });
@@ -79,21 +79,21 @@ export const FavoritesReveal = forwardRef<
     tl.to(slitRef.current, {
       width: 20,
       background:
-        "linear-gradient(90deg, transparent 0%, rgba(180,200,240,0.3) 20%, rgba(220,230,255,0.6) 50%, rgba(180,200,240,0.3) 80%, transparent 100%)",
+        "linear-gradient(90deg, transparent 0%, rgba(196,156,80,0.25) 20%, rgba(255,235,180,0.6) 50%, rgba(196,156,80,0.25) 80%, transparent 100%)",
       boxShadow:
-        "0 0 50px 15px rgba(180,200,240,0.12), 0 0 100px 40px rgba(180,200,240,0.06)",
+        "0 0 50px 15px rgba(196,156,80,0.12), 0 0 100px 40px rgba(196,156,80,0.06)",
       duration: 0.4,
       ease: "power1.out",
     });
     tl.to(
       doorLeftRef.current,
       { x: "-100%", duration: 1.1, ease: "cubic-bezier(0.4, 0, 0.2, 1)" },
-      "<"
+      "<",
     );
     tl.to(
       doorRightRef.current,
       { x: "100%", duration: 1.1, ease: "cubic-bezier(0.4, 0, 0.2, 1)" },
-      "<"
+      "<",
     );
     tl.fromTo(
       galleryRef.current,
@@ -104,7 +104,7 @@ export const FavoritesReveal = forwardRef<
         duration: 1.0,
         ease: "cubic-bezier(0.22, 1, 0.36, 1)",
       },
-      "<"
+      "<",
     );
 
     tl.to(
@@ -115,7 +115,7 @@ export const FavoritesReveal = forwardRef<
         duration: 0.3,
         ease: "power1.out",
       },
-      "-=0.6"
+      "-=0.6",
     );
 
     tl.to(hintRef.current, { opacity: 1, duration: 0.4 }, "-=0.2");
@@ -147,17 +147,17 @@ export const FavoritesReveal = forwardRef<
     tl.to(
       galleryRef.current,
       { y: 40, opacity: 0, duration: 0.5, ease: "power2.in" },
-      "<"
+      "<",
     );
     tl.to(
       doorLeftRef.current,
       { x: "0%", duration: 1.0, ease: "cubic-bezier(0.4, 0, 0.2, 1)" },
-      "-=0.3"
+      "-=0.3",
     );
     tl.to(
       doorRightRef.current,
       { x: "0%", duration: 1.0, ease: "cubic-bezier(0.4, 0, 0.2, 1)" },
-      "<"
+      "<",
     );
 
     tlRef.current = tl;
@@ -173,9 +173,11 @@ export const FavoritesReveal = forwardRef<
     () => ({
       toggle,
       isOpen,
-      get animating() { return animating.current; },
+      get animating() {
+        return animating.current;
+      },
     }),
-    [toggle, isOpen]
+    [toggle, isOpen],
   );
 
   useEffect(() => {
@@ -199,7 +201,7 @@ export const FavoritesReveal = forwardRef<
   // listeners on each door element and push the scrollLeft to the other door's
   // .shelf-scroll elements.
   useEffect(() => {
-    const left  = doorLeftRef.current;
+    const left = doorLeftRef.current;
     const right = doorRightRef.current;
     if (!left || !right) return;
 
@@ -226,12 +228,12 @@ export const FavoritesReveal = forwardRef<
       propagating = false;
     };
 
-    left.addEventListener("scroll",  syncToRight, true);
-    right.addEventListener("scroll", syncToLeft,  true);
+    left.addEventListener("scroll", syncToRight, true);
+    right.addEventListener("scroll", syncToLeft, true);
 
     return () => {
-      left.removeEventListener("scroll",  syncToRight, true);
-      right.removeEventListener("scroll", syncToLeft,  true);
+      left.removeEventListener("scroll", syncToRight, true);
+      right.removeEventListener("scroll", syncToLeft, true);
     };
   }, []);
 
@@ -242,7 +244,7 @@ export const FavoritesReveal = forwardRef<
         ref={galleryRef}
         className="fixed left-0 right-0 bottom-0 overflow-hidden"
         style={{
-          top: "3.5rem",
+          top: "var(--navbar-height)",
           opacity: 0,
           transform: "translateY(40px)",
           zIndex: 40,

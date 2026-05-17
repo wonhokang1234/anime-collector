@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import gsap from "gsap";
+import { DURATION, EASE } from "@/lib/motion";
 import Image from "next/image";
 import {
   DndContext,
@@ -24,11 +25,15 @@ import {
   FavoritesReveal,
   type FavoritesRevealHandle,
 } from "@/components/shelf/favorites-reveal";
-import type { SpineTone } from "@/components/shelf/manga-spine";
+import type { SpineTone } from "@/lib/types";
 import type { AnimeCategory, CollectedAnime } from "@/lib/types";
+import { EmptyState } from "@/components/ui/empty-state";
+import { SectionHeader } from "@/components/ui/section-header";
 import "./shelf.css";
 
-const POINTER_SENSOR_OPTIONS = { activationConstraint: { delay: 250, tolerance: 5 } };
+const POINTER_SENSOR_OPTIONS = {
+  activationConstraint: { delay: 250, tolerance: 5 },
+};
 
 const TARGET_MAP: Record<string, AnimeCategory> = {
   "drop-watching": "watching",
@@ -132,63 +137,22 @@ export default function ShelfPage() {
 
   const sensors = useSensors(
     isMobile ? undefined : pointerSensor,
-    keyboardSensor
+    keyboardSensor,
   );
 
   const favorites = useMemo(
     () => items.filter((i) => i.category === "favorite"),
-    [items]
+    [items],
   );
 
   const activeDragItem = useMemo<CollectedAnime | undefined>(
     () => (activeDragId ? items.find((i) => i.id === activeDragId) : undefined),
-    [activeDragId, items]
+    [activeDragId, items],
   );
 
   useEffect(() => {
     if (!authLoading && !user) router.push("/login");
   }, [authLoading, user, router]);
-
-  useEffect(() => {
-    if (!initialized) return;
-    const tweens: gsap.core.Tween[] = [];
-
-    // Count up stat numbers from 0
-    const animateStat = (ref: React.RefObject<HTMLSpanElement | null>, target: number) => {
-      if (!ref.current) return;
-      ref.current.textContent = "00";
-      const obj = { value: 0 };
-      tweens.push(
-        gsap.to(obj, {
-          value: target,
-          duration: 0.9,
-          ease: "power2.out",
-          delay: 0.2,
-          onUpdate() {
-            if (ref.current) {
-              ref.current.textContent = Math.round(obj.value).toString().padStart(2, "0");
-            }
-          },
-        })
-      );
-    };
-    animateStat(watchingNumRef, counts.watching);
-    animateStat(planNumRef, counts.plan);
-    animateStat(watchedNumRef, counts.watched);
-
-    // Slide the scene area in from below
-    if (sceneRef.current) {
-      tweens.push(
-        gsap.fromTo(
-          sceneRef.current,
-          { opacity: 0, y: 20 },
-          { opacity: 1, y: 0, duration: 0.5, ease: "power2.out", delay: 0.15 }
-        )
-      );
-    }
-
-    return () => { tweens.forEach((t) => t.kill()); };
-  }, [initialized]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const grouped = useMemo(() => {
     const buckets: Record<SpineTone, CollectedAnime[]> = {
@@ -210,6 +174,61 @@ export default function ShelfPage() {
     watched: grouped.watched.length,
   };
   const total = items.length;
+
+  useEffect(() => {
+    if (!initialized) return;
+    const tweens: gsap.core.Tween[] = [];
+
+    // Count up stat numbers from 0
+    const animateStat = (
+      ref: React.RefObject<HTMLSpanElement | null>,
+      target: number,
+    ) => {
+      if (!ref.current) return;
+      ref.current.textContent = "00";
+      const obj = { value: 0 };
+      tweens.push(
+        gsap.to(obj, {
+          value: target,
+          duration: 1.0,
+          ease: EASE.count,
+          delay: 0.2,
+          onUpdate() {
+            if (ref.current) {
+              ref.current.textContent = Math.round(obj.value)
+                .toString()
+                .padStart(2, "0");
+            }
+          },
+        }),
+      );
+    };
+    animateStat(watchingNumRef, counts.watching);
+    animateStat(planNumRef, counts.plan);
+    animateStat(watchedNumRef, counts.watched);
+
+    // Slide the scene area in from below
+    if (sceneRef.current) {
+      tweens.push(
+        gsap.fromTo(
+          sceneRef.current,
+          { opacity: 0, y: 20 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: DURATION.base,
+            ease: EASE.out,
+            delay: 0.15,
+            clearProps: "transform",
+          },
+        ),
+      );
+    }
+
+    return () => {
+      tweens.forEach((t) => t.kill());
+    };
+  }, [initialized]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleDragStart(event: DragStartEvent) {
     if (revealRef.current?.animating) return;
@@ -243,7 +262,10 @@ export default function ShelfPage() {
         {/* Header skeleton */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
           <div>
-            <div className="skeleton-line mb-2" style={{ width: 120, height: 32 }} />
+            <div
+              className="skeleton-line mb-2"
+              style={{ width: 120, height: 32 }}
+            />
             <div className="skeleton-line" style={{ width: 200, height: 14 }} />
           </div>
           <div className="skeleton-block" style={{ width: 260, height: 52 }} />
@@ -251,13 +273,21 @@ export default function ShelfPage() {
         {/* Tab skeleton */}
         <div className="mb-6 flex gap-2">
           {[0, 1, 2].map((i) => (
-            <div key={i} className="skeleton-block" style={{ width: 100, height: 44 }} />
+            <div
+              key={i}
+              className="skeleton-block"
+              style={{ width: 100, height: 44 }}
+            />
           ))}
         </div>
         {/* Spine skeleton */}
         <div className="flex gap-3 pt-4">
           {[0, 1, 2].map((i) => (
-            <div key={i} className="skeleton-block" style={{ width: 48, height: 260 }} />
+            <div
+              key={i}
+              className="skeleton-block"
+              style={{ width: 48, height: 260 }}
+            />
           ))}
         </div>
       </div>
@@ -266,47 +296,19 @@ export default function ShelfPage() {
 
   if (total === 0) {
     return (
-      <div className="shelf-root mx-auto max-w-6xl px-4 py-16">
-        <div className="relative overflow-hidden rounded-3xl border border-white/5 bg-gradient-to-b from-zinc-900/60 to-zinc-950 p-12 text-center">
-          <div className="shelf-empty-glow" aria-hidden />
-          <div className="relative">
-            <div
-              className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full"
-              style={{
-                background: "var(--washi)",
-                color: "var(--hanko)",
-                fontFamily: "var(--font-jp)",
-                fontSize: 22,
-                fontWeight: 900,
-                boxShadow: "0 2px 6px rgba(0,0,0,.5)",
-              }}
-              aria-hidden
-            >
-              蔵
-            </div>
-            <h1
-              className="text-2xl font-extrabold tracking-tight"
-              style={{
-                fontFamily: "var(--font-display)",
-                color: "var(--washi)",
-              }}
-            >
-              Your shelf is empty
-            </h1>
-            <p className="mx-auto mt-2 max-w-md text-sm text-zinc-400">
-              Collect a few anime and they&apos;ll land here — filed by what
-              you&apos;re watching, what&apos;s planned, and what you&apos;ve
-              finished.
-            </p>
-            <button
-              onClick={() => router.push("/browse")}
-              className="mt-6 rounded-lg bg-[var(--hanko)] px-6 py-2.5 text-sm font-semibold text-[var(--washi)] transition-opacity hover:opacity-90"
-              style={{ fontFamily: "var(--font-display)" }}
-            >
-              Browse anime
-            </button>
-          </div>
+      <div className="shelf-root mx-auto max-w-6xl px-4 py-10">
+        <div className="mb-10">
+          <SectionHeader kicker="書架" title="Shelf" as="h1" />
         </div>
+        <EmptyState
+          icon="蔵"
+          title="Your shelf is empty"
+          description="Collect a few anime and they'll land here — filed by what you're watching, what's planned, and what you've finished."
+          action={{
+            label: "Browse anime",
+            onClick: () => router.push("/browse"),
+          }}
+        />
       </div>
     );
   }
@@ -325,7 +327,7 @@ export default function ShelfPage() {
             const section = CATEGORY_LABELS[item.category] ?? "shelf";
             return `${item.title} picked up from ${section}`;
           },
-          onDragOver({ active, over }) {
+          onDragOver({ over }) {
             if (!over) return "Not over a drop target";
             return `Over ${DROP_LABELS[over.id as string] ?? "drop target"}`;
           },
@@ -339,52 +341,61 @@ export default function ShelfPage() {
           onDragCancel({ active }) {
             const item = items.find((i) => i.id === active.id);
             const title = item?.title ?? "Item";
-            const section = item ? (CATEGORY_LABELS[item.category] ?? "shelf") : "shelf";
+            const section = item
+              ? (CATEGORY_LABELS[item.category] ?? "shelf")
+              : "shelf";
             return `${title} dropped, returned to ${section}`;
           },
         },
       }}
     >
-    <div className="shelf-root mx-auto max-w-6xl px-4 py-10">
-      {/* Header */}
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between sm:gap-6">
-        <div>
-          <h1
-            className="text-3xl font-extrabold tracking-tight"
-            style={{
-              fontFamily: "var(--font-display)",
-              color: "var(--washi)",
-            }}
-          >
-            My Shelf
-          </h1>
-          <p className="mt-2 text-sm text-zinc-400">
-            Tracking {total} {total === 1 ? "entry" : "entries"} across three
-            shelves.
-          </p>
-        </div>
-
-        <div className="relative flex w-full items-center gap-4 sm:w-auto">
-          <div
-            className="flex items-stretch gap-2 rounded-xl border p-1.5"
-            style={{
-              borderColor: "rgba(244,228,192,.2)",
-              background: "rgba(10,6,4,.6)",
-            }}
-          >
-            <Stat label="Watching" value={counts.watching} numRef={watchingNumRef} />
-            <div className="w-px" style={{ background: "rgba(244,228,192,.1)" }} />
-            <Stat label="Plan" value={counts.plan} numRef={planNumRef} />
-            <div className="w-px" style={{ background: "rgba(244,228,192,.1)" }} />
-            <Stat label="Watched" value={counts.watched} numRef={watchedNumRef} />
+      <div className="shelf-root mx-auto max-w-6xl px-4 py-10">
+        {/* Header */}
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between sm:gap-6">
+          <div>
+            <SectionHeader
+              kicker="書架"
+              title="Shelf"
+              as="h1"
+              description={`Tracking ${total} ${total === 1 ? "entry" : "entries"} across three shelves.`}
+            />
           </div>
 
-          <DroppableSeal
-            isDragActive={!!activeDragId}
-            onClick={() => revealRef.current?.toggle()}
-          />
+          <div className="relative flex w-full items-center gap-4 sm:w-auto">
+            <div
+              className="flex items-stretch gap-2 rounded-xl border p-1.5"
+              style={{
+                borderColor: "var(--border-default)",
+                background: "var(--bg-raised)",
+              }}
+            >
+              <Stat
+                label="Watching"
+                value={counts.watching}
+                numRef={watchingNumRef}
+              />
+              <div
+                className="w-px"
+                style={{ background: "var(--border-subtle)" }}
+              />
+              <Stat label="Plan" value={counts.plan} numRef={planNumRef} />
+              <div
+                className="w-px"
+                style={{ background: "var(--border-subtle)" }}
+              />
+              <Stat
+                label="Watched"
+                value={counts.watched}
+                numRef={watchedNumRef}
+              />
+            </div>
+
+            <DroppableSeal
+              isDragActive={!!activeDragId}
+              onClick={() => revealRef.current?.toggle()}
+            />
+          </div>
         </div>
-      </div>
 
         <FavoritesReveal
           ref={revealRef}
@@ -439,12 +450,20 @@ export default function ShelfPage() {
             </div>
           ) : null}
         </DragOverlay>
-    </div>
+      </div>
     </DndContext>
   );
 }
 
-function Stat({ label, value, numRef }: { label: string; value: number; numRef?: React.RefObject<HTMLSpanElement | null> }) {
+function Stat({
+  label,
+  value,
+  numRef,
+}: {
+  label: string;
+  value: number;
+  numRef?: React.RefObject<HTMLSpanElement | null>;
+}) {
   return (
     <div className="flex min-w-[72px] flex-1 flex-col items-center justify-center px-3 py-1 sm:flex-initial">
       <div
@@ -461,8 +480,8 @@ function Stat({ label, value, numRef }: { label: string; value: number; numRef?:
       <div
         className="text-[10px] uppercase tracking-[0.12em]"
         style={{
-          color: "rgba(244,228,192,.55)",
-          fontFamily: "var(--font-display)",
+          color: "var(--washi-soft)",
+          fontFamily: "var(--font-sans)",
         }}
       >
         {label}

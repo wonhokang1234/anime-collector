@@ -1,35 +1,36 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Cinzel, Noto_Serif_JP } from "next/font/google";
+import { Geist_Mono, Cormorant_Garamond, Inter } from "next/font/google";
 import { AuthProvider } from "@/components/auth-provider";
+import { MotionProvider } from "@/components/motion-provider";
 import { Navbar } from "@/components/navbar";
 import { PageTransition } from "@/components/page-transition";
+import { ErrorBoundary } from "@/components/error-boundary";
+import { Toast } from "@/components/ui/toast";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
 
-const cinzel = Cinzel({
-  variable: "--font-cinzel",
+const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
-  weight: ["400", "600", "700"],
+  weight: ["300", "500"],
+  style: ["normal", "italic"],
+  variable: "--font-cormorant",
+  display: "swap",
 });
 
-const notoSerifJp = Noto_Serif_JP({
-  variable: "--font-noto-jp",
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["400", "600", "700"],
+  weight: ["400", "500", "600"],
+  variable: "--font-inter",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Anime Collector",
-  description: "Collect anime as stylized cards and organize them on your shelf",
+  title: "Karuta",
+  description: "A premium anime and manga collection tracker",
 };
 
 export default function RootLayout({
@@ -40,14 +41,22 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${cinzel.variable} ${notoSerifJp.variable} h-full antialiased dark`}
+      className={`${cormorant.variable} ${inter.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col text-[color:var(--washi)]">
+      <body
+        className="min-h-full flex flex-col"
+        style={{ background: "var(--bg-page)", color: "var(--text-primary)" }}
+      >
         <AuthProvider>
-          <Navbar />
-          <main className="flex-1">
-            <PageTransition>{children}</PageTransition>
-          </main>
+          <MotionProvider>
+            <Navbar />
+            <main className="flex-1">
+              <ErrorBoundary>
+                <PageTransition>{children}</PageTransition>
+              </ErrorBoundary>
+            </main>
+            <Toast />
+          </MotionProvider>
         </AuthProvider>
       </body>
     </html>

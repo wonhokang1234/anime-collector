@@ -1,7 +1,61 @@
 @import "tailwindcss";
 
 :root {
-  /* manga-library visual language — shared site-wide */
+  /* ── New design system tokens (Phase 1) ──────────────────── */
+
+  /* Backgrounds */
+  --bg-page: #f7f3ee;
+  --bg-card: #ffffff;
+  --bg-panel: #f0ebe4;
+  --bg-raised: #ffffff;
+
+  /* Borders */
+  --border-subtle: rgba(26, 22, 20, 0.06);
+  --border-default: rgba(26, 22, 20, 0.12);
+  --border-strong: rgba(26, 22, 20, 0.24);
+
+  /* Text */
+  --text-primary: #1a1614;
+  --text-secondary: #5a4f4a;
+  --text-muted: #8a7d78;
+
+  /* Accent */
+  --accent: #c41e3a;
+  --accent-tint: rgba(196, 30, 58, 0.08);
+  --accent-hover: #a8192f;
+
+  /* Shadows */
+  --shadow-card:
+    0 1px 3px rgba(26, 22, 20, 0.08), 0 1px 2px rgba(26, 22, 20, 0.06);
+  --shadow-hover:
+    0 4px 12px rgba(26, 22, 20, 0.12), 0 2px 6px rgba(26, 22, 20, 0.08);
+  --shadow-modal:
+    0 8px 32px rgba(26, 22, 20, 0.16), 0 2px 8px rgba(26, 22, 20, 0.08);
+
+  /* Status */
+  --status-success: #2d7d46;
+  --status-success-bg: rgba(45, 125, 70, 0.1);
+  --status-warning: #b45309;
+  --status-warning-bg: rgba(180, 83, 9, 0.1);
+  --status-error: #c41e3a;
+  --status-error-bg: rgba(196, 30, 58, 0.1);
+
+  /* Rarity borders (light-safe) */
+  --rarity-common-border: #8a7d78;
+  --rarity-uncommon-border: #2d7d46;
+  --rarity-rare-border: #1d4ed8;
+  --rarity-epic-border: #7c3aed;
+  --rarity-legendary-border: #c41e3a;
+  --rarity-gold: #c49c50;
+
+  /* Skeleton */
+  --skeleton-base: #e8e3dc;
+  --skeleton-highlight: #f0ebe4;
+
+  /* Navbar — load-bearing, do not change */
+  --navbar-height: 3.5rem;
+
+  /* ── Legacy tokens (still referenced by existing components — do not delete) ── */
   --ink-0: #050710;
   --ink-1: #0a0604;
   --ink-2: #1a1208;
@@ -18,38 +72,89 @@
 
   --background: var(--ink-1);
   --foreground: var(--washi);
+
+  --max-width-content: 80rem;
+  --section-padding-x: 1.5rem;
+  --section-padding-y: 4rem;
+
+  --bg-void: var(--ink-0);
+  --bg-surface: var(--ink-2);
+  --bg-elevated: var(--sumi);
+  --bg-overlay: rgba(5, 7, 16, 0.85);
+  --bg-active: var(--indigo-deep);
+  --bg-hover: rgba(26, 18, 8, 0.7);
+
+  --border-accent: var(--hanko);
+
+  --text-tertiary: var(--washi-dim);
+  --text-disabled: var(--washi-soft);
+  --text-ghost: var(--washi-soft);
+  --text-accent: var(--hanko);
+  --text-inverse: var(--ink-1);
+
+  --accent-primary: #4a7abf;
+
+  --action-primary: var(--hanko);
+  --action-primary-hover: var(--hanko-bright);
+  --action-disabled: rgba(244, 228, 192, 0.15);
+
+  --status-watching: var(--lantern-glow);
+  --status-completed: var(--indigo-mid);
+  --status-planned: rgba(244, 228, 192, 0.45);
+  --status-dropped: #8b1a1a;
+  --status-plan: rgba(244, 228, 192, 0.45);
+  --status-watched: var(--indigo-mid);
+
+  --rarity-common-color: #8a9ba8;
+  --rarity-common-badge: rgba(138, 155, 168, 0.15);
+  --rarity-uncommon-color: #4a9966;
+  --rarity-uncommon-badge: rgba(74, 153, 102, 0.15);
+  --rarity-rare-color: #4a7abf;
+  --rarity-rare-badge: rgba(74, 122, 191, 0.15);
+  --rarity-epic-color: #8b5cf6;
+  --rarity-epic-badge: rgba(139, 92, 246, 0.12);
+  --rarity-legendary-color: #f4d98a;
+  --rarity-legendary-badge: rgba(244, 217, 138, 0.12);
+
+  --shadow-raised:
+    0 4px 12px rgba(5, 7, 16, 0.7), 0 2px 4px rgba(5, 7, 16, 0.5);
+  --shadow-elevated:
+    0 8px 24px rgba(5, 7, 16, 0.8), 0 4px 8px rgba(5, 7, 16, 0.5);
+  --shadow-floating:
+    0 8px 24px rgba(5, 7, 16, 0.8), 0 4px 8px rgba(5, 7, 16, 0.5);
+  --shadow-overlay: 0 16px 40px rgba(5, 7, 16, 0.9);
+
+  --glow-legendary:
+    0 0 28px rgba(244, 217, 138, 0.45), 0 0 56px rgba(244, 217, 138, 0.15);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-washi: var(--washi);
-  --color-hanko: var(--hanko);
-  --color-ink: var(--ink-1);
-  --font-sans: var(--font-geist-sans);
+  --font-display: var(--font-cormorant);
+  --font-sans: var(--font-inter);
   --font-mono: var(--font-geist-mono);
-  --font-display: var(--font-geist-sans), system-ui, sans-serif;
-  --font-jp: var(--font-noto-jp), "Noto Serif JP", serif;
 }
 
 body {
-  background:
-    radial-gradient(
-      ellipse at 15% -10%,
-      rgba(244, 217, 138, 0.06) 0%,
-      transparent 45%
-    ),
-    radial-gradient(
-      ellipse at 85% 110%,
-      rgba(196, 30, 58, 0.05) 0%,
-      transparent 50%
-    ),
-    linear-gradient(180deg, var(--ink-1) 0%, var(--ink-0) 100%);
-  background-attachment: fixed;
-  color: var(--foreground);
+  background: var(--bg-page);
+  color: var(--text-primary);
 }
 
-/* Shared utilities for the manga-library aesthetic */
+/* Film grain overlay */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23grain)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 200px 200px;
+}
+
+/* Shared utilities */
 .font-display {
   font-family: var(--font-display);
   letter-spacing: 0.02em;
@@ -58,91 +163,109 @@ body {
   font-family: var(--font-jp);
 }
 
-/* Washi pill — a flexible tag/pill element used for stats, badges, filters */
-.washi-pill {
+/* ── Button system ──────────────────────────────────────── */
+
+.btn-primary {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.3rem 0.7rem;
-  border: 1px solid rgba(244, 228, 192, 0.22);
-  background: rgba(10, 6, 4, 0.6);
-  color: var(--washi);
-  font-family: var(--font-display);
-  font-size: 0.7rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.5rem 1.25rem;
+  background: var(--accent);
+  color: #ffffff;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 500;
   border-radius: 4px;
-  transition: border-color 0.18s, color 0.18s, background 0.18s;
-}
-.washi-pill:hover {
-  border-color: rgba(244, 228, 192, 0.45);
-  color: #fff;
-}
-.washi-pill--active {
-  background: linear-gradient(180deg, var(--indigo-mid), var(--indigo-deep));
-  border-color: rgba(244, 228, 192, 0.4);
-  border-bottom: 2px solid var(--hanko);
-  color: var(--washi);
-}
-
-/* Hanko button — the site's primary CTA */
-.hanko-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.65rem 1.4rem;
-  border-radius: 6px;
-  background: linear-gradient(180deg, var(--hanko-bright), var(--hanko));
-  color: var(--washi);
-  font-family: var(--font-display);
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  border: 1px solid rgba(244, 228, 192, 0.15);
-  box-shadow:
-    0 6px 16px rgba(196, 30, 58, 0.35),
-    inset 0 1px 0 rgba(244, 228, 192, 0.25);
+  border: none;
   cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.18s, filter 0.18s;
+  transition:
+    background 150ms ease-out,
+    transform 80ms ease-out;
 }
-.hanko-btn:hover {
-  filter: brightness(1.08);
-  box-shadow:
-    0 10px 22px rgba(196, 30, 58, 0.5),
-    inset 0 1px 0 rgba(244, 228, 192, 0.3);
+.btn-primary:hover {
+  background: var(--accent-hover);
 }
-.hanko-btn:active {
-  transform: translateY(1px);
-}
-.hanko-btn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
+.btn-primary:active {
+  transform: scale(0.97);
 }
 
-/* Ghost button — secondary action */
-.ghost-btn {
+.btn-ghost {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.65rem 1.4rem;
-  border-radius: 2px;
+  gap: 0.375rem;
+  padding: 0.5rem 1.25rem;
   background: transparent;
-  color: var(--washi);
-  font-family: var(--font-display);
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  border: 1px solid rgba(244, 228, 192, 0.3);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 4px;
+  border: 1px solid var(--border-default);
   cursor: pointer;
-  transition: border-color 0.18s, background 0.18s;
+  transition:
+    border-color 150ms ease-out,
+    color 150ms ease-out,
+    transform 80ms ease-out;
 }
-.ghost-btn:hover {
-  border-color: var(--washi);
-  background: rgba(244, 228, 192, 0.05);
+.btn-ghost:hover {
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+.btn-ghost:active {
+  transform: scale(0.97);
+}
+
+.filter-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3125rem 0.875rem;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border-radius: 100px;
+  border: 1px solid var(--border-default);
+  cursor: pointer;
+  transition: all 150ms ease-out;
+}
+.filter-pill:hover {
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+.filter-pill--active {
+  background: var(--accent-tint);
+  color: var(--accent);
+  border-color: rgba(196, 30, 58, 0.2);
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.25rem;
+  border: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--washi-aged);
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    color 150ms ease;
+  flex-shrink: 0;
+}
+
+.icon-btn:hover {
+  border-color: var(--border-default);
+  color: var(--washi);
+}
+
+.icon-btn:focus-visible {
+  outline: 2px solid var(--washi);
+  outline-offset: 2px;
 }
 
 /* Washi input — used by search and auth forms */
@@ -151,80 +274,379 @@ body {
   padding-block: 0.7rem;
   padding-inline: 1rem;
   background: rgba(10, 6, 4, 0.75);
-  border: 1px solid rgba(244, 228, 192, 0.18);
+  border: 1px solid var(--border-default);
   border-radius: 4px;
-  color: var(--washi);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
   font-size: 0.9rem;
-  transition: border-color 0.18s, box-shadow 0.18s;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
 }
 .washi-input::placeholder {
-  color: rgba(244, 228, 192, 0.35);
+  color: var(--text-muted);
 }
 .washi-input:focus {
   outline: none;
-  border-color: rgba(244, 217, 138, 0.6);
-  box-shadow: 0 0 0 2px rgba(244, 217, 138, 0.12);
+  border-color: var(--border-strong);
+  box-shadow: 0 0 0 3px rgba(244, 228, 192, 0.08);
+}
+.washi-input:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.washi-input.error {
+  border-color: rgba(196, 30, 58, 0.6);
+  box-shadow: 0 0 0 3px rgba(196, 30, 58, 0.1);
 }
 
-/* Display heading — for page titles */
-.display-title {
-  font-family: var(--font-display);
-  color: var(--washi);
-  letter-spacing: 0.04em;
-}
+/* ── Dividers ───────────────────────────────────────────── */
 
-/* Hairline divider — used between form groups or sections */
 .hairline {
   height: 1px;
+  background: var(--border-subtle);
+  box-shadow: 0 0 6px 0px rgba(196, 30, 58, 0.1);
+}
+
+/* ── Skeleton loading ──────────────────────────────────── */
+
+.skeleton-block {
+  background: var(--skeleton-base);
+  border-radius: 4px;
+  animation: skeleton-pulse 1400ms ease-in-out infinite;
+}
+.skeleton-line {
+  background: var(--skeleton-base);
+  border-radius: 2px;
+  height: 0.875rem;
+  animation: skeleton-pulse 1400ms ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-block,
+  .skeleton-line {
+    animation: none;
+    opacity: 0.7;
+  }
+}
+
+/* ── Card flip 3D structure ─────────────────────────────── */
+
+.card-perspective {
+  perspective: 1200px;
+}
+
+.anime-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.1s ease-out;
+}
+
+.card-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: inherit;
+  overflow: hidden;
+}
+
+.card-front {
+  z-index: 2;
+}
+
+.card-back {
+  transform: rotateY(180deg);
+  z-index: 1;
+}
+
+/* Rarity separator color — consumed by info bar border-top inline style */
+.rarity-common {
+  --rarity-separator-color: rgba(138, 125, 120, 0.25);
+}
+.rarity-uncommon {
+  --rarity-separator-color: rgba(45, 125, 70, 0.25);
+}
+.rarity-rare {
+  --rarity-separator-color: rgba(29, 78, 216, 0.25);
+}
+.rarity-epic {
+  --rarity-separator-color: rgba(124, 58, 237, 0.25);
+}
+.rarity-legendary {
+  --rarity-separator-color: rgba(196, 30, 58, 0.3);
+}
+
+/* Card back scrollable content */
+.card-back-content {
+  background: linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-card) 100%);
+  height: 100%;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-default) transparent;
+}
+
+.card-back-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.card-back-content::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: 4px;
+}
+
+/* Shine overlay — still referenced in card JSX */
+.card-shine {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  z-index: 11;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  background: radial-gradient(
+    circle at var(--shine-x, 50%) var(--shine-y, 50%),
+    rgba(255, 255, 255, 0.25) 0%,
+    rgba(255, 255, 255, 0.08) 30%,
+    transparent 60%
+  );
+}
+
+.anime-card:hover .card-shine {
+  opacity: 1;
+}
+
+/* Holographic overlay — legendary only */
+.holo-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0;
+  mix-blend-mode: overlay;
+  transition: opacity 0.3s ease;
+  background: repeating-linear-gradient(
+    var(--holo-mouse-angle, 135deg),
+    rgba(255, 0, 0, 0.06) 0%,
+    rgba(255, 165, 0, 0.06) 14%,
+    rgba(255, 255, 0, 0.06) 28%,
+    rgba(0, 255, 0, 0.06) 42%,
+    rgba(0, 0, 255, 0.06) 57%,
+    rgba(75, 0, 130, 0.06) 71%,
+    rgba(238, 130, 238, 0.06) 85%,
+    rgba(255, 0, 0, 0.06) 100%
+  );
+  background-size: 200% 200%;
+}
+
+.anime-card:hover .holo-overlay {
+  opacity: 1;
+}
+
+/* Card image wrapper — gradient fade at bottom */
+.card-image-wrapper {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.card-image-wrapper::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(to top, rgba(247, 243, 238, 0.6), transparent);
+  pointer-events: none;
+}
+
+/* Rarity stripe — 2px color band at top of card-front */
+.rarity-stripe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 3;
+  pointer-events: none;
+  border-radius: 6px 6px 0 0;
+}
+.rarity-common .rarity-stripe {
+  background: var(--rarity-common-border);
+}
+.rarity-uncommon .rarity-stripe {
   background: linear-gradient(
     90deg,
-    transparent,
-    rgba(244, 228, 192, 0.22),
-    transparent
+    var(--rarity-uncommon-border),
+    #34c472,
+    var(--rarity-uncommon-border)
   );
 }
-
-/* Ambient lantern glow — placed at page top (absolute) for dramatic pages */
-.ambient-lantern {
-  position: absolute;
-  top: -180px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 900px;
-  height: 500px;
-  background: radial-gradient(
-    ellipse,
-    rgba(244, 217, 138, 0.18) 0%,
-    rgba(244, 217, 138, 0.08) 30%,
-    transparent 70%
+.rarity-rare .rarity-stripe {
+  background: linear-gradient(
+    90deg,
+    var(--rarity-rare-border),
+    #3b82f6,
+    var(--rarity-rare-border)
   );
-  filter: blur(30px);
-  pointer-events: none;
-  z-index: 0;
+}
+.rarity-epic .rarity-stripe {
+  background: linear-gradient(
+    90deg,
+    var(--rarity-epic-border),
+    #a855f7,
+    var(--rarity-epic-border)
+  );
+}
+.rarity-legendary .rarity-stripe {
+  background: linear-gradient(
+    90deg,
+    #ef4444,
+    #f97316,
+    #eab308,
+    #22c55e,
+    #3b82f6,
+    #8b5cf6,
+    #ec4899,
+    #ef4444
+  );
+  background-size: 200% 100%;
+  animation: card-foil-shimmer 4s linear infinite;
 }
 
-/* Shoji grain — adds faint vertical stripes over a dark section */
-.shoji-grain::before {
+@keyframes card-foil-shimmer {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 200% 0%;
+  }
+}
+
+/* Genre tags — back face */
+.genre-tag {
+  font-size: 0.65rem;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--bg-panel);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
+  white-space: nowrap;
+}
+
+/* Score stars — back face */
+.score-display {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.score-star {
+  color: var(--rarity-gold);
+  filter: drop-shadow(0 0 2px rgba(196, 156, 80, 0.4));
+}
+
+/* ── Card hover system ──────────────────────────────────── */
+
+.anime-card {
+  transition:
+    transform 150ms ease-out,
+    box-shadow 200ms ease-out;
+  position: relative;
+  transform-style: preserve-3d;
+  will-change: transform;
+  cursor: pointer;
+}
+.anime-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+}
+.anime-card::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: repeating-linear-gradient(
-    90deg,
-    rgba(244, 228, 192, 0.035) 0 2px,
-    transparent 2px 14px
+  border-radius: inherit;
+  background: radial-gradient(
+    circle at var(--sx, 50%) var(--sy, 50%),
+    rgba(255, 255, 255, 0.55),
+    transparent 65%
   );
+  mix-blend-mode: soft-light;
+  opacity: 0;
+  transition: opacity 200ms ease-out;
+  pointer-events: none;
+  z-index: 1;
+}
+.anime-card:hover::before {
+  opacity: 1;
+}
+
+/* ── Legendary foil + epic shimmer ─────────────────────── */
+
+@keyframes foil-rotate {
+  from {
+    filter: hue-rotate(0deg);
+  }
+  to {
+    filter: hue-rotate(360deg);
+  }
+}
+
+.rarity-legendary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: conic-gradient(
+    from 0deg,
+    oklch(0.75 0.18 30),
+    oklch(0.8 0.15 80),
+    oklch(0.72 0.2 200),
+    oklch(0.78 0.16 280),
+    oklch(0.75 0.18 30)
+  );
+  mix-blend-mode: color-dodge;
+  opacity: 0.07;
+  animation: foil-rotate 8s linear infinite;
   pointer-events: none;
 }
 
-/* Hanko dot — small round vermilion accent */
-.hanko-dot {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 1px;
-  background: var(--hanko);
-  box-shadow: 0 0 3px rgba(196, 30, 58, 0.6);
+@media (prefers-reduced-motion: reduce) {
+  .rarity-legendary::after {
+    animation: none;
+  }
 }
+
+.rarity-epic::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    135deg,
+    transparent 40%,
+    rgba(196, 156, 80, 0.08) 50%,
+    transparent 60%
+  );
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+/* ── Toast animations ───────────────────────────────────────────────────────── */
 
 @keyframes toast-in {
   from {
@@ -241,30 +663,357 @@ body {
   animation: toast-in 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+@keyframes toast-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.animate-toast-out {
+  animation: toast-out 150ms ease-in forwards;
+}
+
 /* Selection — matches theme */
 ::selection {
   background: rgba(244, 217, 138, 0.35);
   color: var(--washi);
 }
 
-/* ── Skeleton loading ──────────────────────────────── */
-@keyframes skeleton-pulse {
-  0%, 100% { opacity: 0.4; }
-  50%       { opacity: 0.8; }
+/* ── Typography scale ──────────────────────────────────────────────────────── */
+
+.display-hero {
+  font-family: var(--font-display), serif;
+  font-size: 4rem;
+  line-height: 1.05;
+  letter-spacing: 0.04em;
+  font-weight: 300;
 }
 
-.skeleton-line {
-  height: 14px;
-  border-radius: 4px;
-  background: rgba(244, 228, 192, 0.06);
-  animation: skeleton-pulse 1.5s ease-in-out infinite;
-  display: block;
+.display-section {
+  font-family: var(--font-display), serif;
+  font-size: 1.5rem;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  font-weight: 300;
 }
 
-.skeleton-block {
-  border-radius: 8px;
-  background: rgba(244, 228, 192, 0.04);
-  border: 1px solid rgba(244, 228, 192, 0.06);
-  animation: skeleton-pulse 1.5s ease-in-out infinite;
+.display-card {
+  font-family: var(--font-display), serif;
+  font-size: 1.125rem;
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+  font-weight: 300;
+}
+
+.display-title {
+  font-family: var(--font-display), serif;
+  font-size: 2.25rem;
+  line-height: 1.1;
+  letter-spacing: 0.03em;
+  font-weight: 300;
+  color: var(--text-primary);
+}
+
+/* Numeric — always Geist Mono with tabular nums */
+.mono-score {
+  font-family: var(--font-mono), monospace;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.mono-sm {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.mono-xs {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Form label */
+.form-label {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+  color: var(--text-secondary);
   display: block;
+  margin-bottom: 0.375rem;
+}
+
+/* ── Destructive button ─────────────────────────────────────────────────────── */
+.destructive-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.4rem;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--hanko-bright);
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid rgba(196, 30, 58, 0.4);
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    color 150ms ease;
+}
+.destructive-btn:hover {
+  background: rgba(196, 30, 58, 0.08);
+  border-color: rgba(196, 30, 58, 0.7);
+  color: var(--hanko-bright);
+}
+.destructive-btn:active {
+  transform: scale(0.97);
+  transition: transform 120ms ease;
+}
+.destructive-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.destructive-btn:focus-visible {
+  outline: 2px solid var(--hanko);
+  outline-offset: 2px;
+}
+
+/* ── Spinner ────────────────────────────────────────────────────────────────── */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.karuta-spinner {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid var(--border-subtle);
+  border-top-color: var(--lantern-glow);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+.karuta-spinner--lg {
+  width: 2rem;
+  height: 2rem;
+}
+
+/* ── Kanji circle — used by EmptyState component ───────────────────────────── */
+.kanji-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 1px solid var(--border-default);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-jp), serif;
+  font-size: 2rem;
+  color: var(--washi-dim);
+  flex-shrink: 0;
+}
+
+/* ── Hanko dot — small round vermilion accent ──────────────────────────────── */
+.hanko-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  background: var(--hanko);
+  box-shadow: 0 0 3px rgba(196, 30, 58, 0.6);
+}
+
+/* ── Shoji grain ────────────────────────────────────────────────────────────── */
+.shoji-grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(244, 228, 192, 0.035) 0 2px,
+    transparent 2px 14px
+  );
+  pointer-events: none;
+}
+
+/* ── Rarity badge — shared across browse/collection/toast ──────────────────── */
+.rarity-badge {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  font-weight: 500;
+  text-transform: uppercase;
+  padding: 0.1875rem 0.5rem;
+  border-radius: 0.25rem;
+  border: 1px solid transparent;
+  display: inline-block;
+}
+
+.rarity-badge--common {
+  background: var(--rarity-common-badge);
+  color: var(--rarity-common-color);
+}
+.rarity-badge--uncommon {
+  background: var(--rarity-uncommon-badge);
+  color: var(--rarity-uncommon-color);
+}
+.rarity-badge--rare {
+  background: var(--rarity-rare-badge);
+  color: var(--rarity-rare-color);
+  border-color: rgba(74, 122, 191, 0.4);
+}
+.rarity-badge--epic {
+  background: var(--rarity-epic-badge);
+  color: var(--rarity-epic-color);
+  border-color: rgba(139, 92, 246, 0.5);
+  box-shadow: 0 0 6px rgba(139, 92, 246, 0.25);
+}
+.rarity-badge--legendary {
+  background: var(--rarity-legendary-badge);
+  color: var(--rarity-legendary-color);
+  border-color: rgba(244, 217, 138, 0.6);
+  box-shadow: 0 0 8px rgba(244, 217, 138, 0.35);
+}
+
+/* ── Status pip — small colored circle used in collection grid cards ─────── */
+.status-pip {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  position: absolute;
+  bottom: 0.5rem;
+  left: 0.5rem;
+  z-index: 3;
+}
+.status-pip--watching {
+  background: var(--status-watching);
+}
+.status-pip--plan {
+  background: var(--status-plan);
+}
+.status-pip--watched {
+  background: var(--status-watched);
+}
+.status-pip--dropped {
+  background: var(--status-error);
+}
+
+/* ── Collection grid cards ──────────────────────────────────────────────────── */
+.collection-card {
+  display: block;
+  position: relative;
+  aspect-ratio: 9 / 13;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease;
+}
+.collection-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-raised);
+}
+.collection-card__rarity-border {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 3px;
+  z-index: 2;
+  border-radius: 0.5rem 0 0 0.5rem;
+}
+.collection-card__rarity-border[data-rarity="common"] {
+  background: var(--rarity-common-color);
+}
+.collection-card__rarity-border[data-rarity="uncommon"] {
+  background: var(--rarity-uncommon-color);
+}
+.collection-card__rarity-border[data-rarity="rare"] {
+  background: var(--rarity-rare-color);
+}
+.collection-card__rarity-border[data-rarity="epic"] {
+  background: var(--rarity-epic-color);
+}
+.collection-card__rarity-border[data-rarity="legendary"] {
+  background: var(--rarity-legendary-color);
+}
+.collection-card__pip {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 5px;
+  height: 5px;
+  border-radius: 1px;
+  z-index: 2;
+}
+.collection-card__pip[data-rarity="common"] {
+  background: var(--rarity-common-color);
+}
+.collection-card__pip[data-rarity="uncommon"] {
+  background: var(--rarity-uncommon-color);
+}
+.collection-card__pip[data-rarity="rare"] {
+  background: var(--rarity-rare-color);
+}
+.collection-card__pip[data-rarity="epic"] {
+  background: var(--rarity-epic-color);
+}
+.collection-card__pip[data-rarity="legendary"] {
+  background: var(--rarity-legendary-color);
+}
+.collection-card__overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0.5rem;
+  background: linear-gradient(
+    to top,
+    rgba(10, 6, 4, 0.85) 0%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+.collection-card__title {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--washi);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Card detail Zone 1 skeleton — responsive aspect ratio ─────────────────── */
+.card-detail-zone1-skeleton {
+  aspect-ratio: 4 / 3;
+}
+@media (min-width: 640px) {
+  .card-detail-zone1-skeleton {
+    aspect-ratio: 16 / 7;
+  }
+}
+
+/* ── Reduced motion support ─────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }

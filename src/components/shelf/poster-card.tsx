@@ -6,10 +6,11 @@ import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import gsap from "gsap";
+import { DURATION, EASE } from "@/lib/motion";
 import { DoorMirrorContext } from "./favorites-reveal";
 import { getRarityTier } from "@/lib/types";
 import type { AnimeCategory, CollectedAnime, RarityTier } from "@/lib/types";
-import type { SpineTone } from "./manga-spine";
+import type { SpineTone } from "@/lib/types";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types & constants
@@ -26,18 +27,18 @@ interface PosterCardProps {
 }
 
 const RARITY_LABELS: Record<RarityTier, string> = {
-  common:    "Common",
-  uncommon:  "Uncommon",
-  rare:      "Rare",
-  epic:      "Epic",
+  common: "Common",
+  uncommon: "Uncommon",
+  rare: "Rare",
+  epic: "Epic",
   legendary: "Legendary",
 };
 
 const MOVE_OPTIONS: { category: AnimeCategory; label: string }[] = [
-  { category: "watching",     label: "Currently Watching" },
+  { category: "watching", label: "Currently Watching" },
   { category: "plan_to_watch", label: "Plan to Watch" },
-  { category: "watched",      label: "Watched" },
-  { category: "favorite",    label: "Favorite" },
+  { category: "watched", label: "Watched" },
+  { category: "favorite", label: "Favorite" },
 ];
 
 /**
@@ -46,7 +47,10 @@ const MOVE_OPTIONS: { category: AnimeCategory; label: string }[] = [
  * Range: −5.5 ° to +5.5 °
  */
 function seedRotation(id: string): number {
-  const hash = Array.from(id).reduce((a, c) => ((a * 31) + c.charCodeAt(0)) >>> 0, 0);
+  const hash = Array.from(id).reduce(
+    (a, c) => (a * 31 + c.charCodeAt(0)) >>> 0,
+    0,
+  );
   return ((hash % 110) - 55) / 10;
 }
 
@@ -63,18 +67,18 @@ export function PosterCard({
   onEpisodeChange,
   onRemove,
 }: PosterCardProps) {
-  const router      = useRouter();
-  const cardRef     = useRef<HTMLDivElement>(null);
-  const menuRef     = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const cardRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
-  const isMirror    = useContext(DoorMirrorContext);
+  const isMirror = useContext(DoorMirrorContext);
 
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: item.id,
     disabled: isMirror,
   });
 
-  const rarity       = getRarityTier(item.score ?? 0);
+  const rarity = getRarityTier(item.score ?? 0);
   // Plan cards get a collage tilt; all others stay upright
   const baseRotation = tone === "plan" ? seedRotation(item.id) : 0;
 
@@ -94,8 +98,8 @@ export function PosterCard({
       rotation: 0,
       y: featured ? -8 : -10,
       scale: featured ? 1.03 : 1.06,
-      duration: 0.22,
-      ease: "power2.out",
+      duration: DURATION.hoverIn,
+      ease: EASE.standard,
       overwrite: true,
     });
   }, [featured]);
@@ -106,8 +110,8 @@ export function PosterCard({
       rotation: baseRotation,
       y: 0,
       scale: 1,
-      duration: 0.35,
-      ease: "power2.inOut",
+      duration: DURATION.hoverOut,
+      ease: EASE.standard,
       overwrite: true,
     });
   }, [baseRotation]);
@@ -115,26 +119,34 @@ export function PosterCard({
   const handleMouseEnter = useCallback(() => {
     hoverEnterAnim();
     document.dispatchEvent(
-      new CustomEvent("shelf:hover-enter", { detail: { id: item.id, isMirror } })
+      new CustomEvent("shelf:hover-enter", {
+        detail: { id: item.id, isMirror },
+      }),
     );
   }, [hoverEnterAnim, isMirror, item.id]);
 
   const handleMouseLeave = useCallback(() => {
     hoverLeaveAnim();
     document.dispatchEvent(
-      new CustomEvent("shelf:hover-leave", { detail: { id: item.id, isMirror } })
+      new CustomEvent("shelf:hover-leave", {
+        detail: { id: item.id, isMirror },
+      }),
     );
   }, [hoverLeaveAnim, isMirror, item.id]);
 
   // Listen for hover events from the OTHER door's copy of this card
   useEffect(() => {
     const onEnter = (e: Event) => {
-      const { id, isMirror: src } = (e as CustomEvent<{ id: string; isMirror: boolean }>).detail;
+      const { id, isMirror: src } = (
+        e as CustomEvent<{ id: string; isMirror: boolean }>
+      ).detail;
       if (id !== item.id || src === isMirror) return; // not this card, or same door
       hoverEnterAnim();
     };
     const onLeave = (e: Event) => {
-      const { id, isMirror: src } = (e as CustomEvent<{ id: string; isMirror: boolean }>).detail;
+      const { id, isMirror: src } = (
+        e as CustomEvent<{ id: string; isMirror: boolean }>
+      ).detail;
       if (id !== item.id || src === isMirror) return;
       hoverLeaveAnim();
     };
@@ -149,7 +161,10 @@ export function PosterCard({
   // Set initial collage rotation — GSAP owns the transform from here on
   useEffect(() => {
     if (!cardRef.current || baseRotation === 0) return;
-    gsap.set(cardRef.current, { rotation: baseRotation, transformOrigin: "bottom center" });
+    gsap.set(cardRef.current, {
+      rotation: baseRotation,
+      transformOrigin: "bottom center",
+    });
   }, [baseRotation]);
 
   // Close context menu on outside click
@@ -165,11 +180,14 @@ export function PosterCard({
   }, [menuOpen]);
 
   // Episode controls
-  const total   = item.total_episodes || 0;
+  const total = item.total_episodes || 0;
   const current = item.current_episode || 0;
 
   const stepEpisode = (delta: number) => {
-    const next = Math.max(0, total > 0 ? Math.min(total, current + delta) : current + delta);
+    const next = Math.max(
+      0,
+      total > 0 ? Math.min(total, current + delta) : current + delta,
+    );
     if (next === current) return;
     onEpisodeChange(item.id, next);
     if (total > 0 && next === total && item.category !== "watched") {
@@ -177,8 +195,10 @@ export function PosterCard({
     }
   };
 
-  const dragTransform = transform ? CSS.Translate.toString(transform) : undefined;
-  const dimmed        = tone === "watched";
+  const dragTransform = transform
+    ? CSS.Translate.toString(transform)
+    : undefined;
+  const dimmed = tone === "watched";
 
   return (
     // ── Outer wrapper ─────────────────────────────────────────────────────
@@ -207,17 +227,19 @@ export function PosterCard({
         <div
           className="relative overflow-hidden"
           style={{
-            width:  imgW,
+            width: imgW,
             height: imgH,
             borderRadius: 6,
-            boxShadow: featured
-              ? "0 24px 50px rgba(0,0,0,.82), 0 0 0 1px rgba(244,228,192,.18)"
-              : "0 8px 22px rgba(0,0,0,.62)",
+            background: "var(--bg-card)",
+            border: "1px solid var(--border-default)",
+            boxShadow: featured ? "var(--shadow-modal)" : "var(--shadow-hover)",
             filter: dimmed ? "saturate(0.5) brightness(0.72)" : undefined,
           }}
         >
           {/* Rarity foil strip */}
-          <div className={`absolute top-0 left-0 right-0 z-10 h-[3px] spine-foil-${rarity}`} />
+          <div
+            className={`absolute top-0 left-0 right-0 z-10 h-[3px] spine-foil-${rarity}`}
+          />
 
           {item.image_url && (
             <Image
@@ -234,13 +256,16 @@ export function PosterCard({
           <div
             aria-hidden
             className="absolute inset-x-0 bottom-0 h-12 pointer-events-none"
-            style={{ background: "linear-gradient(to top, rgba(0,0,0,.88), transparent)" }}
+            style={{
+              background:
+                "linear-gradient(to top, rgba(0,0,0,.88), transparent)",
+            }}
           />
 
           {/* Score chip */}
           <div
             className="absolute bottom-2 left-2 z-10 font-mono text-[10px] tabular-nums"
-            style={{ color: "rgba(244,228,192,.85)" }}
+            style={{ color: "var(--washi)" }}
           >
             ★ {(item.score ?? 0).toFixed(1)}
           </div>
@@ -250,19 +275,21 @@ export function PosterCard({
             <div
               aria-hidden
               className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none"
+              style={{ background: "rgba(247,243,238,0.75)" }}
             >
               <div
                 className="flex h-8 w-8 items-center justify-center rounded-full"
                 style={{
-                  background: "rgba(244,228,192,.1)",
-                  border: "1.5px solid rgba(244,228,192,.42)",
+                  background: "var(--bg-card)",
+                  border: "1.5px solid var(--border-strong)",
                 }}
               >
                 <svg
-                  width="13" height="13"
+                  width="13"
+                  height="13"
                   viewBox="0 0 24 24"
                   fill="none"
-                  stroke="rgba(244,228,192,.9)"
+                  stroke="var(--text-primary)"
                   strokeWidth="2.8"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -280,7 +307,7 @@ export function PosterCard({
             className={`leading-snug truncate ${featured ? "text-[11px]" : "text-[10px]"}`}
             style={{
               fontFamily: "var(--font-display)",
-              color: "var(--washi)",
+              color: "var(--text-primary)",
               letterSpacing: ".04em",
             }}
           >
@@ -289,7 +316,7 @@ export function PosterCard({
           {featured && (
             <p
               className="mt-0.5 text-[10px] truncate"
-              style={{ color: "var(--washi-soft)" }}
+              style={{ color: "var(--text-secondary)" }}
             >
               {RARITY_LABELS[rarity]}
             </p>
@@ -303,21 +330,42 @@ export function PosterCard({
           <div
             className="flex items-center gap-2 rounded px-2 py-1.5"
             style={{
-              border:          "1px solid rgba(244,228,192,.2)",
-              background:      "rgba(0,0,0,.52)",
-              backdropFilter:  "blur(6px)",
+              border: "1px solid var(--border-default)",
+              background: "var(--bg-panel)",
             }}
           >
             <button
               type="button"
               aria-label="Previous episode"
-              onClick={(e) => { e.stopPropagation(); stepEpisode(-1); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                stepEpisode(-1);
+              }}
               disabled={current <= 0}
-              className="flex h-6 w-6 shrink-0 items-center justify-center rounded transition-colors hover:bg-white/10 disabled:opacity-25"
-              style={{ color: "var(--washi)" }}
+              className="flex shrink-0 items-center justify-center rounded transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 disabled:opacity-25"
+              style={{
+                background: "var(--bg-panel)",
+                color: "var(--text-primary)",
+                width: 44,
+                height: 44,
+                outlineColor: "var(--accent)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "var(--border-subtle)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "var(--bg-panel)";
+              }}
             >
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <svg
+                width="11"
+                height="11"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              >
                 <line x1="5" y1="12" x2="19" y2="12" />
               </svg>
             </button>
@@ -325,11 +373,17 @@ export function PosterCard({
             <div className="min-w-0 flex-1 text-center">
               <div
                 className="text-[9px] uppercase tracking-[.18em]"
-                style={{ color: "var(--washi-soft)", fontFamily: "var(--font-display)" }}
+                style={{
+                  color: "var(--text-muted)",
+                  fontFamily: "var(--font-sans)",
+                }}
               >
                 Episode
               </div>
-              <div className="font-mono text-xs tabular-nums" style={{ color: "var(--washi)" }}>
+              <div
+                className="font-mono text-xs tabular-nums"
+                style={{ color: "var(--text-primary)" }}
+              >
                 {current}
                 <span style={{ opacity: 0.45 }}> / {total || "?"}</span>
               </div>
@@ -338,13 +392,35 @@ export function PosterCard({
             <button
               type="button"
               aria-label="Next episode"
-              onClick={(e) => { e.stopPropagation(); stepEpisode(1); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                stepEpisode(1);
+              }}
               disabled={total > 0 && current >= total}
-              className="flex h-6 w-6 shrink-0 items-center justify-center rounded transition-colors hover:bg-white/10 disabled:opacity-25"
-              style={{ color: "var(--washi)" }}
+              className="flex shrink-0 items-center justify-center rounded transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 disabled:opacity-25"
+              style={{
+                background: "var(--bg-panel)",
+                color: "var(--text-primary)",
+                width: 44,
+                height: 44,
+                outlineColor: "var(--accent)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "var(--border-subtle)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "var(--bg-panel)";
+              }}
             >
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <svg
+                width="11"
+                height="11"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              >
                 <line x1="12" y1="5" x2="12" y2="19" />
                 <line x1="5" y1="12" x2="19" y2="12" />
               </svg>
@@ -354,14 +430,15 @@ export function PosterCard({
           {total > 0 && (
             <div
               className="mt-1.5 h-[3px] w-full overflow-hidden rounded-full"
-              style={{ background: "rgba(244,228,192,.1)" }}
+              style={{ background: "var(--border-default)" }}
             >
               <div
                 className="h-full transition-[width] duration-300"
                 style={{
-                  width:      `${Math.min(100, (current / total) * 100)}%`,
-                  background: "linear-gradient(90deg, var(--lantern-glow), var(--hanko))",
-                  boxShadow:  "0 0 6px rgba(244,217,138,.5)",
+                  width: `${Math.min(100, (current / total) * 100)}%`,
+                  background:
+                    "linear-gradient(90deg, var(--lantern-glow), var(--hanko))",
+                  boxShadow: "0 0 6px rgba(244,217,138,.5)",
                 }}
               />
             </div>
@@ -380,20 +457,43 @@ export function PosterCard({
           type="button"
           aria-label="Card options"
           onClick={() => setMenuOpen((v) => !v)}
-          className={`flex h-6 w-6 items-center justify-center rounded bg-zinc-950/80 text-zinc-200 backdrop-blur-sm ring-1 ring-white/10 transition-opacity hover:bg-zinc-900 ${
-            menuOpen ? "opacity-100" : "opacity-0 group-hover/poster:opacity-100"
+          className={`flex h-11 w-11 items-center justify-center rounded transition-opacity focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 ${
+            menuOpen
+              ? "opacity-100"
+              : "opacity-0 group-hover/poster:opacity-100"
           }`}
+          style={{
+            background: "var(--bg-panel)",
+            color: "var(--text-primary)",
+            outlineColor: "var(--accent)",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "var(--border-subtle)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "var(--bg-panel)";
+          }}
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-            <circle cx="5"  cy="12" r="1.6" />
+            <circle cx="5" cy="12" r="1.6" />
             <circle cx="12" cy="12" r="1.6" />
             <circle cx="19" cy="12" r="1.6" />
           </svg>
         </button>
 
         {menuOpen && (
-          <div className="absolute right-0 top-8 w-44 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-950/95 shadow-2xl backdrop-blur-sm">
-            <div className="px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+          <div
+            className="absolute right-0 top-12 w-44 overflow-hidden rounded-lg"
+            style={{
+              background: "var(--bg-raised)",
+              border: "1px solid var(--border-default)",
+              boxShadow: "var(--shadow-modal)",
+            }}
+          >
+            <div
+              className="px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em]"
+              style={{ color: "var(--text-muted)" }}
+            >
               Move to
             </div>
             {MOVE_OPTIONS.map((opt) => {
@@ -402,33 +502,72 @@ export function PosterCard({
                 <button
                   key={opt.category}
                   type="button"
-                  onClick={() => { if (!active) onMove(item.id, opt.category); setMenuOpen(false); }}
-                  className={`flex w-full items-center justify-between px-3 py-2 text-xs transition-colors ${
-                    active
-                      ? "bg-zinc-900/60 text-indigo-300"
-                      : "text-zinc-200 hover:bg-zinc-900 hover:text-white"
-                  }`}
+                  onClick={() => {
+                    if (!active) onMove(item.id, opt.category);
+                    setMenuOpen(false);
+                  }}
+                  className="flex w-full items-center justify-between px-3 text-xs transition-colors"
+                  style={{
+                    minHeight: "44px",
+                    background: active ? "var(--accent-tint)" : "transparent",
+                    color: active ? "var(--accent)" : "var(--text-primary)",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!active)
+                      e.currentTarget.style.background = "var(--bg-panel)";
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!active)
+                      e.currentTarget.style.background = "transparent";
+                  }}
                 >
                   <span>{opt.label}</span>
                   {active && (
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-                      stroke="currentColor" strokeWidth="3"
-                      strokeLinecap="round" strokeLinejoin="round">
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
                   )}
                 </button>
               );
             })}
-            <div className="border-t border-zinc-800" />
+            <div style={{ borderTop: "1px solid var(--border-default)" }} />
             <button
               type="button"
-              onClick={() => { onRemove(item.id); setMenuOpen(false); }}
-              className="flex w-full items-center gap-2 px-3 py-2 text-xs text-red-400 transition-colors hover:bg-red-500/10 hover:text-red-300"
+              onClick={() => {
+                onRemove(item.id);
+                setMenuOpen(false);
+              }}
+              className="flex w-full items-center gap-2 px-3 text-xs transition-colors"
+              style={{
+                minHeight: "44px",
+                color: "var(--accent)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "var(--accent-tint)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "transparent";
+              }}
             >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" strokeWidth="2"
-                strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <polyline points="3 6 5 6 21 6" />
                 <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
                 <path d="M10 11v6M14 11v6" />

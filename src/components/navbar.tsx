@@ -2,23 +2,24 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/stores/auth-store";
 import gsap from "gsap";
+import { EASE } from "@/lib/motion";
 
 const navLinks = [
-  { href: "/browse", label: "Browse", kanji: "探" },
-  { href: "/collection", label: "Collection", kanji: "集" },
-  { href: "/shelf", label: "Shelf", kanji: "蔵" },
+  { href: "/browse", label: "Browse" },
+  { href: "/collection", label: "Collection" },
+  { href: "/shelf", label: "Shelf" },
 ];
 
 export function Navbar() {
   const pathname = usePathname();
-  const { user, signOut } = useAuthStore();
+  const { user, signOut, loading: authLoading } = useAuthStore();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
-  const sealRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     if (!drawerOpen) return;
@@ -26,7 +27,7 @@ export function Navbar() {
       if (e.key === "Escape") setDrawerOpen(false);
       if (e.key === "Tab" && drawerRef.current) {
         const focusable = drawerRef.current.querySelectorAll<HTMLElement>(
-          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
         );
         if (focusable.length === 0) return;
         const first = focusable[0];
@@ -51,144 +52,158 @@ export function Navbar() {
     } else {
       document.body.style.overflow = "";
     }
-    return () => { document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [drawerOpen]);
-
-  useEffect(() => {
-    if (!sealRef.current) return;
-    const tween = gsap.fromTo(
-      sealRef.current,
-      { scale: 0, rotation: -25, opacity: 0 },
-      { scale: 1, rotation: -4, opacity: 1, duration: 0.7, ease: "elastic.out(1.2, 0.5)", delay: 0.1 }
-    );
-    return () => { tween.kill(); };
-  }, [user]);
-
-  if (!user) return null;
 
   return (
     <>
       <nav
-        className="sticky top-0 z-50 backdrop-blur-md"
+        className="sticky top-0 z-50"
         style={{
-          background:
-            "linear-gradient(180deg, rgba(10,6,4,.92), rgba(10,6,4,.72))",
-          borderBottom: "1px solid rgba(244,228,192,.14)",
-          boxShadow: "0 1px 0 rgba(196,30,58,.25)",
+          background: "rgba(247, 243, 238, 0.92)",
+          backdropFilter: "blur(8px)",
+          WebkitBackdropFilter: "blur(8px)",
+          borderBottom: "1px solid var(--border-subtle)",
         }}
       >
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
+          {/* Brand lock-up — links to /browse when logged in, / otherwise */}
           <Link
-            href="/browse"
+            href={user ? "/browse" : "/"}
             className="group flex items-center gap-2"
-            aria-label="Anime Collector home"
+            aria-label="Karuta home"
           >
-            <span
-              ref={sealRef}
+            <Image
+              src="/karuta-mark.svg"
+              alt=""
+              width={24}
+              height={24}
               aria-hidden
-              className="flex h-7 w-7 items-center justify-center rounded-[2px] text-[13px] font-black"
-              style={{
-                background: "var(--hanko)",
-                color: "var(--washi)",
-                fontFamily: "var(--font-jp)",
-                boxShadow: "0 2px 4px rgba(0,0,0,.45)",
-              }}
-            >
-              集
-            </span>
+              priority
+            />
             <span
-              className="text-[15px] font-bold tracking-[.14em]"
+              className="text-[15px] font-bold tracking-[.15em]"
               style={{
                 fontFamily: "var(--font-display)",
-                color: "var(--washi)",
+                color: "var(--text-primary)",
               }}
             >
-              ANIME COLLECTOR
+              KARUTA
             </span>
           </Link>
 
-          {/* Desktop nav */}
-          <div className="hidden items-center gap-6 sm:flex">
-            {navLinks.map((link) => {
-              const active = pathname === link.href;
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  aria-current={active ? "page" : undefined}
-                  className="group relative flex flex-col items-center py-1 text-xs transition-colors"
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    letterSpacing: ".18em",
-                    color: active
-                      ? "var(--washi)"
-                      : "rgba(244,228,192,.5)",
-                  }}
-                  onMouseEnter={(e) => {
-                    const kanji = e.currentTarget.children[0] as HTMLElement;
-                    gsap.to(kanji, { scale: 1.3, duration: 0.12, ease: "power2.out", overwrite: true });
-                  }}
-                  onMouseLeave={(e) => {
-                    const kanji = e.currentTarget.children[0] as HTMLElement;
-                    gsap.to(kanji, { scale: 1, duration: 0.2, ease: "power2.in", overwrite: true });
-                  }}
-                >
-                  <span
-                    aria-hidden
-                    className="text-[9px] leading-none"
+          {/* Desktop nav — logged-in state */}
+          {!authLoading && user && (
+            <div className="hidden items-center gap-6 sm:flex">
+              {navLinks.map((link) => {
+                const active = pathname === link.href;
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    aria-current={active ? "page" : undefined}
+                    className="group relative flex flex-col items-center py-1 text-xs transition-colors"
                     style={{
-                      fontFamily: "var(--font-jp)",
-                      opacity: active ? 0.85 : 0.45,
+                      fontFamily: "var(--font-display)",
+                      letterSpacing: ".18em",
+                      color: active
+                        ? "var(--text-primary)"
+                        : "var(--text-secondary)",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!active) {
+                        (e.currentTarget as HTMLElement).style.color =
+                          "var(--text-primary)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!active) {
+                        (e.currentTarget as HTMLElement).style.color =
+                          "var(--text-secondary)";
+                      }
                     }}
                   >
-                    {link.kanji}
-                  </span>
-                  <span className="mt-0.5 font-semibold">
-                    {link.label.toUpperCase()}
-                  </span>
-                  <span
-                    aria-hidden
-                    className="mt-1 h-[2px] w-6 rounded-full transition-all duration-200"
-                    style={{
-                      background: active ? "var(--hanko)" : "transparent",
-                      boxShadow: active
-                        ? "0 0 6px rgba(196,30,58,.5)"
-                        : undefined,
-                    }}
-                  />
-                </Link>
-              );
-            })}
+                    <span className="mt-0.5 font-semibold">
+                      {link.label.toUpperCase()}
+                    </span>
+                    <span
+                      aria-hidden
+                      className="mt-1 h-[2px] w-6 rounded-full transition-all duration-200"
+                      style={{
+                        background: active ? "var(--accent)" : "transparent",
+                      }}
+                    />
+                  </Link>
+                );
+              })}
 
-            <button
-              onClick={signOut}
-              className="text-[11px] transition-colors"
-              style={{
-                fontFamily: "var(--font-display)",
-                letterSpacing: ".14em",
-                color: "rgba(244,228,192,.4)",
-              }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.color = "var(--washi)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.color = "rgba(244,228,192,.4)")
-              }
-            >
-              SIGN OUT
-            </button>
-          </div>
+              <button
+                onClick={signOut}
+                className="text-[11px] transition-colors"
+                style={{
+                  fontFamily: "var(--font-sans)",
+                  letterSpacing: ".14em",
+                  color: "var(--text-muted)",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.color = "var(--text-primary)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.color = "var(--text-muted)")
+                }
+              >
+                SIGN OUT
+              </button>
+            </div>
+          )}
+
+          {/* Desktop nav — logged-out auth CTAs */}
+          {!authLoading && !user && (
+            <div className="hidden items-center gap-3 sm:flex">
+              <Link
+                href="/login"
+                className="ghost-btn text-[11px]"
+                style={{
+                  fontFamily: "var(--font-sans)",
+                  letterSpacing: ".1em",
+                }}
+              >
+                Log In
+              </Link>
+              <Link
+                href="/signup"
+                className="hanko-btn text-[11px]"
+                style={{
+                  fontFamily: "var(--font-sans)",
+                  letterSpacing: ".1em",
+                }}
+              >
+                Sign Up
+              </Link>
+            </div>
+          )}
 
           {/* Hamburger button — mobile only */}
           <button
             type="button"
             aria-label="Open navigation menu"
             aria-expanded={drawerOpen}
+            aria-controls="mobile-nav-drawer"
             onClick={() => setDrawerOpen(true)}
             className="flex h-10 w-10 items-center justify-center sm:hidden"
-            style={{ color: "var(--washi)" }}
+            style={{ color: "var(--text-primary)" }}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            >
               <line x1="3" y1="6" x2="21" y2="6" />
               <line x1="3" y1="12" x2="21" y2="12" />
               <line x1="3" y1="18" x2="21" y2="18" />
@@ -200,109 +215,158 @@ export function Navbar() {
       {/* Mobile drawer overlay */}
       {drawerOpen && (
         <div
-          className="fixed inset-0 z-50 sm:hidden"
+          className="fixed inset-0 z-[60] sm:hidden"
           onClick={() => setDrawerOpen(false)}
-          style={{ background: "rgba(0,0,0,0.6)" }}
+          style={{ background: "rgba(26, 22, 20, 0.4)" }}
         />
       )}
 
       {/* Mobile drawer */}
       <div
+        id="mobile-nav-drawer"
         ref={drawerRef}
         role="dialog"
         aria-modal="true"
         aria-label="Navigation"
         inert={!drawerOpen}
-        className="fixed right-0 top-0 z-50 flex h-full w-[280px] flex-col sm:hidden"
+        className="fixed right-0 top-0 z-[60] flex h-full w-[280px] flex-col sm:hidden"
         style={{
-          background: "rgba(10,6,4,.95)",
-          borderLeft: "1px solid rgba(244,228,192,.14)",
+          background: "var(--bg-raised)",
+          borderLeft: "1px solid var(--border-subtle)",
+          boxShadow: "var(--shadow-modal)",
           transform: drawerOpen ? "translateX(0)" : "translateX(100%)",
           transition: "transform 300ms ease-out",
         }}
       >
-        <div className="flex h-14 items-center justify-end px-4">
+        {/* Drawer header with karuta-mark and wordmark */}
+        <div
+          className="flex h-14 items-center justify-between px-4"
+          style={{ borderBottom: "1px solid var(--border-subtle)" }}
+        >
+          <div className="flex items-center gap-2">
+            <Image
+              src="/karuta-mark.svg"
+              alt=""
+              width={32}
+              height={32}
+              aria-hidden
+            />
+            <span
+              className="text-[13px] font-bold tracking-[.15em]"
+              style={{
+                fontFamily: "var(--font-display)",
+                color: "var(--text-primary)",
+              }}
+            >
+              KARUTA
+            </span>
+          </div>
           <button
             ref={closeRef}
             type="button"
             aria-label="Close navigation menu"
             onClick={() => setDrawerOpen(false)}
             className="flex h-10 w-10 items-center justify-center"
-            style={{ color: "var(--washi)" }}
+            style={{ color: "var(--text-primary)" }}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            >
               <line x1="6" y1="6" x2="18" y2="18" />
               <line x1="6" y1="18" x2="18" y2="6" />
             </svg>
           </button>
         </div>
 
-        {/* Nav links */}
-        <div className="flex flex-1 flex-col px-2">
-          {navLinks.map((link) => {
-            const active = pathname === link.href;
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setDrawerOpen(false)}
-                className="flex h-12 items-center gap-3 rounded-lg px-4 transition-colors"
-                style={{
-                  fontFamily: "var(--font-display)",
-                  letterSpacing: ".14em",
-                  color: active ? "var(--washi)" : "rgba(244,228,192,.5)",
-                  background: active ? "rgba(244,228,192,.06)" : "transparent",
-                }}
-              >
-                <span
-                  aria-hidden
-                  className="text-sm"
+        {/* Nav links — logged-in only */}
+        {!authLoading && user && (
+          <div className="flex flex-1 flex-col px-2 pt-2">
+            {navLinks.map((link) => {
+              const active = pathname === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setDrawerOpen(false)}
+                  className="flex h-12 items-center gap-3 rounded-lg px-4 transition-colors"
                   style={{
-                    fontFamily: "var(--font-jp)",
-                    opacity: active ? 0.85 : 0.45,
+                    fontFamily: "var(--font-display)",
+                    letterSpacing: ".14em",
+                    color: active ? "var(--accent)" : "var(--text-secondary)",
+                    background: active ? "var(--accent-tint)" : "transparent",
                   }}
                 >
-                  {link.kanji}
-                </span>
-                <span className="text-sm font-semibold">
-                  {link.label.toUpperCase()}
-                </span>
-                {active && (
-                  <span
-                    aria-hidden
-                    className="ml-auto h-[2px] w-4 rounded-full"
-                    style={{
-                      background: "var(--hanko)",
-                      boxShadow: "0 0 6px rgba(196,30,58,.5)",
-                    }}
-                  />
-                )}
-              </Link>
-            );
-          })}
-        </div>
+                  <span className="text-sm font-semibold">
+                    {link.label.toUpperCase()}
+                  </span>
+                  {active && (
+                    <span
+                      aria-hidden
+                      className="ml-auto h-[2px] w-4 rounded-full"
+                      style={{
+                        background: "var(--accent)",
+                      }}
+                    />
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        )}
 
-        {/* Sign out at bottom */}
-        <div
-          className="px-4 py-4"
-          style={{ borderTop: "1px solid rgba(244,228,192,.1)" }}
-        >
-          <button
-            onClick={() => {
-              signOut();
-              setDrawerOpen(false);
-            }}
-            className="flex h-12 w-full items-center justify-center rounded-lg text-xs font-semibold uppercase tracking-[.14em] transition-colors"
-            style={{
-              fontFamily: "var(--font-display)",
-              color: "rgba(244,228,192,.5)",
-              background: "rgba(244,228,192,.04)",
-              border: "1px solid rgba(244,228,192,.1)",
-            }}
+        {/* Logged-out auth links in drawer */}
+        {!authLoading && !user && (
+          <div className="flex flex-1 flex-col gap-2 px-4 pt-4">
+            <Link
+              href="/login"
+              onClick={() => setDrawerOpen(false)}
+              className="ghost-btn flex h-12 items-center justify-center"
+            >
+              Log In
+            </Link>
+            <Link
+              href="/signup"
+              onClick={() => setDrawerOpen(false)}
+              className="hanko-btn flex h-12 items-center justify-center rounded-lg text-sm font-semibold"
+              style={{
+                fontFamily: "var(--font-sans)",
+                letterSpacing: ".1em",
+              }}
+            >
+              Sign Up
+            </Link>
+          </div>
+        )}
+
+        {/* Sign out at bottom — logged-in only */}
+        {!authLoading && user && (
+          <div
+            className="px-4 py-4"
+            style={{ borderTop: "1px solid var(--border-default)" }}
           >
-            Sign Out
-          </button>
-        </div>
+            <button
+              onClick={() => {
+                signOut();
+                setDrawerOpen(false);
+              }}
+              className="flex h-12 w-full items-center justify-center rounded-lg text-xs font-semibold uppercase tracking-[.14em] transition-colors"
+              style={{
+                fontFamily: "var(--font-sans)",
+                color: "var(--text-muted)",
+                background: "var(--bg-panel)",
+                border: "1px solid var(--border-default)",
+              }}
+            >
+              Sign Out
+            </button>
+          </div>
+        )}
       </div>
     </>
   );

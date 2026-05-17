@@ -1,146 +1,27 @@
-/* Shelf — visual-language tokens */
-.shelf-root {
-  --ink-0: #050710;
-  --ink-1: #0a0604;
-  --ink-2: #1a1208;
-  --indigo-deep: #0a1a3a;
-  --indigo-mid: #1a3a6a;
-  --washi: #f4e4c0;
-  --washi-aged: #d4bc8a;
-  --sumi: #2a1808;
-  --hanko: #c41e3a;
-  --lantern-glow: #f4d98a;
-  --font-display: var(--font-geist-sans), system-ui, sans-serif;
-  --font-jp: var(--font-noto-jp), "Noto Serif JP", serif;
-}
+/* Shelf — all color tokens are inherited from globals.css :root */
 
 /* Horizontal scroller used inside every scene */
 .shelf-scroll {
   scrollbar-width: thin;
-  scrollbar-color: rgba(244, 228, 192, 0.18) transparent;
-  scroll-snap-type: x proximity;
+  scrollbar-color: var(--border-strong) transparent;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
 }
 .shelf-scroll::-webkit-scrollbar {
   height: 6px;
 }
 .shelf-scroll::-webkit-scrollbar-thumb {
-  background: rgba(244, 228, 192, 0.18);
+  background: var(--border-strong);
   border-radius: 3px;
 }
 
-/* ── Watching — lantern-lit hero ── */
-.scene-watching {
-  background:
-    radial-gradient(
-      ellipse at 50% -10%,
-      rgba(244, 217, 138, 0.28) 0%,
-      rgba(26, 40, 80, 0.85) 40%,
-      var(--ink-1) 80%
-    ),
-    linear-gradient(180deg, var(--ink-1), var(--ink-0));
-}
-.scene-watching::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    90deg,
-    rgba(244, 228, 192, 0.04) 0 2px,
-    transparent 2px 12px
-  );
-  pointer-events: none;
-}
-.lantern-glow {
-  position: absolute;
-  top: -60px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 520px;
-  height: 320px;
-  background: radial-gradient(
-    ellipse,
-    var(--lantern-glow) 0%,
-    rgba(244, 217, 138, 0.25) 30%,
-    transparent 70%
-  );
-  filter: blur(20px);
-  pointer-events: none;
-}
-.stage-floor {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 64px;
-  background:
-    linear-gradient(
-      180deg,
-      transparent,
-      rgba(0, 0, 0, 0.5) 30%,
-      rgba(0, 0, 0, 0.9)
-    ),
-    repeating-linear-gradient(
-      90deg,
-      rgba(60, 36, 18, 0.6) 0 2px,
-      rgba(40, 24, 12, 0.6) 2px 6px
-    );
+/* Scroll snap for individual poster cards within scenes */
+.poster-card-snap {
+  scroll-snap-align: start;
 }
 
-/* ── Plan — indigo shoji backdrop ── */
-.scene-plan {
-  background: linear-gradient(180deg, var(--indigo-deep), var(--ink-0));
-}
-.scene-plan::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    90deg,
-    rgba(26, 58, 106, 0.35) 0 6px,
-    rgba(10, 26, 58, 0.35) 6px 12px
-  );
-  pointer-events: none;
-}
-.washi-frame {
-  position: absolute;
-  left: 16px;
-  right: 16px;
-  height: 1px;
-  border-top: 1px dashed rgba(244, 228, 192, 0.2);
-}
-
-/* ── Watched — archival wash ── */
-.scene-watched {
-  background:
-    radial-gradient(
-      ellipse at 8% 50%,
-      rgba(196, 30, 58, 0.18),
-      transparent 45%
-    ),
-    radial-gradient(
-      ellipse at 92% 50%,
-      rgba(244, 228, 192, 0.1),
-      transparent 45%
-    ),
-    linear-gradient(180deg, var(--ink-2), var(--ink-1));
-}
-.stamp-kan {
-  position: absolute;
-  top: 16px;
-  left: 20px;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font: 900 22px var(--font-jp);
-  color: rgba(244, 228, 192, 0.92);
-  background: rgba(196, 30, 58, 0.85);
-  transform: rotate(-6deg);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-  letter-spacing: 0;
-  pointer-events: none;
-}
+/* ── Watching / Plan / Watched — light editorial panels ── */
+/* Dark scene backdrop classes removed in Phase 6; surfaces now use var(--bg-panel) */
 
 /* Spine helpers */
 .spine-foil-common {
@@ -221,61 +102,40 @@
   pointer-events: none;
 }
 
+/* ── Scroll position dots (mobile scene indicator) ── */
+.scroll-dots {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  padding: 0.5rem 0;
+}
+.scroll-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--border-strong);
+  transition: background 200ms ease;
+  flex-shrink: 0;
+}
+.scroll-dot.active {
+  background: var(--accent);
+}
+
 /* ── Moonlit gallery (favorites) ── */
 .moon-gallery {
-  --moon-ink-0: #060818;
-  --moon-ink-1: #0a0614;
-  --moon-silver: #c8d0e0;
-  --moon-silver-dim: rgba(200, 208, 224, 0.5);
-  --moon-silver-border: rgba(200, 208, 224, 0.18);
-  --moon-indigo: #1a2a5a;
-  --moon-glow: rgba(180, 200, 240, 0.12);
+  --moon-silver: var(--text-primary);
+  --moon-silver-dim: var(--text-muted);
+  --moon-silver-border: var(--border-default);
 }
 
-/* Stars */
-.moon-star {
-  position: absolute;
-  background: white;
-  border-radius: 50%;
-  animation: twinkle 3s ease-in-out infinite;
+/* Shrine card row scroll snap — swipe to browse shrine cards on mobile */
+/* The shrine spotlight row uses overflow-x-auto; apply snap to inner flex container */
+.moon-gallery .shelf-scroll {
+  scroll-snap-type: x mandatory;
 }
-@keyframes twinkle {
-  0%, 100% { opacity: 0.15; }
-  50% { opacity: 0.75; }
-}
-
-/* Moonlight pool from above */
-.moon-pool {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 130%;
-  height: 75%;
-  background: radial-gradient(
-    ellipse at 50% -5%,
-    rgba(180, 200, 240, 0.2) 0%,
-    rgba(180, 200, 240, 0.08) 30%,
-    rgba(140, 170, 220, 0.03) 55%,
-    transparent 75%
-  );
-  pointer-events: none;
-}
-
-/* Ground reflection */
-.moon-ground {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 50%;
-  height: 25%;
-  background: radial-gradient(
-    ellipse at 50% 100%,
-    rgba(180, 200, 240, 0.07) 0%,
-    transparent 70%
-  );
-  pointer-events: none;
+/* Each direct shrink-0 child of the shrine row snaps to center */
+.moon-gallery .shelf-scroll > * {
+  scroll-snap-align: center;
 }
 
 /* Spine overrides inside moonlit gallery */
@@ -286,7 +146,14 @@
   background: linear-gradient(90deg, #8a9ab0, #c8d0e0, #8a9ab0);
 }
 .moon-gallery .spine-foil-legendary {
-  background: linear-gradient(90deg, #8a9ab0, #c8d0e0, #e8eaf0, #c8d0e0, #8a9ab0);
+  background: linear-gradient(
+    90deg,
+    #8a9ab0,
+    #c8d0e0,
+    #e8eaf0,
+    #c8d0e0,
+    #8a9ab0
+  );
   background-size: 200% 100%;
   animation: foil-shimmer 6s linear infinite;
   box-shadow: 0 0 6px rgba(180, 200, 240, 0.4);
@@ -320,7 +187,9 @@
   width: calc(50% + 1px);
   z-index: 11;
 }
-.fusuma-door-right { right: 0; }
+.fusuma-door-right {
+  right: 0;
+}
 
 .fusuma-content {
   position: absolute;
@@ -328,8 +197,12 @@
   width: 200%;
   height: 100%;
 }
-.fusuma-door-left .fusuma-content { left: 0; }
-.fusuma-door-right .fusuma-content { left: -100%; }
+.fusuma-door-left .fusuma-content {
+  left: 0;
+}
+.fusuma-door-right .fusuma-content {
+  left: -100%;
+}
 
 /* Moon slit */
 .moon-slit {
@@ -352,7 +225,9 @@
 .tab-drop-hover {
   border-color: rgba(244, 228, 192, 0.6) !important;
   box-shadow: inset 0 0 12px rgba(244, 228, 192, 0.1);
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 
 .scene-desaturate {
@@ -369,30 +244,38 @@
   opacity: 1 !important;
   box-shadow: 0 0 12px rgba(196, 30, 58, 0.5) !important;
   transform: rotate(2deg) !important;
-  transition: opacity 0.15s, box-shadow 0.15s, transform 0.15s;
+  transition:
+    opacity 0.15s,
+    box-shadow 0.15s,
+    transform 0.15s;
 }
 
-/* ── Shrine spotlight (hidden collection — legendary Pokémon mode) ── */
+/* ── Shrine spotlight (hidden collection — editorial warm mode) ── */
 .shrine-beam {
   position: absolute;
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 130%;
+  width: 80px;
   height: 100%;
   background: linear-gradient(
-    180deg,
+    to bottom,
     transparent 0%,
-    rgba(160, 195, 255, 0.04) 40%,
-    rgba(185, 215, 255, 0.14) 100%
+    rgba(196, 156, 80, 0.08) 40%,
+    rgba(196, 156, 80, 0.18) 100%
   );
-  clip-path: polygon(38% 0%, 62% 0%, 100% 100%, 0% 100%);
+  border-radius: 50% 50% 0 0 / 20% 20% 0 0;
   pointer-events: none;
 }
 
 @keyframes shrine-pulse {
-  0%, 100% { opacity: 0.52; }
-  50%       { opacity: 1;    }
+  0%,
+  100% {
+    opacity: 0.52;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .shrine-beam-animated {
@@ -400,8 +283,12 @@
 }
 
 @keyframes water-ripple {
-  0%   { left: -45%; }
-  100% { left: 120%; }
+  0% {
+    left: -45%;
+  }
+  100% {
+    left: 120%;
+  }
 }
 
 .water-ripple {
@@ -419,17 +306,16 @@
 }
 
 @keyframes shrine-ring-pulse {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow:
-      0 0 0 1px rgba(180, 210, 255, 0.15),
-      0 0 18px rgba(140, 180, 255, 0.1),
-      0 0 45px rgba(120, 160, 255, 0.05);
+      0 0 0 1px var(--border-default),
+      0 0 8px 0px rgba(196, 156, 80, 0.15);
   }
   50% {
     box-shadow:
-      0 0 0 1px rgba(210, 232, 255, 0.34),
-      0 0 28px rgba(170, 205, 255, 0.24),
-      0 0 65px rgba(150, 190, 255, 0.11);
+      0 0 0 1px var(--rarity-gold),
+      0 0 16px 2px rgba(196, 156, 80, 0.25);
   }
 }
 

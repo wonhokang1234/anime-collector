@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { supabase } from "@/lib/supabase";
 import type { CollectedAnime, AnimeCategory } from "@/lib/types";
+import { useToastStore } from "@/stores/toast-store";
 
 interface CollectInput {
   mal_id: number;
@@ -18,7 +19,7 @@ interface CollectionState {
   loadCollection: (userId: string) => Promise<void>;
   collect: (
     userId: string,
-    input: CollectInput
+    input: CollectInput,
   ) => Promise<{ error: string | null }>;
   updateCategory: (id: string, category: AnimeCategory) => Promise<void>;
   updateEpisode: (id: string, episode: number) => Promise<void>;
@@ -46,7 +47,11 @@ export const useCollectionStore = create<CollectionState>((set, get) => ({
       return;
     }
 
-    set({ items: (data ?? []) as CollectedAnime[], loading: false, initialized: true });
+    set({
+      items: (data ?? []) as CollectedAnime[],
+      loading: false,
+      initialized: true,
+    });
   },
 
   collect: async (userId, input) => {
@@ -77,6 +82,16 @@ export const useCollectionStore = create<CollectionState>((set, get) => ({
   },
 
   updateCategory: async (id, category) => {
+    // Capture original before optimistic update
+    const originalItem = get().items.find((i) => i.id === id);
+
+    // Apply optimistic update immediately
+    set((state) => ({
+      items: state.items.map((item) =>
+        item.id === id ? { ...item, category } : item,
+      ),
+    }));
+
     const { error } = await supabase
       .from("collected_anime")
       .update({ category })
@@ -84,17 +99,32 @@ export const useCollectionStore = create<CollectionState>((set, get) => ({
 
     if (error) {
       console.error("Failed to update category:", error);
-      return;
+      // Revert optimistic update
+      if (originalItem) {
+        set((state) => ({
+          items: state.items.map((item) =>
+            item.id === id ? originalItem : item,
+          ),
+        }));
+      }
+      useToastStore.getState().addToast({
+        message: "Failed to update category. Please try again.",
+        type: "error",
+      });
     }
-
-    set((state) => ({
-      items: state.items.map((item) =>
-        item.id === id ? { ...item, category } : item
-      ),
-    }));
   },
 
   updateEpisode: async (id, episode) => {
+    // Capture original before optimistic update
+    const originalItem = get().items.find((i) => i.id === id);
+
+    // Apply optimistic update immediately
+    set((state) => ({
+      items: state.items.map((item) =>
+        item.id === id ? { ...item, current_episode: episode } : item,
+      ),
+    }));
+
     const { error } = await supabase
       .from("collected_anime")
       .update({ current_episode: episode })
@@ -102,17 +132,30 @@ export const useCollectionStore = create<CollectionState>((set, get) => ({
 
     if (error) {
       console.error("Failed to update episode:", error);
-      return;
+      // Revert optimistic update
+      if (originalItem) {
+        set((state) => ({
+          items: state.items.map((item) =>
+            item.id === id ? originalItem : item,
+          ),
+        }));
+      }
+      useToastStore.getState().addToast({
+        message: "Failed to update episode. Please try again.",
+        type: "error",
+      });
     }
-
-    set((state) => ({
-      items: state.items.map((item) =>
-        item.id === id ? { ...item, current_episode: episode } : item
-      ),
-    }));
   },
 
   remove: async (id) => {
+    // Capture original items before optimistic removal
+    const originalItems = get().items;
+
+    // Apply optimistic removal immediately
+    set((state) => ({
+      items: state.items.filter((item) => item.id !== id),
+    }));
+
     const { error } = await supabase
       .from("collected_anime")
       .delete()
@@ -120,12 +163,13 @@ export const useCollectionStore = create<CollectionState>((set, get) => ({
 
     if (error) {
       console.error("Failed to remove anime:", error);
-      return;
+      // Revert optimistic removal
+      set({ items: originalItems });
+      useToastStore.getState().addToast({
+        message: "Failed to remove anime. Please try again.",
+        type: "error",
+      });
     }
-
-    set((state) => ({
-      items: state.items.filter((item) => item.id !== id),
-    }));
   },
 
   isCollected: (malId) => {

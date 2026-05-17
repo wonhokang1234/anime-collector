@@ -1,4 +1,10 @@
-export type AnimeCategory = "watching" | "watched" | "plan_to_watch" | "favorite";
+export type AnimeCategory =
+  | "watching"
+  | "watched"
+  | "plan_to_watch"
+  | "favorite";
+
+export type SpineTone = "watching" | "plan" | "watched";
 
 export type RarityTier = "common" | "uncommon" | "rare" | "epic" | "legendary";
 

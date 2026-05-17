@@ -4,21 +4,22 @@ import Link from "next/link";
 import { useAuthStore } from "@/stores/auth-store";
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
+import { DURATION, EASE } from "@/lib/motion";
+import { HankoSeal } from "@/components/ui/hanko-seal";
 
 export default function HomePage() {
   const { user, loading } = useAuthStore();
   const contentRef = useRef<HTMLDivElement>(null);
-  const sealRef = useRef<HTMLDivElement>(null);
+  const sealRef = useRef<HTMLSpanElement>(null);
+  const headlineRef = useRef<HTMLHeadingElement>(null);
+  const dividerRef = useRef<HTMLDivElement>(null);
+  const taglineRef = useRef<HTMLParagraphElement>(null);
+  const ctaRef = useRef<HTMLDivElement>(null);
+  const footerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const container = contentRef.current;
     if (!container) return;
-
-    const children = Array.from(container.children) as HTMLElement[];
-    // children[0] = seal, children[1] = kicker, children[2] = h1,
-    // children[3] = ribbon, children[4] = description, children[5] = CTA, children[6] = footer
-
-    const chars = container.querySelectorAll<HTMLElement>(".title-char");
 
     const tl = gsap.timeline();
 
@@ -27,168 +28,164 @@ export default function HomePage() {
       tl.fromTo(
         sealRef.current,
         { scale: 0, rotation: -20, opacity: 0 },
-        { scale: 1, rotation: -5, opacity: 1, duration: 0.65, ease: "elastic.out(1.2, 0.45)" },
-        0
+        {
+          scale: 1,
+          rotation: -5,
+          opacity: 1,
+          duration: 0.65,
+          ease: EASE.emphasized,
+        },
+        0,
       );
     }
 
-    // Kicker fades in
-    if (children[1]) {
+    // Headline fades up
+    if (headlineRef.current) {
       tl.fromTo(
-        children[1],
-        { opacity: 0, y: 6 },
-        { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" },
-        0.2
+        headlineRef.current,
+        { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, duration: DURATION.reveal, ease: EASE.standard },
+        0.25,
       );
     }
 
-    // Title chars ripple in
-    if (chars.length > 0) {
-      tl.fromTo(
-        chars,
-        { opacity: 0, y: 14 },
-        { opacity: 1, y: 0, duration: 0.35, stagger: 0.03, ease: "power3.out" },
-        0.25
-      );
-    }
-
-    // Ribbon, description, CTA, footer
-    const rest = [children[3], children[4], children[5], children[6]].filter(Boolean);
+    // Divider, tagline, CTA, footer cascade in
+    const rest = [
+      dividerRef.current,
+      taglineRef.current,
+      ctaRef.current,
+      footerRef.current,
+    ].filter(Boolean);
     if (rest.length > 0) {
       tl.fromTo(
         rest,
         { opacity: 0, y: 10 },
-        { opacity: 1, y: 0, duration: 0.4, stagger: 0.09, ease: "power2.out" },
-        0.6
+        {
+          opacity: 1,
+          y: 0,
+          duration: DURATION.reveal,
+          stagger: DURATION.revealStagger,
+          ease: EASE.standard,
+        },
+        0.5,
       );
     }
 
-    return () => { tl.kill(); };
+    return () => {
+      tl.kill();
+    };
   }, []);
 
   return (
-    <div className="relative flex min-h-[calc(100vh-3.5rem)] flex-col items-center justify-center overflow-hidden px-4 text-center">
-      <span className="ambient-lantern" aria-hidden />
-
-      {/* background kanji watermark */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute select-none"
-        style={{
-          fontFamily: "var(--font-jp)",
-          fontSize: "clamp(18rem, 38vw, 32rem)",
-          color: "rgba(244, 217, 138, 0.045)",
-          lineHeight: 1,
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          zIndex: 0,
-        }}
+    <div
+      className="relative flex flex-col items-center justify-center px-4 text-center"
+      style={{ minHeight: "calc(100vh - var(--navbar-height))" }}
+    >
+      <div
+        ref={contentRef}
+        className="relative z-10 flex flex-col items-center"
       >
-        蒐集
-      </span>
-
-      <div ref={contentRef} className="relative z-10 flex flex-col items-center">
-        {/* hanko seal */}
-        <div
+        {/* Hanko seal — stamp entrance via GSAP */}
+        <HankoSeal
           ref={sealRef}
+          kanji="集"
+          size="lg"
           aria-hidden
-          className="mb-6 flex h-16 w-16 items-center justify-center text-[28px] font-black"
-          style={{
-            background: "var(--hanko)",
-            color: "var(--washi)",
-            fontFamily: "var(--font-jp)",
-            borderRadius: "2px",
-            boxShadow:
-              "0 6px 16px rgba(196,30,58,.4), inset 0 0 0 2px rgba(244,228,192,.15)",
-          }}
-        >
-          集
-        </div>
+          className="mb-8"
+        />
 
-        {/* kanji kicker */}
-        <p
-          className="mb-3 text-xs tracking-[.5em]"
-          style={{
-            color: "var(--washi-soft)",
-            fontFamily: "var(--font-jp)",
-          }}
-        >
-          蒐 集 者 の 書 架
-        </p>
-
+        {/* Hero headline */}
         <h1
-          className="display-title text-5xl font-extrabold leading-[0.95] sm:text-6xl md:text-[5.75rem]"
-          style={{ letterSpacing: "0.06em" }}
+          ref={headlineRef}
+          style={{
+            fontFamily: "var(--font-display)",
+            fontStyle: "italic",
+            fontWeight: 300,
+            fontSize: "clamp(3rem, 8vw, 5rem)",
+            lineHeight: 1.05,
+            letterSpacing: "-0.01em",
+            color: "var(--text-primary)",
+            maxWidth: "16ch",
+          }}
         >
-          {"ANIME".split("").map((char, i) => (
-            <span key={`a${i}`} className="title-char inline-block">{char}</span>
-          ))}
-          <br />
-          <span style={{ color: "var(--lantern-glow)" }}>
-            {"COLLECTOR".split("").map((char, i) => (
-              <span key={`c${i}`} className="title-char inline-block">{char}</span>
-            ))}
-          </span>
+          The anime collection that feels like a catalog.
         </h1>
 
-        {/* ribbon divider */}
-        <div className="mt-8 flex items-center gap-3">
-          <span
-            className="block h-px w-16"
-            style={{ background: "rgba(244,228,192,.35)" }}
-            aria-hidden
-          />
-          <span className="hanko-dot" aria-hidden />
-          <span
-            className="block h-px w-16"
-            style={{ background: "rgba(244,228,192,.35)" }}
-            aria-hidden
-          />
-        </div>
+        {/* Hairline divider below headline */}
+        <div
+          ref={dividerRef}
+          className="hairline"
+          style={{
+            maxWidth: "12rem",
+            marginTop: "1.5rem",
+            marginBottom: "2rem",
+          }}
+          aria-hidden
+        />
 
+        {/* Tagline */}
         <p
-          className="mt-6 max-w-xl text-base leading-relaxed"
-          style={{ color: "rgba(244,228,192,.7)" }}
+          ref={taglineRef}
+          style={{
+            fontFamily: "var(--font-sans)",
+            color: "var(--text-secondary)",
+            fontSize: "1.0625rem",
+            lineHeight: 1.7,
+            maxWidth: "36rem",
+          }}
         >
-          Collect anime as stylized cards with rarity effects, and archive them
-          across your lantern-lit manga library — three shelves, one
-          sanctuary.
+          Collect titles as rarity-tiered cards. Organize your shelves. Build
+          your shrine.
         </p>
 
-        <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+        {/* CTAs */}
+        <div
+          ref={ctaRef}
+          className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
+        >
           {loading ? (
-            <div className="mt-10 flex justify-center">
-              <div className="skeleton-block" style={{ width: 200, height: 44, borderRadius: 4 }} />
+            <div className="flex justify-center">
+              <div
+                className="skeleton-block"
+                style={{ width: 200, height: 44, borderRadius: 4 }}
+              />
             </div>
           ) : user ? (
-            <Link href="/browse" className="hanko-btn">
-              Enter the Library →
+            <Link href="/browse" className="btn-primary">
+              Go to Collection
             </Link>
           ) : (
             <>
-              <Link href="/login" className="hanko-btn">
-                Log in
+              <Link href="/signup" className="btn-primary">
+                Start collecting
               </Link>
-              <Link href="/signup" className="ghost-btn">
-                Create an Account
+              <Link href="/browse" className="btn-ghost">
+                Browse titles
               </Link>
             </>
           )}
         </div>
 
-        {/* footer meta */}
+        {/* Footer meta */}
         <div
-          className="mt-14 flex flex-wrap items-center justify-center gap-3 text-[10px] uppercase tracking-[.3em] sm:gap-5"
+          ref={footerRef}
+          className="mt-16 flex flex-wrap items-center justify-center gap-3 sm:gap-5"
           style={{
-            color: "rgba(244,228,192,.4)",
-            fontFamily: "var(--font-display)",
+            color: "var(--text-muted)",
+            fontFamily: "var(--font-sans)",
+            fontSize: "0.6875rem",
+            letterSpacing: "0.15em",
+            textTransform: "uppercase",
           }}
         >
           <span>Vol. 1</span>
-          <span aria-hidden className="hanko-dot" />
+          <span aria-hidden style={{ color: "var(--accent)", opacity: 0.5 }}>
+            ·
+          </span>
           <span>2026 Edition</span>
-          <span aria-hidden className="hanko-dot" />
+          <span aria-hidden style={{ color: "var(--accent)", opacity: 0.5 }}>
+            ·
+          </span>
           <span>Est. by the Collector</span>
         </div>
       </div>

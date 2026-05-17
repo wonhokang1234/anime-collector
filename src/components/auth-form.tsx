@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import gsap from "gsap";
 import { useAuthStore } from "@/stores/auth-store";
+import { HankoSeal } from "@/components/ui/hanko-seal";
 
 interface AuthFormProps {
   mode: "login" | "signup";
@@ -17,8 +19,24 @@ export function AuthForm({ mode }: AuthFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [signUpSuccess, setSignUpSuccess] = useState(false);
+  const formCardRef = useRef<HTMLFormElement>(null);
 
   const isLogin = mode === "login";
+
+  // GSAP shake on auth error
+  useEffect(() => {
+    if (!error || !formCardRef.current) return;
+    const tl = gsap.timeline();
+    tl.to(formCardRef.current, { x: 6, duration: 0.06, ease: "none" })
+      .to(formCardRef.current, { x: -6, duration: 0.06, ease: "none" })
+      .to(formCardRef.current, { x: 4, duration: 0.05, ease: "none" })
+      .to(formCardRef.current, { x: -4, duration: 0.05, ease: "none" })
+      .to(formCardRef.current, { x: 0, duration: 0.1, ease: "power2.out" })
+      .set(formCardRef.current, { clearProps: "transform" });
+    return () => {
+      tl.kill();
+    };
+  }, [error]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -41,15 +59,11 @@ export function AuthForm({ mode }: AuthFormProps) {
   }
 
   const cardStyle: React.CSSProperties = {
-    background:
-      "linear-gradient(180deg, rgba(26,18,8,.85), rgba(10,6,4,.92))",
-    border: "1px solid rgba(244,228,192,.18)",
-    borderTop: "3px solid var(--hanko)",
-    boxShadow:
-      "0 24px 60px rgba(0,0,0,.55), inset 0 1px 0 rgba(244,228,192,.08)",
-    borderRadius: 6,
+    background: "var(--bg-card)",
+    border: "1px solid var(--border-default)",
+    boxShadow: "var(--shadow-modal)",
+    borderRadius: 8,
     padding: "2.25rem 2rem",
-    backdropFilter: "blur(6px)",
   };
 
   if (signUpSuccess) {
@@ -62,33 +76,42 @@ export function AuthForm({ mode }: AuthFormProps) {
           aria-hidden
           className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full"
           style={{
-            background: "var(--washi)",
-            color: "var(--hanko)",
-            fontFamily: "var(--font-jp)",
+            background: "var(--bg-panel)",
+            color: "var(--accent)",
+            fontFamily: "var(--font-display)",
             fontSize: 22,
-            fontWeight: 900,
-            boxShadow: "0 2px 6px rgba(0,0,0,.5)",
+            fontWeight: 500,
+            fontStyle: "italic",
+            border: "1px solid var(--border-default)",
           }}
         >
-          信
+          ✓
         </div>
-        <h2 className="display-title mb-3 text-2xl font-bold">
+        <h2
+          className="mb-3 text-2xl"
+          style={{
+            fontFamily: "var(--font-display)",
+            fontStyle: "italic",
+            fontWeight: 300,
+            color: "var(--text-primary)",
+          }}
+        >
           Check your email
         </h2>
         <p
           className="text-sm leading-relaxed"
-          style={{ color: "rgba(244,228,192,.7)" }}
+          style={{ color: "var(--text-secondary)" }}
         >
           We sent a confirmation link to{" "}
-          <strong style={{ color: "var(--washi)" }}>{email}</strong>. Click it
-          to activate your account, then come back and log in.
+          <strong style={{ color: "var(--text-primary)" }}>{email}</strong>.
+          Click it to activate your account, then come back and log in.
         </p>
         <Link
           href="/login"
           className="mt-6 inline-block text-xs uppercase tracking-[.2em] transition-colors"
           style={{
-            fontFamily: "var(--font-display)",
-            color: "var(--lantern-glow)",
+            fontFamily: "var(--font-sans)",
+            color: "var(--accent)",
           }}
         >
           → Go to login
@@ -99,38 +122,28 @@ export function AuthForm({ mode }: AuthFormProps) {
 
   return (
     <form
+      ref={formCardRef}
       onSubmit={handleSubmit}
       className="relative z-10 w-full max-w-sm space-y-5"
       style={cardStyle}
     >
       {/* kanji seal badge */}
       <div className="mb-2 text-center">
-        <div
+        <HankoSeal
+          kanji={isLogin ? "入" : "新"}
+          size="md"
           aria-hidden
-          className="mx-auto mb-3 flex h-12 w-12 items-center justify-center"
+          className="mx-auto mb-3"
+        />
+        <h2
+          className="text-2xl"
           style={{
-            background: "var(--hanko)",
-            color: "var(--washi)",
-            fontFamily: "var(--font-jp)",
-            fontSize: 18,
-            fontWeight: 900,
-            transform: "rotate(-4deg)",
-            borderRadius: 2,
-            boxShadow: "0 3px 8px rgba(196,30,58,.45)",
-          }}
-        >
-          {isLogin ? "入" : "新"}
-        </div>
-        <p
-          className="mb-1 text-[10px] uppercase tracking-[.4em]"
-          style={{
-            color: "var(--washi-soft)",
             fontFamily: "var(--font-display)",
+            fontStyle: "italic",
+            fontWeight: 300,
+            color: "var(--text-primary)",
           }}
         >
-          {isLogin ? "鑑 入 場" : "新 規 登 録"}
-        </p>
-        <h2 className="display-title text-2xl font-bold">
           {isLogin ? "Welcome back" : "Create your account"}
         </h2>
       </div>
@@ -141,7 +154,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           style={{
             border: "1px solid rgba(196,30,58,.35)",
             background: "rgba(196,30,58,.08)",
-            color: "#f4a0ae",
+            color: "var(--status-error)",
             borderRadius: 4,
           }}
         >
@@ -154,8 +167,8 @@ export function AuthForm({ mode }: AuthFormProps) {
           htmlFor="email"
           className="block text-[10px] uppercase tracking-[.24em]"
           style={{
-            color: "var(--washi-soft)",
-            fontFamily: "var(--font-display)",
+            color: "var(--text-secondary)",
+            fontFamily: "var(--font-sans)",
           }}
         >
           Email
@@ -166,8 +179,26 @@ export function AuthForm({ mode }: AuthFormProps) {
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="washi-input"
           placeholder="you@example.com"
+          style={{
+            width: "100%",
+            padding: "0.625rem 0.875rem",
+            background: "var(--bg-card)",
+            border: "1px solid var(--border-default)",
+            borderRadius: 4,
+            color: "var(--text-primary)",
+            fontFamily: "var(--font-sans)",
+            fontSize: "0.9375rem",
+            outline: "none",
+          }}
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = "var(--accent)";
+            e.currentTarget.style.boxShadow = "0 0 0 2px rgba(196,30,58,0.15)";
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = "var(--border-default)";
+            e.currentTarget.style.boxShadow = "none";
+          }}
         />
       </div>
 
@@ -176,8 +207,8 @@ export function AuthForm({ mode }: AuthFormProps) {
           htmlFor="password"
           className="block text-[10px] uppercase tracking-[.24em]"
           style={{
-            color: "var(--washi-soft)",
-            fontFamily: "var(--font-display)",
+            color: "var(--text-secondary)",
+            fontFamily: "var(--font-sans)",
           }}
         >
           Password
@@ -189,12 +220,34 @@ export function AuthForm({ mode }: AuthFormProps) {
           minLength={6}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="washi-input"
           placeholder="At least 6 characters"
+          style={{
+            width: "100%",
+            padding: "0.625rem 0.875rem",
+            background: "var(--bg-card)",
+            border: "1px solid var(--border-default)",
+            borderRadius: 4,
+            color: "var(--text-primary)",
+            fontFamily: "var(--font-sans)",
+            fontSize: "0.9375rem",
+            outline: "none",
+          }}
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = "var(--accent)";
+            e.currentTarget.style.boxShadow = "0 0 0 2px rgba(196,30,58,0.15)";
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = "var(--border-default)";
+            e.currentTarget.style.boxShadow = "none";
+          }}
         />
       </div>
 
-      <button type="submit" disabled={submitting} className="hanko-btn w-full">
+      <button
+        type="submit"
+        disabled={submitting}
+        className="btn-primary w-full"
+      >
         {submitting ? "…" : isLogin ? "Log in" : "Sign up"}
       </button>
 
@@ -202,17 +255,16 @@ export function AuthForm({ mode }: AuthFormProps) {
 
       <p
         className="text-center text-xs"
-        style={{ color: "rgba(244,228,192,.55)" }}
+        style={{ color: "var(--text-secondary)" }}
       >
         {isLogin ? "Don't have an account? " : "Already have an account? "}
         <Link
           href={isLogin ? "/signup" : "/login"}
           className="transition-colors"
           style={{
-            color: "var(--lantern-glow)",
-            fontFamily: "var(--font-display)",
-            letterSpacing: ".14em",
-            textTransform: "uppercase",
+            color: "var(--accent)",
+            fontFamily: "var(--font-sans)",
+            fontWeight: 500,
           }}
         >
           {isLogin ? "Sign up" : "Log in"}

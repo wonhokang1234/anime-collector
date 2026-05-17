@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
+import { DURATION, EASE } from "@/lib/motion";
 import type { AnimeCategory, CollectedAnime } from "@/lib/types";
-import type { SpineTone } from "./manga-spine";
+import type { SpineTone } from "@/lib/types";
 import { PosterCard } from "./poster-card";
 import { SceneBackdrop } from "./scene-backdrop";
+import { EmptyState } from "@/components/ui/empty-state";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 interface SceneProps {
   tone: SpineTone;
@@ -16,7 +19,10 @@ interface SceneProps {
   onRemove: (id: string) => void;
 }
 
-const EMPTY_COPY: Record<SpineTone, { kanji: string; title: string; body: string }> = {
+const EMPTY_COPY: Record<
+  SpineTone,
+  { kanji: string; title: string; body: string }
+> = {
   watching: {
     kanji: "灯",
     title: "Nothing active",
@@ -44,6 +50,27 @@ export function Scene({
 }: SceneProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const isMobile = useMediaQuery("(max-width: 639px)");
+  const [scrollIndex, setScrollIndex] = useState(0);
+
+  // Track horizontal scroll position for the mobile dots indicator
+  useEffect(() => {
+    const container = listRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const snapChild =
+        container.querySelector<HTMLElement>(".poster-card-snap");
+      const cardWidth = snapChild
+        ? snapChild.offsetWidth
+        : container.scrollWidth / Math.max(items.length, 1);
+      const index = Math.round(container.scrollLeft / cardWidth);
+      setScrollIndex(Math.max(0, Math.min(index, items.length - 1)));
+    };
+
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, [items.length, tone]);
 
   // Cross-fade when the active tab changes
   useEffect(() => {
@@ -51,9 +78,11 @@ export function Scene({
     const tween = gsap.fromTo(
       rootRef.current,
       { opacity: 0, y: 6 },
-      { opacity: 1, y: 0, duration: 0.22, ease: "power1.out" }
+      { opacity: 1, y: 0, duration: DURATION.base, ease: EASE.out },
     );
-    return () => { tween.kill(); };
+    return () => {
+      tween.kill();
+    };
   }, [tone]);
 
   // Stagger-in cards whenever the visible section changes
@@ -63,21 +92,26 @@ export function Scene({
     // Capture for onComplete closure in case DOM changes before tween completes
     const tween = gsap.fromTo(
       cards,
-      { opacity: 0, y: 32, scale: 0.9 },
+      { opacity: 0, y: 12 },
       {
         opacity: 1,
         y: 0,
-        scale: 1,
-        duration: 0.42,
-        stagger: { each: 0.08, from: "start" },
-        ease: "back.out(1.5)",
+        duration: DURATION.base,
+        stagger: { each: 0.035, from: "start" },
+        ease: EASE.out,
+        delay: 0.15,
         // Clean up GSAP-managed inline styles so PosterCard's own
         // hover/rotation transforms aren't fighting residual values.
-        onComplete: () => { gsap.set(cards, { clearProps: "y,scale,opacity" }); },
-      }
+        onComplete: () => {
+          gsap.set(cards, { clearProps: "opacity,transform" });
+        },
+      },
     );
-    return () => { tween.kill(); };
-  }, [tone]); // re-run when section changes so new tab's cards animate in
+    return () => {
+      tween.kill();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional: stagger fires on tab switch only, not on every item add
+  }, [tone]);
 
   // ── Empty state ────────────────────────────────────────────────────────────
   if (items.length === 0) {
@@ -85,34 +119,12 @@ export function Scene({
     return (
       <div ref={rootRef}>
         <SceneBackdrop tone={tone}>
-          <div className="flex h-[320px] flex-col items-center justify-center px-6 text-center">
-            <div
-              className="mb-3 flex h-14 w-14 items-center justify-center rounded-full"
-              style={{
-                background:  "var(--washi)",
-                color:       "var(--hanko)",
-                fontFamily:  "var(--font-jp)",
-                fontSize:    20,
-                fontWeight:  900,
-                boxShadow:   "0 2px 6px rgba(0,0,0,.5)",
-              }}
-              aria-hidden
-            >
-              {copy.kanji}
-            </div>
-            <h3
-              className="text-lg font-semibold"
-              style={{ fontFamily: "var(--font-display)", color: "var(--washi)" }}
-            >
-              {copy.title}
-            </h3>
-            <p
-              className="mt-1 max-w-sm text-sm"
-              style={{ color: "rgba(244,228,192,.6)" }}
-            >
-              {copy.body}
-            </p>
-          </div>
+          <EmptyState
+            icon={copy.kanji}
+            title={copy.title}
+            description={copy.body}
+            className="h-[320px] py-0"
+          />
         </SceneBackdrop>
       </div>
     );
@@ -121,6 +133,7 @@ export function Scene({
   // ── Watching: large featured hero + horizontal scroll of secondary cards ───
   if (tone === "watching") {
     const [hero, ...rest] = items;
+    const dotCount = Math.min(items.length, 10);
     return (
       <div ref={rootRef}>
         <SceneBackdrop tone={tone}>
@@ -128,7 +141,10 @@ export function Scene({
           <div
             aria-hidden
             className="absolute top-4 left-8 z-20 text-[9px] uppercase tracking-[.3em] pointer-events-none select-none"
-            style={{ fontFamily: "var(--font-display)", color: "rgba(244,228,192,.35)" }}
+            style={{
+              fontFamily: "var(--font-display)",
+              color: "var(--washi-soft)",
+            }}
           >
             Now Watching
           </div>
@@ -139,16 +155,17 @@ export function Scene({
             style={{ paddingTop: 52 }}
           >
             {/* Hero — featured, larger, episode controls attached */}
-            <PosterCard
-              key={hero.id}
-              item={hero}
-              tone={tone}
-              featured
-              isDragging={hero.id === activeDragId}
-              onMove={onMove}
-              onEpisodeChange={onEpisodeChange}
-              onRemove={onRemove}
-            />
+            <div className="poster-card-snap shrink-0">
+              <PosterCard
+                item={hero}
+                tone={tone}
+                featured
+                isDragging={hero.id === activeDragId}
+                onMove={onMove}
+                onEpisodeChange={onEpisodeChange}
+                onRemove={onRemove}
+              />
+            </div>
 
             {rest.length > 0 && (
               <>
@@ -159,30 +176,45 @@ export function Scene({
                   style={{
                     width: 1,
                     marginInline: 4,
-                    background: "linear-gradient(180deg, transparent 10%, rgba(244,228,192,.18) 40%, rgba(244,228,192,.18) 60%, transparent 90%)",
+                    background:
+                      "linear-gradient(180deg, transparent 10%, var(--border-default) 40%, var(--border-default) 60%, transparent 90%)",
                   }}
                 />
                 {rest.map((item) => (
-                  <PosterCard
-                    key={item.id}
-                    item={item}
-                    tone={tone}
-                    isDragging={item.id === activeDragId}
-                    onMove={onMove}
-                    onEpisodeChange={onEpisodeChange}
-                    onRemove={onRemove}
-                  />
+                  <div key={item.id} className="poster-card-snap shrink-0">
+                    <PosterCard
+                      item={item}
+                      tone={tone}
+                      isDragging={item.id === activeDragId}
+                      onMove={onMove}
+                      onEpisodeChange={onEpisodeChange}
+                      onRemove={onRemove}
+                    />
+                  </div>
                 ))}
               </>
             )}
           </div>
         </SceneBackdrop>
+
+        {/* Mobile scroll dots indicator */}
+        {isMobile && dotCount > 1 && (
+          <div className="scroll-dots" aria-hidden>
+            {Array.from({ length: dotCount }).map((_, i) => (
+              <span
+                key={i}
+                className={`scroll-dot${i === scrollIndex ? " active" : ""}`}
+              />
+            ))}
+          </div>
+        )}
       </div>
     );
   }
 
   // ── Plan: collage — scattered photos with seeded tilt ─────────────────────
   // ── Watched: archival row — dimmed, completion marks ──────────────────────
+  const dotCount = Math.min(items.length, 10);
   return (
     <div ref={rootRef}>
       <SceneBackdrop tone={tone}>
@@ -190,25 +222,38 @@ export function Scene({
           ref={listRef}
           className="shelf-scroll flex items-end gap-5 overflow-x-auto pb-8"
           style={{
-            paddingTop:   tone === "plan" ? 44 : 36,
+            paddingTop: tone === "plan" ? 44 : 36,
             // Extra horizontal padding for plan so tilted card edges don't clip
-            paddingLeft:  tone === "plan" ? 52 : 32,
+            paddingLeft: tone === "plan" ? 52 : 32,
             paddingRight: tone === "plan" ? 52 : 32,
           }}
         >
           {items.map((item) => (
-            <PosterCard
-              key={item.id}
-              item={item}
-              tone={tone}
-              isDragging={item.id === activeDragId}
-              onMove={onMove}
-              onEpisodeChange={onEpisodeChange}
-              onRemove={onRemove}
-            />
+            <div key={item.id} className="poster-card-snap shrink-0">
+              <PosterCard
+                item={item}
+                tone={tone}
+                isDragging={item.id === activeDragId}
+                onMove={onMove}
+                onEpisodeChange={onEpisodeChange}
+                onRemove={onRemove}
+              />
+            </div>
           ))}
         </div>
       </SceneBackdrop>
+
+      {/* Mobile scroll dots indicator */}
+      {isMobile && dotCount > 1 && (
+        <div className="scroll-dots" aria-hidden>
+          {Array.from({ length: dotCount }).map((_, i) => (
+            <span
+              key={i}
+              className={`scroll-dot${i === scrollIndex ? " active" : ""}`}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -11,6 +11,7 @@ export interface JikanAnime {
   };
   score: number | null;
   episodes: number | null;
+  title_japanese?: string | null;
   synopsis: string | null;
   genres: { name: string }[];
   studios: { name: string }[];
@@ -37,7 +38,7 @@ interface JikanTopResponse {
 
 export async function searchAnime(query: string): Promise<JikanAnime[]> {
   const res = await fetch(
-    `${JIKAN_BASE}/anime?q=${encodeURIComponent(query)}&limit=20&sfw=true`
+    `${JIKAN_BASE}/anime?q=${encodeURIComponent(query)}&limit=20&sfw=true`,
   );
   if (!res.ok) throw new Error("Jikan API error");
   const json: JikanSearchResponse = await res.json();
@@ -51,9 +52,7 @@ export async function getTopAnime(): Promise<JikanAnime[]> {
   return json.data;
 }
 
-export async function getAnimeById(
-  malId: number
-): Promise<JikanAnime | null> {
+export async function getAnimeById(malId: number): Promise<JikanAnime | null> {
   try {
     const res = await fetch(`${JIKAN_BASE}/anime/${malId}`);
     if (!res.ok) return null;

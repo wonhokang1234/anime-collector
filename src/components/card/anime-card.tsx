@@ -422,10 +422,10 @@ export function AnimeCard({
             <button
               type="button"
               onClick={() => onCollect()}
-              className="btn-primary w-full"
+              className="mg-gather-btn w-full"
               style={{ fontSize: "0.75rem" }}
             >
-              Collect
+              Gather seed · 種を集める
             </button>
           </div>
         )}

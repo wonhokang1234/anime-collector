@@ -4,8 +4,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import gsap from "gsap";
 import { DURATION, EASE } from "@/lib/motion";
+import Link from "next/link";
 import { useAuthStore } from "@/stores/auth-store";
 import { useCollectionStore } from "@/stores/collection-store";
+import { useGardenStore } from "@/stores/garden-store";
 import { AnimeCard } from "@/components/card/anime-card";
 import { getAnimeById, type JikanAnime } from "@/lib/jikan";
 import { getRarityTier } from "@/lib/types";
@@ -40,6 +42,7 @@ export default function CardDetailPage() {
   const updateCategory = useCollectionStore((s) => s.updateCategory);
   const updateEpisode = useCollectionStore((s) => s.updateEpisode);
   const remove = useCollectionStore((s) => s.remove);
+  const mood = useGardenStore((s) => s.mood);
 
   const [jikanData, setJikanData] = useState<JikanAnime | null>(null);
   const [jikanLoading, setJikanLoading] = useState(true);
@@ -117,7 +120,11 @@ export default function CardDetailPage() {
 
   if (authLoading || !user || !initialized || !item) {
     return (
-      <div style={{ background: "var(--bg-page)", minHeight: "100vh" }}>
+      <div
+        className="moss"
+        data-mood={mood}
+        style={{ background: "var(--bg)", minHeight: "100vh" }}
+      >
         {/* Zone 1 skeleton */}
         <div
           className="card-detail-zone1-skeleton skeleton-block w-full"
@@ -155,6 +162,14 @@ export default function CardDetailPage() {
   const itemId = item.id;
   const itemCategory = item.category;
 
+  // Where this story lives in the garden — quiet cross-link
+  const gardenView =
+    itemCategory === "watching"
+      ? "grove"
+      : itemCategory === "plan_to_watch"
+        ? "seeds"
+        : "pond";
+
   function stepEpisode(delta: number) {
     const next = Math.max(
       0,
@@ -173,16 +188,16 @@ export default function CardDetailPage() {
         const tl = gsap.timeline();
         watchedFlashTlRef.current = tl;
         tl.to(watchedPillRef.current, {
-          backgroundColor: "var(--accent)",
-          borderColor: "var(--accent)",
-          color: "#ffffff",
+          backgroundColor: "var(--moss)",
+          borderColor: "var(--moss)",
+          color: "var(--bg)",
           duration: 0.12,
           ease: EASE.out,
         })
           .to(watchedPillRef.current, {
             backgroundColor: "transparent",
-            borderColor: "var(--border-default)",
-            color: "var(--text-secondary)",
+            borderColor: "var(--line2)",
+            color: "var(--mut)",
             duration: DURATION.base - 0.12,
             ease: EASE.out,
           })
@@ -199,7 +214,11 @@ export default function CardDetailPage() {
   }
 
   return (
-    <div style={{ background: "var(--bg-page)", minHeight: "100vh" }}>
+    <div
+      className="moss"
+      data-mood={mood}
+      style={{ background: "var(--bg)", minHeight: "100vh" }}
+    >
       {/* Back navigation */}
       <div className="mx-auto max-w-4xl px-6 pt-6">
         <button
@@ -208,20 +227,20 @@ export default function CardDetailPage() {
           onClick={() => router.back()}
           className="transition-colors"
           style={{
-            fontFamily: "var(--font-sans)",
+            fontFamily: "var(--font-kaku), system-ui, sans-serif",
             fontSize: "0.875rem",
             fontWeight: 500,
-            color: "var(--text-secondary)",
+            color: "var(--mut)",
             background: "transparent",
             border: "none",
             cursor: "pointer",
             padding: "0",
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.color = "var(--text-primary)";
+            e.currentTarget.style.color = "var(--ink)";
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.color = "var(--text-secondary)";
+            e.currentTarget.style.color = "var(--mut)";
           }}
         >
           ← Back
@@ -238,9 +257,10 @@ export default function CardDetailPage() {
           >
             <div
               style={{
-                background: "var(--bg-card)",
+                background:
+                  "color-mix(in oklab, var(--panel) 72%, transparent)",
                 borderRadius: 8,
-                boxShadow: "var(--shadow-card)",
+                boxShadow: "0 18px 40px rgba(0,0,0,.28)",
                 borderLeft: `3px solid var(--rarity-${rarity}-border)`,
                 overflow: "hidden",
                 width: "min(260px, 100%)",
@@ -265,7 +285,7 @@ export default function CardDetailPage() {
               <RarityDots tier={rarity} />
               <span
                 style={{
-                  fontFamily: "var(--font-sans)",
+                  fontFamily: "var(--font-kaku), system-ui, sans-serif",
                   fontSize: "0.625rem",
                   fontWeight: 600,
                   letterSpacing: "0.12em",
@@ -281,15 +301,25 @@ export default function CardDetailPage() {
           {/* Zone 2 — Info / text area */}
           <div ref={infoZoneRef} style={{ opacity: 0, flex: 1, minWidth: 0 }}>
             {/* Title */}
+            <p
+              style={{
+                margin: "0 0 8px",
+                fontFamily: "var(--font-mincho), serif",
+                fontSize: 10.5,
+                letterSpacing: "0.5em",
+                color: "var(--dim)",
+              }}
+            >
+              札 の 記
+            </p>
             <h1
               ref={titleRef}
               style={{
-                fontFamily: "var(--font-display)",
-                fontStyle: "italic",
-                fontWeight: 300,
+                fontFamily: "var(--font-mincho), serif",
+                fontWeight: 700,
                 fontSize: "clamp(1.75rem, 4vw, 2.5rem)",
-                lineHeight: 1.1,
-                color: "var(--text-primary)",
+                lineHeight: 1.12,
+                color: "var(--ink)",
                 margin: "0 0 1.5rem",
                 opacity: 0,
               }}
@@ -300,8 +330,8 @@ export default function CardDetailPage() {
             {/* Stats row */}
             <div
               style={{
-                borderTop: "1px solid var(--border-subtle)",
-                borderBottom: "1px solid var(--border-subtle)",
+                borderTop: "1px solid var(--line)",
+                borderBottom: "1px solid var(--line)",
                 padding: "1rem 0",
                 marginBottom: "1.5rem",
               }}
@@ -314,7 +344,7 @@ export default function CardDetailPage() {
                 />
                 <div
                   className="hidden h-8 w-px sm:block"
-                  style={{ background: "var(--border-default)" }}
+                  style={{ background: "var(--line2)" }}
                 />
                 <StatCell
                   label="Episodes"
@@ -323,11 +353,11 @@ export default function CardDetailPage() {
                 />
                 <div
                   className="hidden h-8 w-px sm:block"
-                  style={{ background: "var(--border-default)" }}
+                  style={{ background: "var(--line2)" }}
                 />
                 <div
                   className="col-span-2 h-px block sm:hidden"
-                  style={{ background: "var(--border-subtle)" }}
+                  style={{ background: "var(--line)" }}
                 />
                 <StatCell
                   label="Year"
@@ -338,7 +368,7 @@ export default function CardDetailPage() {
                 />
                 <div
                   className="hidden h-8 w-px sm:block"
-                  style={{ background: "var(--border-default)" }}
+                  style={{ background: "var(--line2)" }}
                 />
                 <StatCell
                   label="Studio"
@@ -352,16 +382,16 @@ export default function CardDetailPage() {
             {/* Progress */}
             <div
               className="py-5"
-              style={{ borderBottom: "1px solid var(--border-subtle)" }}
+              style={{ borderBottom: "1px solid var(--line)" }}
             >
               <div
                 style={{
-                  fontFamily: "var(--font-sans)",
+                  fontFamily: "var(--font-kaku), system-ui, sans-serif",
                   fontSize: "0.625rem",
                   fontWeight: 600,
                   letterSpacing: "0.15em",
                   textTransform: "uppercase" as const,
-                  color: "var(--text-muted)",
+                  color: "var(--dim)",
                   marginBottom: "0.75rem",
                 }}
               >
@@ -374,14 +404,15 @@ export default function CardDetailPage() {
                   onClick={() => stepEpisode(-1)}
                   className="flex items-center justify-center rounded text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                   style={{
-                    background: "var(--bg-panel)",
-                    color: "var(--text-secondary)",
-                    border: "1px solid var(--border-default)",
+                    background:
+                      "color-mix(in oklab, var(--panel) 60%, transparent)",
+                    color: "var(--mut)",
+                    border: "1px solid var(--line2)",
                     width: "44px",
                     height: "44px",
                     minWidth: "44px",
                     minHeight: "44px",
-                    outlineColor: "var(--accent)",
+                    outlineColor: "var(--moss)",
                     cursor: "pointer",
                   }}
                 >
@@ -397,13 +428,13 @@ export default function CardDetailPage() {
                         aria-valuemax={total}
                         aria-label={`Episode progress: ${current} of ${total}`}
                         className="h-1.5 overflow-hidden rounded-full"
-                        style={{ background: "var(--border-subtle)" }}
+                        style={{ background: "var(--line)" }}
                       >
                         <div
                           className="h-full rounded-full transition-all duration-300"
                           style={{
                             width: `${percent}%`,
-                            background: "var(--accent)",
+                            background: "var(--moss)",
                           }}
                         />
                       </div>
@@ -412,7 +443,7 @@ export default function CardDetailPage() {
                           style={{
                             fontFamily: "var(--font-mono)",
                             fontSize: "0.6875rem",
-                            color: "var(--text-secondary)",
+                            color: "var(--mut)",
                           }}
                         >
                           Episode {current} / {total}
@@ -421,7 +452,7 @@ export default function CardDetailPage() {
                           style={{
                             fontFamily: "var(--font-mono)",
                             fontSize: "0.6875rem",
-                            color: "var(--text-muted)",
+                            color: "var(--dim)",
                           }}
                         >
                           {percent}%
@@ -433,7 +464,7 @@ export default function CardDetailPage() {
                       style={{
                         fontFamily: "var(--font-mono)",
                         fontSize: "0.6875rem",
-                        color: "var(--text-secondary)",
+                        color: "var(--mut)",
                       }}
                     >
                       Episode {current}
@@ -446,14 +477,15 @@ export default function CardDetailPage() {
                   onClick={() => stepEpisode(1)}
                   className="flex items-center justify-center rounded text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                   style={{
-                    background: "var(--bg-panel)",
-                    color: "var(--text-secondary)",
-                    border: "1px solid var(--border-default)",
+                    background:
+                      "color-mix(in oklab, var(--panel) 60%, transparent)",
+                    color: "var(--mut)",
+                    border: "1px solid var(--line2)",
                     width: "44px",
                     height: "44px",
                     minWidth: "44px",
                     minHeight: "44px",
-                    outlineColor: "var(--accent)",
+                    outlineColor: "var(--moss)",
                     cursor: "pointer",
                   }}
                 >
@@ -465,17 +497,17 @@ export default function CardDetailPage() {
             {/* Shelf / Category */}
             <div
               className="flex flex-col gap-4 py-5 sm:flex-row sm:items-center sm:justify-between"
-              style={{ borderBottom: "1px solid var(--border-subtle)" }}
+              style={{ borderBottom: "1px solid var(--line)" }}
             >
               <div>
                 <div
                   style={{
-                    fontFamily: "var(--font-sans)",
+                    fontFamily: "var(--font-kaku), system-ui, sans-serif",
                     fontSize: "0.625rem",
                     fontWeight: 600,
                     letterSpacing: "0.15em",
                     textTransform: "uppercase" as const,
-                    color: "var(--text-muted)",
+                    color: "var(--dim)",
                     marginBottom: "0.625rem",
                   }}
                 >
@@ -501,7 +533,7 @@ export default function CardDetailPage() {
                           fontFamily:
                             label === "秘"
                               ? "var(--font-jp)"
-                              : "var(--font-sans)",
+                              : "var(--font-kaku), system-ui, sans-serif",
                           minHeight: "44px",
                           borderRadius: "4px",
                         }}
@@ -517,9 +549,9 @@ export default function CardDetailPage() {
                   <div className="flex items-center gap-2">
                     <span
                       style={{
-                        fontFamily: "var(--font-sans)",
+                        fontFamily: "var(--font-kaku), system-ui, sans-serif",
                         fontSize: "0.8125rem",
-                        color: "var(--text-muted)",
+                        color: "var(--dim)",
                       }}
                     >
                       Remove?
@@ -528,10 +560,10 @@ export default function CardDetailPage() {
                       type="button"
                       onClick={handleRemove}
                       style={{
-                        fontFamily: "var(--font-sans)",
+                        fontFamily: "var(--font-kaku), system-ui, sans-serif",
                         fontSize: "0.8125rem",
                         fontWeight: 500,
-                        color: "var(--status-error)",
+                        color: "#c47d7d",
                         background: "transparent",
                         border: "none",
                         cursor: "pointer",
@@ -551,10 +583,10 @@ export default function CardDetailPage() {
                       type="button"
                       onClick={() => setConfirmRemove(false)}
                       style={{
-                        fontFamily: "var(--font-sans)",
+                        fontFamily: "var(--font-kaku), system-ui, sans-serif",
                         fontSize: "0.8125rem",
                         fontWeight: 500,
-                        color: "var(--text-muted)",
+                        color: "var(--dim)",
                         background: "transparent",
                         border: "none",
                         cursor: "pointer",
@@ -576,11 +608,12 @@ export default function CardDetailPage() {
                     type="button"
                     onClick={() => setConfirmRemove(true)}
                     style={{
-                      fontFamily: "var(--font-sans)",
+                      fontFamily: "var(--font-kaku), system-ui, sans-serif",
                       fontSize: "0.8125rem",
                       fontWeight: 500,
-                      color: "var(--status-error)",
-                      border: "1px solid var(--status-error-bg)",
+                      color: "#c47d7d",
+                      border:
+                        "1px solid color-mix(in oklab, #c47d7d 15%, transparent)",
                       background: "transparent",
                       borderRadius: "4px",
                       padding: "0.5rem 1rem",
@@ -590,7 +623,7 @@ export default function CardDetailPage() {
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.background =
-                        "var(--status-error-bg)";
+                        "color-mix(in oklab, #c47d7d 15%, transparent)";
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.background = "transparent";
@@ -606,12 +639,12 @@ export default function CardDetailPage() {
             <div className="py-5">
               <div
                 style={{
-                  fontFamily: "var(--font-sans)",
+                  fontFamily: "var(--font-kaku), system-ui, sans-serif",
                   fontSize: "0.625rem",
                   fontWeight: 600,
                   letterSpacing: "0.15em",
                   textTransform: "uppercase" as const,
-                  color: "var(--text-muted)",
+                  color: "var(--dim)",
                   marginBottom: "0.75rem",
                 }}
               >
@@ -626,10 +659,10 @@ export default function CardDetailPage() {
               ) : synopsis ? (
                 <p
                   style={{
-                    fontFamily: "var(--font-sans)",
+                    fontFamily: "var(--font-kaku), system-ui, sans-serif",
                     fontSize: "0.9375rem",
                     lineHeight: 1.7,
-                    color: "var(--text-secondary)",
+                    color: "var(--mut)",
                     margin: 0,
                   }}
                 >
@@ -638,9 +671,9 @@ export default function CardDetailPage() {
               ) : (
                 <p
                   style={{
-                    fontFamily: "var(--font-sans)",
+                    fontFamily: "var(--font-kaku), system-ui, sans-serif",
                     fontSize: "0.9375rem",
-                    color: "var(--text-muted)",
+                    color: "var(--dim)",
                     margin: 0,
                   }}
                 >
@@ -681,6 +714,30 @@ export default function CardDetailPage() {
                 ) : null}
               </div>
             </div>
+
+            {/* Quiet cross-link into the garden */}
+            <div
+              style={{
+                paddingTop: "0.5rem",
+                borderTop: "1px solid var(--line)",
+              }}
+            >
+              <Link
+                href={`/garden?view=${gardenView}`}
+                className="mg-link"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  fontFamily: "var(--font-mincho), serif",
+                  fontSize: "0.8125rem",
+                  letterSpacing: "0.04em",
+                  textDecoration: "none",
+                }}
+              >
+                See it in the garden ⟶
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -705,12 +762,12 @@ function StatCell({
     <div style={{ textAlign: "center", minWidth: "64px" }}>
       <div
         style={{
-          fontFamily: "var(--font-sans)",
+          fontFamily: "var(--font-kaku), system-ui, sans-serif",
           fontSize: "0.625rem",
           fontWeight: 600,
           letterSpacing: "0.15em",
           textTransform: "uppercase" as const,
-          color: "var(--text-muted)",
+          color: "var(--dim)",
           marginBottom: "0.25rem",
         }}
       >
@@ -725,10 +782,12 @@ function StatCell({
         <div
           style={{
             fontSize: mono ? "2rem" : "0.875rem",
-            fontFamily: mono ? "var(--font-mono)" : "var(--font-sans)",
+            fontFamily: mono
+              ? "var(--font-mono)"
+              : "var(--font-kaku), system-ui, sans-serif",
             lineHeight: mono ? 1 : 1.4,
             letterSpacing: mono ? "-0.02em" : "0",
-            color: "var(--text-primary)",
+            color: "var(--ink)",
             fontVariantNumeric: "tabular-nums",
           }}
         >

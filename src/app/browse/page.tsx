@@ -14,9 +14,9 @@ import {
 import { useAuthStore } from "@/stores/auth-store";
 import { useCollectionStore } from "@/stores/collection-store";
 import { useToastStore } from "@/stores/toast-store";
+import { useGardenStore } from "@/stores/garden-store";
 import { useRouter } from "next/navigation";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { SectionHeader } from "@/components/ui/section-header";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SkeletonGrid } from "@/components/ui/skeleton-grid";
 import { RarityBadge } from "@/components/ui/rarity-badge";
@@ -39,6 +39,7 @@ export default function BrowsePage() {
   const isCollected = useCollectionStore((s) => s.isCollected);
   const collect = useCollectionStore((s) => s.collect);
   const addToast = useToastStore((s) => s.addToast);
+  const mood = useGardenStore((s) => s.mood);
   const isMobile = useMediaQuery("(max-width: 639px)");
 
   const [query, setQuery] = useState("");
@@ -200,214 +201,251 @@ export default function BrowsePage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 relative washi-surface">
-      <div className="relative z-10 pt-10">
-        {/* Page header */}
-        <div className="mb-8 flex flex-col items-start gap-2 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
-          <SectionHeader
-            kickerJp="探"
-            kicker="Discover"
-            title="Browse Anime"
-            description="Search the archive. Cards glow based on rating — the rarer the find, the louder the foil."
-            as="h1"
-          />
-
-          {items.length > 0 && (
-            <div
-              className="flex items-center gap-2 px-4 py-2"
-              style={{
-                border: "1px solid var(--border-default)",
-                background: "var(--bg-card)",
-                borderRadius: 4,
-              }}
-            >
-              <span className="hanko-dot" aria-hidden />
-              <span
-                data-collect-target="true"
-                className="font-mono text-base tabular-nums"
-                style={{ color: "var(--text-primary)" }}
-              >
-                {items.length.toString().padStart(2, "0")}
-              </span>
-              <span
-                className="text-[10px] uppercase tracking-[.2em]"
+    <div
+      className="moss"
+      data-mood={mood}
+      style={{ minHeight: "calc(100vh - var(--navbar-height))" }}
+    >
+      <div className="mx-auto max-w-7xl px-4 relative">
+        <div className="relative z-10 pt-10">
+          {/* Page header — the seed market */}
+          <div className="mb-8 flex flex-col items-start gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div style={{ animation: "mg-riseIn .8s ease-out both" }}>
+              <p
                 style={{
-                  color: "var(--text-muted)",
-                  fontFamily: "var(--font-sans)",
+                  margin: "0 0 8px",
+                  fontFamily: "var(--font-mincho), serif",
+                  fontSize: 10.5,
+                  letterSpacing: "0.5em",
+                  color: "var(--dim)",
                 }}
               >
-                Collected
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Rarity legend */}
-        <div className="mb-6 flex flex-wrap items-center gap-1 sm:gap-2">
-          <span
-            className="mr-1 text-[10px] uppercase tracking-[.3em]"
-            style={{
-              color: "var(--text-muted)",
-              fontFamily: "var(--font-sans)",
-            }}
-          >
-            Rarity —
-          </span>
-          {RARITY_RANGES.map(({ tier, range }) => (
-            <span key={tier} className="inline-flex items-center gap-1.5">
-              <RarityBadge tier={tier} />
-              <span
-                className="text-[10px]"
-                style={{ color: "var(--text-muted)", opacity: 0.7 }}
+                種 の 市
+              </p>
+              <h1
+                style={{
+                  margin: 0,
+                  fontFamily: "var(--font-mincho), serif",
+                  fontWeight: 700,
+                  fontSize: "clamp(1.9rem, 4.4vw, 2.9rem)",
+                  lineHeight: 1.08,
+                  letterSpacing: "0.01em",
+                  color: "var(--ink)",
+                }}
               >
-                {range}
-              </span>
-            </span>
-          ))}
-        </div>
-      </div>
+                The Seed Market
+              </h1>
+              <p
+                style={{
+                  margin: "14px 0 0",
+                  maxWidth: 460,
+                  fontSize: 13,
+                  lineHeight: 1.9,
+                  fontWeight: 300,
+                  color: "var(--mut)",
+                }}
+              >
+                Every story begins as a seed. Gather the ones that call to you —
+                the rarer the find, the brighter it glows.
+              </p>
+            </div>
 
-      {/* Sticky sub-header — search */}
-      <div
-        className="sticky z-40 py-3 -mx-4 px-4"
-        style={{
-          top: "var(--navbar-height)",
-          background: "var(--bg-page)",
-          borderBottom: "1px solid var(--border-subtle)",
-        }}
-      >
-        {/* Search input with icon and clear button */}
-        <div className="relative max-w-xl search-underline-wrap">
-          <input
-            className="search-underline-input"
-            type="text"
-            value={query}
-            onChange={(e) => {
-              handleSearch(e.target.value);
-              setActiveQuery(e.target.value);
-            }}
-            placeholder="Search the library..."
-            style={{
-              width: "100%",
-              paddingBlock: "0.7rem",
-              paddingInlineStart: "2.5rem",
-              paddingInlineEnd: "2.5rem",
-              borderRadius: 4,
-              color: "var(--text-primary)",
-              fontFamily: "var(--font-sans)",
-              fontSize: "0.9rem",
-            }}
-          />
-          <svg
-            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-            aria-hidden
-            style={{ color: "var(--text-muted)" }}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
-            />
-          </svg>
-          {query !== "" && (
-            <button
-              type="button"
-              aria-label="Clear search"
-              onClick={() => {
-                handleSearch("");
-                setActiveQuery("");
-              }}
-              className="absolute right-3 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded transition-opacity hover:opacity-70"
-              style={{ color: "var(--text-muted)" }}
+            {items.length > 0 && (
+              <div
+                className="flex items-center gap-2 px-4 py-2"
+                style={{
+                  border: "1px solid var(--line)",
+                  background:
+                    "color-mix(in oklab, var(--panel) 72%, transparent)",
+                  borderRadius: 14,
+                }}
+              >
+                <span
+                  data-collect-target="true"
+                  className="text-base tabular-nums"
+                  style={{
+                    fontFamily: "var(--font-mincho), serif",
+                    fontWeight: 700,
+                    color: "var(--ink)",
+                  }}
+                >
+                  {items.length.toString().padStart(2, "0")}
+                </span>
+                <span
+                  className="text-[10px] uppercase tracking-[.2em]"
+                  style={{ color: "var(--dim)" }}
+                >
+                  Gathered
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Rarity legend */}
+          <div className="mb-6 flex flex-wrap items-center gap-1 sm:gap-2">
+            <span
+              className="mr-1 text-[10px] uppercase tracking-[.3em]"
+              style={{ color: "var(--dim)" }}
             >
-              ×
-            </button>
+              Rarity —
+            </span>
+            {RARITY_RANGES.map(({ tier, range }) => (
+              <span key={tier} className="inline-flex items-center gap-1.5">
+                <RarityBadge tier={tier} />
+                <span
+                  className="text-[10px]"
+                  style={{ color: "var(--dim)", opacity: 0.85 }}
+                >
+                  {range}
+                </span>
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Sticky sub-header — search */}
+        <div
+          className="sticky z-40 py-3 -mx-4 px-4"
+          style={{
+            top: "var(--navbar-height)",
+            background: "color-mix(in oklab, var(--bg) 92%, transparent)",
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
+            borderBottom: "1px solid var(--line)",
+          }}
+        >
+          {/* Search input with icon and clear button */}
+          <div className="relative max-w-xl mg-search-wrap">
+            <input
+              className="mg-search-input"
+              type="text"
+              value={query}
+              onChange={(e) => {
+                handleSearch(e.target.value);
+                setActiveQuery(e.target.value);
+              }}
+              placeholder="Search the seed market…"
+              style={{
+                width: "100%",
+                paddingBlock: "0.7rem",
+                paddingInlineStart: "2.5rem",
+                paddingInlineEnd: "2.5rem",
+                borderRadius: 12,
+                fontFamily: "var(--font-kaku), system-ui, sans-serif",
+                fontSize: "0.9rem",
+              }}
+            />
+            <svg
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+              aria-hidden
+              style={{ color: "var(--dim)" }}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+              />
+            </svg>
+            {query !== "" && (
+              <button
+                type="button"
+                aria-label="Clear search"
+                onClick={() => {
+                  handleSearch("");
+                  setActiveQuery("");
+                }}
+                className="absolute right-3 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded transition-opacity hover:opacity-70"
+                style={{ color: "var(--dim)" }}
+              >
+                ×
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="relative z-10 pb-10">
+          {/* Section separator */}
+          <div className="hairline mt-6 mb-8" />
+
+          {/* Loading state — skeleton grid */}
+          {loading && <SkeletonGrid count={10} isCompact={isMobile} />}
+
+          {/* Error state — designed panel instead of raw red div */}
+          {error && !loading && (
+            <EmptyState
+              icon="障"
+              title="Could not load anime"
+              description={error}
+              action={{
+                label: "Try again",
+                onClick: () => {
+                  setError(null);
+                  setLoading(true);
+                  (query.trim() ? searchAnime(query) : getTopAnime())
+                    .then(setResults)
+                    .catch(() =>
+                      setError("Still unavailable. Please try again later."),
+                    )
+                    .finally(() => setLoading(false));
+                },
+              }}
+            />
+          )}
+
+          {/* Empty state */}
+          {!loading && !error && results.length === 0 && (
+            <EmptyState
+              icon="空"
+              title="Nothing found"
+              description="No anime found. Try a different search."
+            />
+          )}
+
+          {/* Card grid */}
+          {!loading && !error && results.length > 0 && (
+            <ErrorBoundary
+              fallback={
+                <EmptyState
+                  icon="障"
+                  title="Failed to load cards"
+                  description="Could not render the card grid. Please refresh."
+                />
+              }
+            >
+              <div
+                ref={gridRef}
+                className="flex flex-wrap gap-4 sm:gap-6 justify-center px-1"
+              >
+                {results.map((anime) => (
+                  <ScatterCard key={anime.mal_id} malId={anime.mal_id ?? 0}>
+                    <AnimeCard
+                      title={anime.title}
+                      imageUrl={anime.images.jpg.large_image_url}
+                      score={anime.score ?? 0}
+                      episodes={anime.episodes}
+                      synopsis={anime.synopsis ?? undefined}
+                      genres={anime.genres.map((g) => g.name)}
+                      studio={anime.studios[0]?.name}
+                      year={getAnimeYear(anime)}
+                      variant={isMobile ? "compact" : "full"}
+                      collected={isCollected(anime.mal_id)}
+                      onCollect={() => handleCollect(anime)}
+                      isJustCollected={justCollectedId === anime.mal_id}
+                    />
+                  </ScatterCard>
+                ))}
+              </div>
+            </ErrorBoundary>
           )}
         </div>
+        {/* end relative z-10 */}
+
+        {/* Toast is now rendered globally via <Toast /> in layout.tsx */}
       </div>
-
-      <div className="relative z-10 pb-10">
-        {/* Section separator */}
-        <div className="hairline mt-6 mb-8" />
-
-        {/* Loading state — skeleton grid */}
-        {loading && <SkeletonGrid count={10} isCompact={isMobile} />}
-
-        {/* Error state — designed panel instead of raw red div */}
-        {error && !loading && (
-          <EmptyState
-            icon="障"
-            title="Could not load anime"
-            description={error}
-            action={{
-              label: "Try again",
-              onClick: () => {
-                setError(null);
-                setLoading(true);
-                (query.trim() ? searchAnime(query) : getTopAnime())
-                  .then(setResults)
-                  .catch(() =>
-                    setError("Still unavailable. Please try again later."),
-                  )
-                  .finally(() => setLoading(false));
-              },
-            }}
-          />
-        )}
-
-        {/* Empty state */}
-        {!loading && !error && results.length === 0 && (
-          <EmptyState
-            icon="空"
-            title="Nothing found"
-            description="No anime found. Try a different search."
-          />
-        )}
-
-        {/* Card grid */}
-        {!loading && !error && results.length > 0 && (
-          <ErrorBoundary
-            fallback={
-              <EmptyState
-                icon="障"
-                title="Failed to load cards"
-                description="Could not render the card grid. Please refresh."
-              />
-            }
-          >
-            <div
-              ref={gridRef}
-              className="flex flex-wrap gap-4 sm:gap-6 justify-center px-1"
-            >
-              {results.map((anime) => (
-                <ScatterCard key={anime.mal_id} malId={anime.mal_id ?? 0}>
-                  <AnimeCard
-                    title={anime.title}
-                    imageUrl={anime.images.jpg.large_image_url}
-                    score={anime.score ?? 0}
-                    episodes={anime.episodes}
-                    synopsis={anime.synopsis ?? undefined}
-                    genres={anime.genres.map((g) => g.name)}
-                    studio={anime.studios[0]?.name}
-                    year={getAnimeYear(anime)}
-                    variant={isMobile ? "compact" : "full"}
-                    collected={isCollected(anime.mal_id)}
-                    onCollect={() => handleCollect(anime)}
-                    isJustCollected={justCollectedId === anime.mal_id}
-                  />
-                </ScatterCard>
-              ))}
-            </div>
-          </ErrorBoundary>
-        )}
-      </div>
-      {/* end relative z-10 */}
-
-      {/* Toast is now rendered globally via <Toast /> in layout.tsx */}
     </div>
   );
 }

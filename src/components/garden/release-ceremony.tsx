@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type FC } from "react";
+import { useEffect, useRef, type FC } from "react";
 import { useGardenStore } from "@/stores/garden-store";
 import { useCollectionStore } from "@/stores/collection-store";
 import type { GardenAnime } from "@/lib/garden/types";
@@ -23,6 +23,10 @@ export const ReleaseCeremony: FC<{ garden: GardenAnime[] }> = ({ garden }) => {
 
   const a = ritual ? garden.find((x) => x.id === ritual.animeId) : undefined;
 
+  // Double-click guard — a ref (not state) so a second click is ignored
+  // without triggering a render on a component that's about to unmount.
+  const confirmed = useRef(false);
+
   // Guard: the item disappeared mid-ceremony (deleted / recategorised
   // elsewhere) — clear the orphan ritual so the overlay doesn't hang.
   useEffect(() => {
@@ -42,6 +46,8 @@ export const ReleaseCeremony: FC<{ garden: GardenAnime[] }> = ({ garden }) => {
   if (!a) return null;
 
   const confirm = () => {
+    if (confirmed.current) return;
+    confirmed.current = true;
     updateCategory(a.id, "watched");
     if (!a.rating) updateRating(a.id, 3); // design: default bloom 3 when unrated
     useGardenStore.getState().confirmRitualTravel(a.id);
@@ -172,6 +178,7 @@ export const ReleaseCeremony: FC<{ garden: GardenAnime[] }> = ({ garden }) => {
               fontSize: 13,
               border: "none",
               cursor: "pointer",
+              transition: "transform .2s, box-shadow .2s",
             }}
           >
             Release it 放流

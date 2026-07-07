@@ -1,5 +1,5 @@
 // Mulberry32 — fast, good distribution, deterministic for a given seed
-function mulberry32(seed: number) {
+export function mulberry32(seed: number) {
   return function () {
     seed |= 0;
     seed = (seed + 0x6d2b79f5) | 0;

@@ -14,7 +14,7 @@ export interface GardenAnime {
   eps: number; // total_episodes, min 1 (guard airing/unknown = 0)
   rating: number; // 0–5, null → 0
   c1: string; // accent from cover art
-  c2: string;
+  c2: string; // secondary accent (darker)
   imageUrl: string;
 }
 

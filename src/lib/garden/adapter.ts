@@ -8,6 +8,7 @@ const STATUS_MAP: Record<CollectedAnime["category"], GardenStatus> = {
   favorite: "completed", // golden koi — favorites live in the Pond
 };
 
+/** Enrichment data from Jikan; fields optional until populated. */
 export interface GardenMeta {
   kanji?: string;
   genre?: string;
@@ -23,7 +24,7 @@ export function toGardenAnime(
     id: item.id,
     malId: item.mal_id,
     title: item.title,
-    kanji: meta?.kanji || item.title,
+    kanji: meta?.kanji || item.title, // || intentional: "" kanji falls back to title
     genre: meta?.genre ?? "",
     syn: meta?.syn ?? "",
     status: STATUS_MAP[item.category],
@@ -37,8 +38,16 @@ export function toGardenAnime(
   };
 }
 
+export interface DerivedGarden {
+  growing: GardenAnime[];
+  done: GardenAnime[];
+  seeds: GardenAnime[];
+  hours: number;
+  topGenre: string;
+}
+
 /** Derived data for Garden3D.updateData + Quick Travel stats + Records House. */
-export function deriveGarden(all: GardenAnime[]) {
+export function deriveGarden(all: GardenAnime[]): DerivedGarden {
   const growing = all.filter((a) => a.status === "watching");
   const done = all.filter((a) => a.status === "completed");
   const seeds = all.filter((a) => a.status === "plan");

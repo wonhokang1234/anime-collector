@@ -57,6 +57,9 @@ export function Navbar() {
     };
   }, [drawerOpen]);
 
+  // Hide the app navbar inside the Moss Garden experience (own HUD/chrome).
+  if (pathname?.startsWith("/garden")) return null;
+
   return (
     <>
       <nav

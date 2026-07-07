@@ -1556,3 +1556,12 @@ body::after {
     transform: translateX(103%);
   }
 }
+
+/* ===== Moss Garden HUD hover states (inline styles can't do :hover) ===== */
+.mg-zoom-btn:hover {
+  border-color: var(--gold) !important;
+  color: var(--gold) !important;
+}
+.mg-qt-row:hover {
+  background: color-mix(in oklab, var(--moss) 12%, transparent) !important;
+}

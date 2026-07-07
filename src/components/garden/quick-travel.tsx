@@ -45,6 +45,7 @@ export function QuickTravel({ derived }: QuickTravelProps) {
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
+            e.stopPropagation();
             toggleQt();
           }
         }}
@@ -128,9 +129,11 @@ export function QuickTravel({ derived }: QuickTravelProps) {
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
+                    e.stopPropagation();
                     travel(key);
                   }
                 }}
+                aria-current={current ? "true" : undefined}
                 style={{
                   ...rowBase,
                   background: current
@@ -207,6 +210,7 @@ function MoodRow({
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
+          e.stopPropagation();
           setMood(other);
         }
       }}

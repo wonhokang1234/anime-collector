@@ -10,7 +10,11 @@ import {
   EXITS,
   abortTransit,
 } from "@/stores/garden-store";
-import { toGardenAnime, deriveGarden } from "@/lib/garden/adapter";
+import {
+  toGardenAnime,
+  deriveGarden,
+  type DerivedGarden,
+} from "@/lib/garden/adapter";
 import { Garden3D } from "@/lib/garden/garden3d";
 import { WorldHud } from "./world-hud";
 import { QuickTravel } from "./quick-travel";
@@ -18,6 +22,17 @@ import { InteriorShell } from "./interior-shell";
 import { TransitionOverlay } from "./transition-overlay";
 import { ReleaseCeremony } from "./release-ceremony";
 import type { GardenView } from "@/lib/garden/types";
+
+/** Map derived garden data into the engine's shape (README §Live data reflection). */
+function pushData(engine: Garden3D, d: DerivedGarden) {
+  engine.updateData({
+    trees: d.growing.map((a) => ({
+      pct: Math.round((a.progress / a.eps) * 100) / 100,
+    })),
+    koi: d.done.map((a) => ({ c1: a.c1, c2: a.c2 })),
+    seeds: d.seeds.length,
+  });
+}
 
 export function GardenExperience() {
   const items = useCollectionStore((s) => s.items);
@@ -37,6 +52,14 @@ export function GardenExperience() {
     [items, meta, colors],
   );
   const derived = useMemo(() => deriveGarden(garden), [garden]);
+
+  // latest derived, readable from the mount-once engine effect regardless of
+  // effect declaration/run order (useRef captures the mount-time value; the
+  // sync effect keeps it fresh afterwards)
+  const derivedRef = useRef(derived);
+  useEffect(() => {
+    derivedRef.current = derived;
+  }, [derived]);
 
   // enrichment kickoff
   useEffect(() => {
@@ -63,22 +86,18 @@ export function GardenExperience() {
       onNear: (near) => useGardenStore.getState().setNear(near),
     });
     engineRef.current = engine;
+    pushData(engine, derivedRef.current);
     return () => {
       engine.dispose();
       engineRef.current = null;
+      // transit timers die with the page — see garden-store.abortTransit
       abortTransit();
     };
   }, []);
 
   // live reflection (README §Live data reflection)
   useEffect(() => {
-    engineRef.current?.updateData({
-      trees: derived.growing.map((a) => ({
-        pct: Math.round((a.progress / a.eps) * 100) / 100,
-      })),
-      koi: derived.done.map((a) => ({ c1: a.c1, c2: a.c2 })),
-      seeds: derived.seeds.length,
-    });
+    if (engineRef.current) pushData(engineRef.current, derived);
   }, [derived]);
 
   // pause 3D while any UI owns the screen; sync mood; spawn-on-exit
@@ -90,9 +109,9 @@ export function GardenExperience() {
     if (g.pendingExitFrom && g.view === "world") {
       const exit = EXITS[g.pendingExitFrom];
       if (exit) e.setPlayerPos(exit[0], exit[1]);
-      g.clearPendingExit();
+      useGardenStore.getState().clearPendingExit();
     }
-  }, [g.view, g.transit, g.ritual, g.qtOpen, g.mood, g.pendingExitFrom, g]);
+  }, [g.view, g.transit, g.ritual, g.qtOpen, g.mood, g.pendingExitFrom]);
 
   // E / Enter to enter near zone; Esc closes quick travel — mount-once
   useEffect(() => {

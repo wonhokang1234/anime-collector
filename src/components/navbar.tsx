@@ -164,7 +164,7 @@ export function Navbar() {
             <div className="hidden items-center gap-3 sm:flex">
               <Link
                 href="/login"
-                className="ghost-btn text-[11px]"
+                className="btn-ghost text-[11px]"
                 style={{
                   fontFamily: "var(--font-sans)",
                   letterSpacing: ".1em",
@@ -174,7 +174,7 @@ export function Navbar() {
               </Link>
               <Link
                 href="/signup"
-                className="hanko-btn text-[11px]"
+                className="btn-primary text-[11px]"
                 style={{
                   fontFamily: "var(--font-sans)",
                   letterSpacing: ".1em",
@@ -326,14 +326,14 @@ export function Navbar() {
             <Link
               href="/login"
               onClick={() => setDrawerOpen(false)}
-              className="ghost-btn flex h-12 items-center justify-center"
+              className="btn-ghost flex h-12 items-center justify-center"
             >
               Log In
             </Link>
             <Link
               href="/signup"
               onClick={() => setDrawerOpen(false)}
-              className="hanko-btn flex h-12 items-center justify-center rounded-lg text-sm font-semibold"
+              className="btn-primary flex h-12 items-center justify-center rounded-lg text-sm font-semibold"
               style={{
                 fontFamily: "var(--font-sans)",
                 letterSpacing: ".1em",

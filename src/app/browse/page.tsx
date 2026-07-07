@@ -75,6 +75,9 @@ export default function BrowsePage() {
           duration: SCATTER.dealIn,
           delay: Math.min(i * SCATTER.dealInStagger, SCATTER.dealInMaxDelay),
           ease: EASE.emphasized,
+          onComplete: () => {
+            gsap.set(el, { clearProps: "x,y" });
+          },
         },
       );
     });
@@ -93,6 +96,7 @@ export default function BrowsePage() {
         duration: SCATTER.filterFade,
         ease: EASE.out,
         stagger: 0.015,
+        overwrite: "auto",
       });
     } else {
       gsap.to(cards, {
@@ -102,6 +106,7 @@ export default function BrowsePage() {
         ease: EASE.out,
         clearProps: "opacity,scale",
         stagger: 0.015,
+        overwrite: "auto",
       });
     }
   }, [activeQuery]);
@@ -287,8 +292,6 @@ export default function BrowsePage() {
               paddingBlock: "0.7rem",
               paddingInlineStart: "2.5rem",
               paddingInlineEnd: "2.5rem",
-              background: "var(--bg-card)",
-              border: "1px solid var(--border-default)",
               borderRadius: 4,
               color: "var(--text-primary)",
               fontFamily: "var(--font-sans)",

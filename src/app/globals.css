@@ -1206,6 +1206,10 @@ body::after {
 .search-underline-wrap:focus-within::after {
   transform: scaleX(1);
 }
+.search-underline-input {
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+}
 .search-underline-input:focus {
   outline: none;
   box-shadow: none;

@@ -248,7 +248,7 @@ export function AnimeCard({
                   {title}
                 </h3>
                 <span
-                  className={`rarity-badge rarity-badge-${rarity} shrink-0`}
+                  className={`rarity-badge rarity-badge--${rarity} shrink-0`}
                 >
                   {RARITY_LABELS[rarity]}
                 </span>
@@ -319,7 +319,7 @@ export function AnimeCard({
                     {title}
                   </h3>
                   <span
-                    className={`rarity-badge rarity-badge-${rarity} shrink-0`}
+                    className={`rarity-badge rarity-badge--${rarity} shrink-0`}
                   >
                     {RARITY_LABELS[rarity]}
                   </span>

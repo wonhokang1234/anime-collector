@@ -21,6 +21,7 @@ interface GardenMetaState {
 }
 
 const queue: number[] = [];
+// module-level; HMR full re-eval resets this — pump guard makes that safe
 let pumping = false;
 
 export const useGardenMetaStore = create<GardenMetaState>((set, get) => ({
@@ -45,15 +46,15 @@ export const useGardenMetaStore = create<GardenMetaState>((set, get) => ({
               ? anime.synopsis.split(/(?<=[.!?])\s/)[0].slice(0, 140)
               : undefined,
           };
-          set((s) => {
-            const next = { ...s.meta, [malId]: entry };
-            try {
-              localStorage.setItem(CACHE_KEY, JSON.stringify(next));
-            } catch {}
-            return { meta: next };
-          });
+          const next = { ...get().meta, [malId]: entry };
+          try {
+            localStorage.setItem(CACHE_KEY, JSON.stringify(next));
+          } catch {}
+          set({ meta: next });
         }
-        await new Promise((r) => setTimeout(r, FETCH_GAP_MS));
+        if (queue.length > 0) {
+          await new Promise((r) => setTimeout(r, FETCH_GAP_MS));
+        }
       }
       pumping = false;
     };

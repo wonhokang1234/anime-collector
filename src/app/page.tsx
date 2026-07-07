@@ -24,6 +24,7 @@ export default function HomePage() {
   }, [user, loading, router]);
 
   useEffect(() => {
+    if (loading || user) return;
     const container = contentRef.current;
     if (!container) return;
 
@@ -80,7 +81,9 @@ export default function HomePage() {
     return () => {
       tl.kill();
     };
-  }, []);
+  }, [loading, user]);
+
+  if (loading || user) return null;
 
   return (
     <div

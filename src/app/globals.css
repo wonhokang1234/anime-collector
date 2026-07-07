@@ -132,6 +132,9 @@
   --font-display: var(--font-cormorant);
   --font-sans: var(--font-inter);
   --font-mono: var(--font-geist-mono);
+  /* Self-reference is safe ONLY because Tailwind emits this inside @layer theme
+     while next/font's variables are unlayered (unlayered wins). Do not lift
+     these out of the theme block. */
   --font-mincho: var(--font-mincho);
   --font-kaku: var(--font-kaku);
   --font-dot: var(--font-dot);
@@ -1237,6 +1240,7 @@ body::after {
   --leaf3: #5a8266;
   --pot: #b8ab92;
 }
+
 /* ===== Moss Garden keyframes (mg- prefixed) ===== */
 @keyframes mg-riseIn {
   from {

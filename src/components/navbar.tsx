@@ -5,8 +5,21 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/stores/auth-store";
-import gsap from "gsap";
-import { EASE } from "@/lib/motion";
+
+// Moss-midnight chrome. The navbar renders OUTSIDE the .moss wrapper, so
+// var(--moss)/var(--ink)/etc. are unavailable here — use concrete values that
+// read correctly over the moss-styled pages (browse, card, login, signup).
+// The two-card Karuta logo mark keeps its own cream/red per the brand design.
+const NAV = {
+  bg: "rgba(11, 19, 16, 0.85)",
+  panel: "#0f1a15",
+  border: "#23382f",
+  text: "#e8f0e9",
+  dim: "#8fa89a",
+  muted: "#6f8578",
+  accent: "#8fbf9f",
+  accentTint: "rgba(143, 191, 159, 0.12)",
+};
 
 const navLinks = [
   { href: "/browse", label: "Browse" },
@@ -64,10 +77,10 @@ export function Navbar() {
       <nav
         className="sticky top-0 z-50"
         style={{
-          background: "rgba(247, 243, 238, 0.92)",
+          background: NAV.bg,
           backdropFilter: "blur(8px)",
           WebkitBackdropFilter: "blur(8px)",
-          borderBottom: "1px solid var(--border-subtle)",
+          borderBottom: `1px solid ${NAV.border}`,
         }}
       >
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
@@ -89,7 +102,7 @@ export function Navbar() {
               className="text-[15px] font-bold tracking-[.15em]"
               style={{
                 fontFamily: "var(--font-display)",
-                color: "var(--text-primary)",
+                color: NAV.text,
               }}
             >
               KARUTA
@@ -110,20 +123,16 @@ export function Navbar() {
                     style={{
                       fontFamily: "var(--font-display)",
                       letterSpacing: ".18em",
-                      color: active
-                        ? "var(--text-primary)"
-                        : "var(--text-secondary)",
+                      color: active ? NAV.text : NAV.dim,
                     }}
                     onMouseEnter={(e) => {
                       if (!active) {
-                        (e.currentTarget as HTMLElement).style.color =
-                          "var(--text-primary)";
+                        (e.currentTarget as HTMLElement).style.color = NAV.text;
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!active) {
-                        (e.currentTarget as HTMLElement).style.color =
-                          "var(--text-secondary)";
+                        (e.currentTarget as HTMLElement).style.color = NAV.dim;
                       }
                     }}
                   >
@@ -134,7 +143,7 @@ export function Navbar() {
                       aria-hidden
                       className="mt-1 h-[2px] w-6 rounded-full transition-all duration-200"
                       style={{
-                        background: active ? "var(--accent)" : "transparent",
+                        background: active ? NAV.accent : "transparent",
                       }}
                     />
                   </Link>
@@ -147,14 +156,10 @@ export function Navbar() {
                 style={{
                   fontFamily: "var(--font-sans)",
                   letterSpacing: ".14em",
-                  color: "var(--text-muted)",
+                  color: NAV.muted,
                 }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.color = "var(--text-primary)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.color = "var(--text-muted)")
-                }
+                onMouseEnter={(e) => (e.currentTarget.style.color = NAV.text)}
+                onMouseLeave={(e) => (e.currentTarget.style.color = NAV.muted)}
               >
                 SIGN OUT
               </button>
@@ -170,6 +175,8 @@ export function Navbar() {
                 style={{
                   fontFamily: "var(--font-sans)",
                   letterSpacing: ".1em",
+                  color: NAV.text,
+                  borderColor: NAV.border,
                 }}
               >
                 Log In
@@ -195,7 +202,7 @@ export function Navbar() {
             aria-controls="mobile-nav-drawer"
             onClick={() => setDrawerOpen(true)}
             className="flex h-10 w-10 items-center justify-center sm:hidden"
-            style={{ color: "var(--text-primary)" }}
+            style={{ color: NAV.text }}
           >
             <svg
               width="20"
@@ -219,7 +226,7 @@ export function Navbar() {
         <div
           className="fixed inset-0 z-[60] sm:hidden"
           onClick={() => setDrawerOpen(false)}
-          style={{ background: "rgba(26, 22, 20, 0.4)" }}
+          style={{ background: "rgba(4, 8, 6, 0.55)" }}
         />
       )}
 
@@ -233,9 +240,9 @@ export function Navbar() {
         inert={!drawerOpen}
         className="fixed right-0 top-0 z-[60] flex h-full w-[280px] flex-col sm:hidden"
         style={{
-          background: "var(--bg-raised)",
-          borderLeft: "1px solid var(--border-subtle)",
-          boxShadow: "var(--shadow-modal)",
+          background: NAV.panel,
+          borderLeft: `1px solid ${NAV.border}`,
+          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.5)",
           transform: drawerOpen ? "translateX(0)" : "translateX(100%)",
           transition: "transform 300ms ease-out",
         }}
@@ -243,7 +250,7 @@ export function Navbar() {
         {/* Drawer header with karuta-mark and wordmark */}
         <div
           className="flex h-14 items-center justify-between px-4"
-          style={{ borderBottom: "1px solid var(--border-subtle)" }}
+          style={{ borderBottom: `1px solid ${NAV.border}` }}
         >
           <div className="flex items-center gap-2">
             <Image
@@ -257,7 +264,7 @@ export function Navbar() {
               className="text-[13px] font-bold tracking-[.15em]"
               style={{
                 fontFamily: "var(--font-display)",
-                color: "var(--text-primary)",
+                color: NAV.text,
               }}
             >
               KARUTA
@@ -269,7 +276,7 @@ export function Navbar() {
             aria-label="Close navigation menu"
             onClick={() => setDrawerOpen(false)}
             className="flex h-10 w-10 items-center justify-center"
-            style={{ color: "var(--text-primary)" }}
+            style={{ color: NAV.text }}
           >
             <svg
               width="20"
@@ -300,8 +307,8 @@ export function Navbar() {
                   style={{
                     fontFamily: "var(--font-display)",
                     letterSpacing: ".14em",
-                    color: active ? "var(--accent)" : "var(--text-secondary)",
-                    background: active ? "var(--accent-tint)" : "transparent",
+                    color: active ? NAV.accent : NAV.dim,
+                    background: active ? NAV.accentTint : "transparent",
                   }}
                 >
                   <span className="text-sm font-semibold">
@@ -312,7 +319,7 @@ export function Navbar() {
                       aria-hidden
                       className="ml-auto h-[2px] w-4 rounded-full"
                       style={{
-                        background: "var(--accent)",
+                        background: NAV.accent,
                       }}
                     />
                   )}
@@ -329,6 +336,7 @@ export function Navbar() {
               href="/login"
               onClick={() => setDrawerOpen(false)}
               className="btn-ghost flex h-12 items-center justify-center"
+              style={{ color: NAV.text, borderColor: NAV.border }}
             >
               Log In
             </Link>
@@ -350,7 +358,7 @@ export function Navbar() {
         {!authLoading && user && (
           <div
             className="px-4 py-4"
-            style={{ borderTop: "1px solid var(--border-default)" }}
+            style={{ borderTop: `1px solid ${NAV.border}` }}
           >
             <button
               onClick={() => {
@@ -360,9 +368,9 @@ export function Navbar() {
               className="flex h-12 w-full items-center justify-center rounded-lg text-xs font-semibold uppercase tracking-[.14em] transition-colors"
               style={{
                 fontFamily: "var(--font-sans)",
-                color: "var(--text-muted)",
-                background: "var(--bg-panel)",
-                border: "1px solid var(--border-default)",
+                color: NAV.dim,
+                background: "rgba(255, 255, 255, 0.03)",
+                border: `1px solid ${NAV.border}`,
               }}
             >
               Sign Out

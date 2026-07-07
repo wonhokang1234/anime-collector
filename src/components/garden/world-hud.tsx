@@ -126,6 +126,23 @@ export function WorldHud({ near, promptOn, zoomIn, zoomOut }: WorldHudProps) {
         ↑↓←→ / WASD — WALK · E — ENTER · SCROLL — ZOOM
       </div>
 
+      {/* Bottom-left note (mobile — no keyboard) */}
+      <div
+        className="md:hidden"
+        style={{
+          position: "absolute",
+          left: 22,
+          bottom: 18,
+          maxWidth: "62vw",
+          fontSize: 10.5,
+          letterSpacing: ".14em",
+          color: "var(--dim)",
+          textShadow: "0 1px 6px rgba(0,0,0,.8)",
+        }}
+      >
+        best walked with a keyboard · quick travel works everywhere
+      </div>
+
       {/* Bottom-right zoom buttons */}
       <div
         style={{

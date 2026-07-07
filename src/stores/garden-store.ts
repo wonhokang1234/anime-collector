@@ -103,6 +103,13 @@ export const useGardenStore = create<GardenState>((set, get) => ({
     timers.forEach(clearTimeout);
     timers = [];
     const kind = KINDS[to];
+    // Under reduced motion the overlay's CSS is instant (global 0.001ms rule),
+    // so the normal 800/1550/2250ms JS timers would leave a ~2.25s static
+    // overlay. Compress the schedule so it clears almost immediately instead.
+    const reduced =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const [tSwap, tOpen, tClear] = reduced ? [50, 100, 150] : [800, 1550, 2250];
     set({ transit: { to, kind, phase: "closing" }, qtOpen: false, near: null });
     timers.push(
       setTimeout(() => {
@@ -113,12 +120,12 @@ export const useGardenStore = create<GardenState>((set, get) => ({
           pendingExitFrom: to === "world" && view !== "world" ? view : null,
         });
         window.scrollTo({ top: 0 });
-      }, 800),
+      }, tSwap),
     );
     timers.push(
-      setTimeout(() => set({ transit: { to, kind, phase: "opening" } }), 1550),
+      setTimeout(() => set({ transit: { to, kind, phase: "opening" } }), tOpen),
     );
-    timers.push(setTimeout(() => set({ transit: null }), 2250));
+    timers.push(setTimeout(() => set({ transit: null }), tClear));
   },
 
   setNear: (near) => set({ near }),

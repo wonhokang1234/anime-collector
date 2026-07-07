@@ -27,7 +27,8 @@ import type { GardenView } from "@/lib/garden/types";
 function pushData(engine: Garden3D, d: DerivedGarden) {
   engine.updateData({
     trees: d.growing.map((a) => ({
-      pct: Math.round((a.progress / a.eps) * 100) / 100,
+      // clamp: eps>=1 (adapter) but progress can exceed eps — keep pct in [0,1]
+      pct: Math.round(Math.min(1, a.progress / a.eps) * 100) / 100,
     })),
     koi: d.done.map((a) => ({ c1: a.c1, c2: a.c2 })),
     seeds: d.seeds.length,

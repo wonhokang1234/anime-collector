@@ -152,27 +152,14 @@ export default function HomePage() {
           ref={ctaRef}
           className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
         >
-          {loading ? (
-            <div className="flex justify-center">
-              <div
-                className="skeleton-block"
-                style={{ width: 200, height: 44, borderRadius: 4 }}
-              />
-            </div>
-          ) : user ? (
-            <Link href="/garden" className="btn-primary">
-              Enter the garden
-            </Link>
-          ) : (
-            <>
-              <Link href="/signup" className="btn-primary">
-                Start collecting
-              </Link>
-              <Link href="/browse" className="btn-ghost">
-                Browse titles
-              </Link>
-            </>
-          )}
+          {/* Signed-out CTAs only — the `loading || user` gate above returns
+              null before this renders, so those branches were unreachable. */}
+          <Link href="/signup" className="btn-primary">
+            Start collecting
+          </Link>
+          <Link href="/browse" className="btn-ghost">
+            Browse titles
+          </Link>
         </div>
 
         {/* Footer meta */}

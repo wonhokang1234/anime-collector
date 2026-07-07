@@ -74,6 +74,12 @@ interface GardenState {
 }
 
 const MOOD_KEY = "karuta-garden-mood";
+
+function readMood(): Mood {
+  if (typeof window === "undefined") return "midnight";
+  return localStorage.getItem(MOOD_KEY) === "dawn" ? "dawn" : "midnight";
+}
+
 // module-level; HMR full re-eval resets these — travel() clears them on each call
 let timers: ReturnType<typeof setTimeout>[] = [];
 
@@ -83,10 +89,7 @@ export const useGardenStore = create<GardenState>((set, get) => ({
   ritual: null,
   selectedKoi: null,
   qtOpen: false,
-  mood:
-    typeof window !== "undefined" && localStorage.getItem(MOOD_KEY) === "dawn"
-      ? "dawn"
-      : "midnight",
+  mood: readMood(),
   near: null,
   pendingExitFrom: null,
   pendingSelect: null,
@@ -130,9 +133,22 @@ export const useGardenStore = create<GardenState>((set, get) => ({
   openRitual: (animeId) => set({ ritual: { animeId } }),
   closeRitual: () => set({ ritual: null }),
   confirmRitualTravel: (animeId) => {
-    set({ ritual: null, pendingSelect: animeId });
-    get().travel("pond");
+    set({ ritual: null });
+    if (get().view === "pond") {
+      // already there — open the panel directly
+      set({ selectedKoi: animeId });
+    } else {
+      set({ pendingSelect: animeId });
+      get().travel("pond");
+    }
   },
   selectKoi: (id) => set({ selectedKoi: id }),
   clearPendingExit: () => set({ pendingExitFrom: null }),
 }));
+
+/** Kill in-flight transit timers + overlay; the garden page calls this on unmount. */
+export function abortTransit() {
+  timers.forEach(clearTimeout);
+  timers = [];
+  useGardenStore.setState({ transit: null });
+}

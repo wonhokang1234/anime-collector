@@ -563,7 +563,7 @@ export default function CardDetailPage() {
                         fontFamily: "var(--font-kaku), system-ui, sans-serif",
                         fontSize: "0.8125rem",
                         fontWeight: 500,
-                        color: "#c47d7d",
+                        color: "var(--mg-error)",
                         background: "transparent",
                         border: "none",
                         cursor: "pointer",
@@ -611,9 +611,9 @@ export default function CardDetailPage() {
                       fontFamily: "var(--font-kaku), system-ui, sans-serif",
                       fontSize: "0.8125rem",
                       fontWeight: 500,
-                      color: "#c47d7d",
+                      color: "var(--mg-error)",
                       border:
-                        "1px solid color-mix(in oklab, #c47d7d 15%, transparent)",
+                        "1px solid color-mix(in oklab, var(--mg-error) 15%, transparent)",
                       background: "transparent",
                       borderRadius: "4px",
                       padding: "0.5rem 1rem",
@@ -623,7 +623,7 @@ export default function CardDetailPage() {
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.background =
-                        "color-mix(in oklab, #c47d7d 15%, transparent)";
+                        "color-mix(in oklab, var(--mg-error) 15%, transparent)";
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.background = "transparent";

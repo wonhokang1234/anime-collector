@@ -246,7 +246,8 @@ export default function BrowsePage() {
                 }}
               >
                 Every story begins as a seed. Gather the ones that call to you —
-                the rarer the find, the brighter it glows.
+                they will wait in your storehouse until you are ready to plant
+                them.
               </p>
             </div>
 

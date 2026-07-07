@@ -155,9 +155,10 @@ export function AuthForm({ mode }: AuthFormProps) {
         <div
           className="px-4 py-3 text-sm"
           style={{
-            border: "1px solid color-mix(in oklab, #c47d7d 45%, transparent)",
-            background: "color-mix(in oklab, #c47d7d 12%, transparent)",
-            color: "#c47d7d",
+            border:
+              "1px solid color-mix(in oklab, var(--mg-error) 45%, transparent)",
+            background: "color-mix(in oklab, var(--mg-error) 12%, transparent)",
+            color: "var(--mg-error)",
             borderRadius: 10,
           }}
         >
@@ -227,7 +228,7 @@ export function AuthForm({ mode }: AuthFormProps) {
       <button
         type="submit"
         disabled={submitting}
-        className="mg-primary w-full"
+        className="mg-moss-btn mg-primary w-full"
         style={{ padding: "0.7rem 1rem", fontSize: "0.9rem" }}
       >
         {submitting ? "…" : isLogin ? "Log in" : "Sign up"}

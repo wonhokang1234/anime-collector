@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { mulberry32 } from "@/lib/scatter";
 
-const CACHE_KEY = "karuta-garden-colors-v1";
+const CACHE_KEY = "karuta-garden-colors-v2";
 
 export interface AccentPair {
   c1: string;
@@ -52,12 +52,31 @@ async function sampleCover(imageUrl: string): Promise<AccentPair | null> {
         r = Math.round(r / n);
         gr = Math.round(gr / n);
         b = Math.round(b / n);
-        const hex = (v: number) => v.toString(16).padStart(2, "0");
-        const dk = (v: number) => Math.round(v * 0.62);
-        resolve({
-          c1: `#${hex(r)}${hex(gr)}${hex(b)}`,
-          c2: `#${hex(dk(r))}${hex(dk(gr))}${hex(dk(b))}`,
-        });
+        // Convert to HSL and enforce a saturation floor so muddy averages
+        // still read as intentional accents (matches hashAccent's palette register).
+        const rN = r / 255,
+          gN = gr / 255,
+          bN = b / 255;
+        const max = Math.max(rN, gN, bN),
+          min = Math.min(rN, gN, bN);
+        const delta = max - min;
+        const l = (max + min) / 2;
+        let h = 0;
+        if (delta > 0) {
+          const s0 = delta / (1 - Math.abs(2 * l - 1));
+          if (max === rN) h = ((gN - bN) / delta + 6) % 6;
+          else if (max === gN) h = (bN - rN) / delta + 2;
+          else h = (rN - gN) / delta + 4;
+          h = Math.round((h / 6) * 360);
+          const s = Math.round(Math.max(s0, 0.28) * 100); // floor at 28%
+          const lc = Math.round(Math.min(Math.max(l, 0.45), 0.65) * 100);
+          resolve({
+            c1: `hsl(${h} ${s}% ${lc}%)`,
+            c2: `hsl(${h} ${Math.round(s * 0.85)}% ${Math.round(lc * 0.64)}%)`,
+          });
+        } else {
+          resolve(null); // achromatic → fall through to hashAccent
+        }
       } catch {
         resolve(null);
       }
@@ -73,9 +92,10 @@ interface ColorState {
   ensure: (items: { malId: number; imageUrl: string }[]) => void;
 }
 
+// module-level; HMR full re-eval resets this — inFlight guard makes that safe
 const inFlight = new Set<number>();
 
-export const useGardenColors = create<ColorState>((set, get) => ({
+export const useGardenColorsStore = create<ColorState>((set, get) => ({
   colors: loadCache(),
 
   ensure: (items) => {

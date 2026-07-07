@@ -10,12 +10,18 @@ import { useCallback, useEffect, useRef } from "react";
  * The reference reset a per-render counter (`this._revealCount = 0`) each pass;
  * here the counter lives in a ref and simply cycles (mod 5), which yields the
  * same staggered fade without accessing refs during render (lint-safe).
+ *
+ * The base delay is captured once on mount and the callback identity is kept
+ * stable (empty deps): if it changed when transit clears (~2250ms), React
+ * would re-invoke every card's ref and already-revealed cards would re-hide
+ * and re-fade.
  */
 export function useReveal(
   inTransit: boolean,
 ): (el: HTMLElement | null) => void {
   const obsRef = useRef<IntersectionObserver | null>(null);
   const countRef = useRef(0);
+  const baseRef = useRef(inTransit ? 0.75 : 0.1);
 
   useEffect(() => {
     return () => {
@@ -24,32 +30,28 @@ export function useReveal(
     };
   }, []);
 
-  return useCallback(
-    (el: HTMLElement | null) => {
-      if (!el) return;
-      if (obsRef.current === null) {
-        if (typeof IntersectionObserver === "undefined") return; // SSR guard
-        obsRef.current = new IntersectionObserver(
-          (entries) => {
-            entries.forEach((e) => {
-              if (e.isIntersecting) {
-                const t = e.target as HTMLElement;
-                t.style.opacity = "1";
-                t.style.transform = "translateY(0)";
-                obsRef.current?.unobserve(t);
-              }
-            });
-          },
-          { threshold: 0.12 },
-        );
-      }
-      const base = inTransit ? 0.75 : 0.1;
-      const d = (base + (countRef.current++ % 5) * 0.1).toFixed(2);
-      el.style.opacity = "0";
-      el.style.transform = "translateY(28px)";
-      el.style.transition = `opacity .8s ease ${d}s, transform .9s cubic-bezier(.2,.7,.3,1) ${d}s`;
-      obsRef.current.observe(el);
-    },
-    [inTransit],
-  );
+  return useCallback((el: HTMLElement | null) => {
+    if (!el) return;
+    if (obsRef.current === null) {
+      if (typeof IntersectionObserver === "undefined") return; // SSR guard
+      obsRef.current = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              const t = e.target as HTMLElement;
+              t.style.opacity = "1";
+              t.style.transform = "translateY(0)";
+              obsRef.current?.unobserve(t);
+            }
+          });
+        },
+        { threshold: 0.12 },
+      );
+    }
+    const d = (baseRef.current + (countRef.current++ % 5) * 0.1).toFixed(2);
+    el.style.opacity = "0";
+    el.style.transform = "translateY(28px)";
+    el.style.transition = `opacity .8s ease ${d}s, transform .9s cubic-bezier(.2,.7,.3,1) ${d}s`;
+    obsRef.current.observe(el);
+  }, []);
 }

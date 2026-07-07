@@ -1596,6 +1596,6 @@ body::after {
   color: var(--ink) !important;
 }
 .mg-back-btn:hover {
-  background: color-mix(in oklab, var(--moss) 10%, transparent);
+  background: color-mix(in oklab, var(--moss) 10%, transparent) !important;
   border-color: var(--moss) !important;
 }

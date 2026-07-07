@@ -290,6 +290,7 @@ export function PondView({ garden }: { garden: GardenAnime[] }) {
                     role="button"
                     tabIndex={0}
                     aria-label={`Rate ${i + 1} of 5`}
+                    aria-pressed={i < (sel.rating || 0)}
                     onClick={() => {
                       const now = Date.now();
                       if (now - lastTap.current < 300) return;

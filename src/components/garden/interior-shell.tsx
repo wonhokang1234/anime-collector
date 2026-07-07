@@ -106,6 +106,7 @@ export const InteriorShell: FC<{
     >
       {/* ambient layer: sand lines + drifting petals + fireflies */}
       <div
+        aria-hidden="true"
         style={{
           position: "fixed",
           inset: 0,

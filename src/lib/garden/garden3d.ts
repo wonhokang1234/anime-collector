@@ -1419,7 +1419,13 @@ export class Garden3D {
     this._dataSig = sig;
     const THREE = this.THREE;
     while (this.dynGroup.children.length) {
-      this.dynGroup.remove(this.dynGroup.children.pop()!);
+      const child = this.dynGroup.children[0];
+      child.traverse((o) => {
+        const m = o as THREE.Mesh;
+        if (m.isMesh) m.geometry.dispose();
+        // do NOT dispose materials — this.M materials are shared; per-koi materials are small and freed on context loss
+      });
+      this.dynGroup.remove(child);
     }
     this._koi = [];
     // grove bonsai (smooth, growing)
@@ -1542,17 +1548,17 @@ export class Garden3D {
     this.vx = this.vz = 0;
   }
   dispose() {
+    if (!this.renderer) return;
     cancelAnimationFrame(this._raf);
     clearInterval(this._watchdog);
     window.removeEventListener("resize", this._onResize);
     window.removeEventListener("keydown", this._kd);
     window.removeEventListener("keyup", this._ku);
     window.removeEventListener("wheel", this._wheel);
-    this.renderer!.dispose();
-    if (this.renderer!.domElement.parentNode)
-      this.renderer!.domElement.parentNode.removeChild(
-        this.renderer!.domElement,
-      );
+    this.renderer.forceContextLoss();
+    this.renderer.dispose();
+    if (this.renderer.domElement.parentNode)
+      this.renderer.domElement.parentNode.removeChild(this.renderer.domElement);
     this.renderer = null;
   }
 }

@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { useAuthStore } from "@/stores/auth-store";
 import { useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import gsap from "gsap";
 import { DURATION, EASE } from "@/lib/motion";
 import { HankoSeal } from "@/components/ui/hanko-seal";
 
 export default function HomePage() {
   const { user, loading } = useAuthStore();
+  const router = useRouter();
   const contentRef = useRef<HTMLDivElement>(null);
   const sealRef = useRef<HTMLSpanElement>(null);
   const headlineRef = useRef<HTMLHeadingElement>(null);
@@ -16,6 +18,10 @@ export default function HomePage() {
   const taglineRef = useRef<HTMLParagraphElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!loading && user) router.replace("/garden");
+  }, [user, loading, router]);
 
   useEffect(() => {
     const container = contentRef.current;
@@ -151,8 +157,8 @@ export default function HomePage() {
               />
             </div>
           ) : user ? (
-            <Link href="/browse" className="btn-primary">
-              Go to Collection
+            <Link href="/garden" className="btn-primary">
+              Enter the garden
             </Link>
           ) : (
             <>

@@ -10,8 +10,7 @@ import { EASE } from "@/lib/motion";
 
 const navLinks = [
   { href: "/browse", label: "Browse" },
-  { href: "/collection", label: "Collection" },
-  { href: "/shelf", label: "Shelf" },
+  { href: "/garden", label: "Garden 庭" },
 ];
 
 export function Navbar() {

@@ -1,5 +1,12 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Cormorant_Garamond, Inter } from "next/font/google";
+import {
+  Geist_Mono,
+  Cormorant_Garamond,
+  Inter,
+  Zen_Old_Mincho,
+  Zen_Kaku_Gothic_New,
+  DotGothic16,
+} from "next/font/google";
 import { AuthProvider } from "@/components/auth-provider";
 import { MotionProvider } from "@/components/motion-provider";
 import { Navbar } from "@/components/navbar";
@@ -28,6 +35,27 @@ const inter = Inter({
   display: "swap",
 });
 
+const zenMincho = Zen_Old_Mincho({
+  subsets: ["latin"],
+  weight: ["400", "600", "700", "900"],
+  variable: "--font-mincho",
+  display: "swap",
+});
+
+const zenKaku = Zen_Kaku_Gothic_New({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "700"],
+  variable: "--font-kaku",
+  display: "swap",
+});
+
+const dotGothic = DotGothic16({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-dot",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Karuta",
   description: "A premium anime and manga collection tracker",
@@ -41,7 +69,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${cormorant.variable} ${inter.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${cormorant.variable} ${inter.variable} ${geistMono.variable} ${zenMincho.variable} ${zenKaku.variable} ${dotGothic.variable} h-full antialiased`}
     >
       <body
         className="min-h-full flex flex-col"

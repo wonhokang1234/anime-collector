@@ -1216,3 +1216,351 @@ body::after {
   border-color: transparent;
   background: var(--bg-panel);
 }
+
+/* ===== Moss Garden tokens (scoped) ===== */
+.moss[data-mood="midnight"] {
+  --bg: #0b1310;
+  --panel: #12211b;
+  --panel2: #0e1a15;
+  --line: #23382f;
+  --line2: #2b4a3c;
+  --ink: #e8f0e9;
+  --mut: #9db3a7;
+  --dim: #54695f;
+  --moss: #8fbf9f;
+  --gold: #e0c98a;
+  --blossom: #d9a8c4;
+  --pond1: #16332a;
+  --pond2: #0d1f19;
+  --sandline: rgba(232, 240, 233, 0.045);
+  --leaf1: #3f6e52;
+  --leaf2: #5c8a6a;
+  --leaf3: #2f5940;
+  --pot: #22302a;
+}
+.moss[data-mood="dawn"] {
+  --bg: #f0ead9;
+  --panel: #faf6ea;
+  --panel2: #efe8d6;
+  --line: #d5cbb2;
+  --line2: #b8ab8c;
+  --ink: #2c3830;
+  --mut: #5f7060;
+  --dim: #8fa091;
+  --moss: #4a7a5c;
+  --gold: #a8842c;
+  --blossom: #c4708f;
+  --pond1: #9cc4ac;
+  --pond2: #7dab8f;
+  --sandline: rgba(44, 56, 48, 0.07);
+  --leaf1: #6f9a7c;
+  --leaf2: #88ae92;
+  --leaf3: #5a8266;
+  --pot: #b8ab92;
+}
+.moss {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-kaku), system-ui, sans-serif;
+}
+
+/* ===== Moss Garden keyframes (mg- prefixed) ===== */
+@keyframes mg-riseIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes mg-swimA {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate(150px, 38px) rotate(13deg);
+  }
+  50% {
+    transform: translate(300px, -10px) rotate(-6deg);
+  }
+  75% {
+    transform: translate(140px, -46px) rotate(-16deg);
+  }
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+}
+@keyframes mg-swimB {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  30% {
+    transform: translate(-130px, 46px) rotate(-15deg);
+  }
+  55% {
+    transform: translate(-240px, -18px) rotate(7deg);
+  }
+  80% {
+    transform: translate(-100px, -56px) rotate(16deg);
+  }
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+}
+@keyframes mg-swimC {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  35% {
+    transform: translate(95px, -64px) rotate(-11deg);
+  }
+  65% {
+    transform: translate(205px, 28px) rotate(9deg);
+  }
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+}
+@keyframes mg-tailWag {
+  0%,
+  100% {
+    transform: translateY(-50%) rotate(-8deg);
+  }
+  50% {
+    transform: translateY(-50%) rotate(8deg);
+  }
+}
+@keyframes mg-rippleOut {
+  0% {
+    transform: scale(0.3);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+@keyframes mg-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(1.5deg);
+  }
+}
+@keyframes mg-petalDrift {
+  0% {
+    transform: translate(0, -4vh) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(-9vw, 106vh) rotate(220deg);
+    opacity: 0;
+  }
+}
+@keyframes mg-leafSway {
+  0%,
+  100% {
+    transform: rotate(-1.6deg);
+  }
+  50% {
+    transform: rotate(1.6deg);
+  }
+}
+@keyframes mg-growUp {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+@keyframes mg-shojiCloseL {
+  from {
+    transform: translateX(-103%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes mg-shojiCloseR {
+  from {
+    transform: translateX(103%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes mg-stepIn {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes mg-walkFade {
+  0% {
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes mg-fadeOutSoft {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes mg-promptPulse {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-4px);
+  }
+}
+@keyframes mg-blobIn {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+@keyframes mg-rippleCover {
+  from {
+    transform: translate(-50%, -50%) scale(0);
+  }
+  to {
+    transform: translate(-50%, -50%) scale(16);
+  }
+}
+@keyframes mg-ringCover {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(18);
+    opacity: 0;
+  }
+}
+@keyframes mg-paperT {
+  from {
+    transform: translateY(-103%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes mg-paperB {
+  from {
+    transform: translateY(103%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes mg-inkCover {
+  from {
+    transform: translate(-50%, -50%) scale(0) rotate(-8deg);
+  }
+  to {
+    transform: translate(-50%, -50%) scale(16) rotate(0);
+  }
+}
+@keyframes mg-bubbleUp {
+  0% {
+    transform: translateY(0) scale(0.6);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(-46vh) scale(1.1);
+    opacity: 0;
+  }
+}
+@keyframes mg-fireflyMove {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  30% {
+    transform: translate(26px, -20px);
+  }
+  60% {
+    transform: translate(-14px, -34px);
+  }
+  80% {
+    transform: translate(12px, -10px);
+  }
+}
+@keyframes mg-fireflyGlow {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  45% {
+    opacity: 0;
+  }
+  52% {
+    opacity: 0.9;
+  }
+  60% {
+    opacity: 0.15;
+  }
+  68% {
+    opacity: 0.7;
+  }
+  76% {
+    opacity: 0;
+  }
+}
+@keyframes mg-shojiOpenL {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-103%);
+  }
+}
+@keyframes mg-shojiOpenR {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(103%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .moss *,
+  .moss *::before,
+  .moss *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -23,6 +23,7 @@ interface CollectionState {
   ) => Promise<{ error: string | null }>;
   updateCategory: (id: string, category: AnimeCategory) => Promise<void>;
   updateEpisode: (id: string, episode: number) => Promise<void>;
+  updateRating: (id: string, rating: number | null) => Promise<void>;
   remove: (id: string) => Promise<void>;
   isCollected: (malId: number) => boolean;
   reset: () => void;
@@ -142,6 +143,39 @@ export const useCollectionStore = create<CollectionState>((set, get) => ({
       }
       useToastStore.getState().addToast({
         message: "Failed to update episode. Please try again.",
+        type: "error",
+      });
+    }
+  },
+
+  updateRating: async (id, rating) => {
+    // Capture original before optimistic update
+    const originalItem = get().items.find((i) => i.id === id);
+
+    // Apply optimistic update immediately
+    set((state) => ({
+      items: state.items.map((item) =>
+        item.id === id ? { ...item, rating } : item,
+      ),
+    }));
+
+    const { error } = await supabase
+      .from("collected_anime")
+      .update({ rating })
+      .eq("id", id);
+
+    if (error) {
+      console.error("Failed to update rating:", error);
+      // Revert optimistic update
+      if (originalItem) {
+        set((state) => ({
+          items: state.items.map((item) =>
+            item.id === id ? originalItem : item,
+          ),
+        }));
+      }
+      useToastStore.getState().addToast({
+        message: "Failed to update rating. Please try again.",
         type: "error",
       });
     }

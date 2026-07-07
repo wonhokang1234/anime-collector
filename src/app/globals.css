@@ -132,6 +132,9 @@
   --font-display: var(--font-cormorant);
   --font-sans: var(--font-inter);
   --font-mono: var(--font-geist-mono);
+  --font-mincho: var(--font-mincho);
+  --font-kaku: var(--font-kaku);
+  --font-dot: var(--font-dot);
 }
 
 body {
@@ -1218,6 +1221,11 @@ body::after {
 }
 
 /* ===== Moss Garden tokens (scoped) ===== */
+.moss {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-kaku), system-ui, sans-serif;
+}
 .moss[data-mood="midnight"] {
   --bg: #0b1310;
   --panel: #12211b;
@@ -1258,12 +1266,6 @@ body::after {
   --leaf3: #5a8266;
   --pot: #b8ab92;
 }
-.moss {
-  background: var(--bg);
-  color: var(--ink);
-  font-family: var(--font-kaku), system-ui, sans-serif;
-}
-
 /* ===== Moss Garden keyframes (mg- prefixed) ===== */
 @keyframes mg-riseIn {
   from {
@@ -1552,15 +1554,5 @@ body::after {
   }
   to {
     transform: translateX(103%);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .moss *,
-  .moss *::before,
-  .moss *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
   }
 }

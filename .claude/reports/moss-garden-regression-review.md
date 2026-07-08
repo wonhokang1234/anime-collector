@@ -137,3 +137,36 @@ Toasts are `z-50` (`toast.tsx:149`); the transit overlay is `zIndex: 200` and co
 ## Approval Status
 
 **Needs changes** — two fixes before approval: R1 (garden navigation dead end: no in-app path to Browse/sign-out from the authenticated home) and U1 (overworld koi color parse bug). Everything else is note-level; data layer, mutation flows, route matrix, loading/error states, and the dead-code sweep all check out.
+
+---
+
+# Re-verdict — fix round `ce6d328` (diffed vs `3238b67`)
+
+Re-verified every finding against the fix commit. Build clean, `tsc --noEmit` clean, lint at the 2-problem pre-existing baseline, all 8 routes 200 signed-out.
+
+## Finding-by-finding verification
+
+| Finding | Status | Verification |
+|---|---|---|
+| **R1 High — garden nav dead end** | **Fixed** | Quick Travel gains a `MarketRow` → `router.push("/browse")` (`quick-travel.tsx:259+`, keyboard-operable, labeled); seeds empty state gains a "Visit the seed market ⟶" `Link` (`seeds-view.tsx`). Browse carries the navbar (Browse / Garden / Sign Out), so every destination — gather, card pages, sign-out — is now reachable from the signed-in home. Sufficient. Note: login now redirects to `/garden` instead of `/browse` (`auth-form.tsx:54`) — a deliberate flow change consistent with garden-as-home; safe given the new exit path. |
+| **U1 Medium — 3D koi black** | **Fixed** | `accentToHex` added in `colors.ts` and applied at the boundary in `pushData` (`garden-experience.tsx:39`); engine untouched. Regex `^hsl\(\s*([\d.]+)\s+([\d.]+)%\s+([\d.]+)%\s*\)$` verified against the exact emitter formats: `hashAccent` (`hsl(H 34% 63%)` / `hsl(H 30% 41%)`) and `sampleCover` c1/c2 (`hsl(H S% L%)` with `Math.round`ed integer percentages) — all space-form integers, all match. Numeric spot-check: `hsl(210 34% 63%)` → `#81a1c1` (matches CSS reference), hue-360 edge handled by the mod-wrap, `#hex` passthrough, non-matching input → `#c47d7d` fallback. Channel math bounded to [0,255]. |
+| **R2 Medium — airing titles mis-capped** | **Fixed** | `epsKnown` added to the adapter/type; `growthPct` gives unknown-length titles asymptotic growth (cap 0.9 → never "In full bloom", never Release-eligible); grove water is uncapped when `!epsKnown`; `done` requires `epsKnown`; display reads `ep N / ?`. Engine trees use `growthPct` too. |
+| **R3 Medium — landing SSR lost** | **Fixed** | Gate is now `if (user) return null`; prerendered `/` contains the hero copy (verified via curl against the fresh prod build). Reduced-motion users also now skip the GSAP timeline entirely. Minor residue: signed-in visitors see one frame of landing content before the `/garden` redirect — cosmetic. |
+| **A1 Medium — ceremony focus** | **Fixed** | Focus moves to "Not yet" on open, Tab is trapped between the two buttons, Esc closes, focus restores to the trigger on cancel (`release-ceremony.tsx`). On the confirm path the trigger has unmounted so restore no-ops harmlessly. |
+| **A2 Medium — arrow keys preventDefaulted in interiors** | **NOT fixed — rides as known issue, non-blocking** | `garden3d.ts` `_kd` unchanged; arrow keys are still swallowed window-wide on `/garden` even while paused, so keyboard-only arrow-scrolling of the grove/seeds/pond lists remains blocked. Interiors stay scrollable via wheel/trackpad/touch, PageUp/PageDown, Space, Home/End, and Tab-to-element, so no content or action is unreachable — this is a keyboard-UX defect, not a functional block. Suggested one-liner for a future pass: early-return in `_kd`/`_ku` when `this.paused` (mirroring `_wheel`). |
+| **P1 Medium — full render while hidden** | **Fixed** | `setHidden` added; `_tick` skips only the GPU draw when an opaque interior fully covers the world (`view !== "world" && !transit`), keeping physics warm and still drawing during transits. Wiring verified for all phase combinations (world+QT open, transit in/out, ritual over interior). |
+| **R4 Low — toast under overlays** | **Fixed** | Toast container `z-50` → `z-[300]`, above transit (200) and ceremony (100). |
+| **Hydration mismatch (Low)** | **Fixed** | `suppressHydrationWarning` on the `.moss` wrapper of browse/card/login/signup — correctly scoped to the element carrying the divergent `data-mood`. |
+| **D1 Low — unused dnd-kit** | **Fixed** | `@dnd-kit/core` + `@dnd-kit/utilities` removed from `package.json` and lockfile; no imports existed; build clean. |
+| **D2 Low — DotGothic16 unused** | **Fixed (by use)** | `--font-dot` now used for the HUD prompt/hint text in `world-hud.tsx`. |
+| **Dead CSS (Low)** | **Fixed** | `.hanko-dot`, `.washi-surface` removed. |
+| **R5/R6 Low — view persistence, Jikan no-retry** | **Accepted** | Deliberately accepted per coordinator; behavior unchanged. |
+| Bonus fixes observed | — | Navbar drawer now restores focus to the hamburger on close (guarded against firing on mount); `MoodRow` gains `aria-pressed`/label; pond Esc closes the koi panel; auth form gains `role="alert"` on errors and proper `autoComplete` attributes. All verified harmless. |
+
+## Commands re-run
+
+`npx tsc --noEmit` clean · `npm run lint` 2 errors (pre-existing baseline) · `npm run build` clean, 11/11 pages · prod server: all 8 routes 200; `/` prerender contains hero content (1 match).
+
+## Approval Status (re-verdict)
+
+**Approved with minor issues (pass-with-notes).** Both required fixes land correctly and were verified at the code and runtime level. Remaining non-blocking notes: A2 arrow-key preventDefault in interiors (known issue, suggested one-line scope fix), one-frame landing flash for signed-in users, sign-out reachable in two hops (garden → Seed Market → navbar) rather than directly from the garden, and the deliberately accepted R5/R6.

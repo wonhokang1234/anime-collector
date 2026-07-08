@@ -9,6 +9,7 @@ export default function LoginPage() {
     <div
       className="moss relative flex items-center justify-center overflow-hidden px-4"
       data-mood={mood}
+      suppressHydrationWarning
       style={{ minHeight: "calc(100vh - var(--navbar-height))" }}
     >
       <span

@@ -99,6 +99,7 @@ export function WorldHud({ near, promptOn, zoomIn, zoomOut }: WorldHudProps) {
           </span>
           <span
             style={{
+              fontFamily: "var(--font-dot), monospace",
               fontSize: 13,
               fontWeight: 500,
               letterSpacing: ".14em",
@@ -117,6 +118,7 @@ export function WorldHud({ near, promptOn, zoomIn, zoomOut }: WorldHudProps) {
           position: "absolute",
           left: 22,
           bottom: 18,
+          fontFamily: "var(--font-dot), monospace",
           fontSize: 10.5,
           letterSpacing: ".22em",
           color: "var(--mut)",
@@ -134,6 +136,7 @@ export function WorldHud({ near, promptOn, zoomIn, zoomOut }: WorldHudProps) {
           left: 22,
           bottom: 18,
           maxWidth: "62vw",
+          fontFamily: "var(--font-dot), monospace",
           fontSize: 10.5,
           letterSpacing: ".14em",
           color: "var(--dim)",

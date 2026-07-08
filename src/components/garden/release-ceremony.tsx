@@ -27,21 +27,47 @@ export const ReleaseCeremony: FC<{ garden: GardenAnime[] }> = ({ garden }) => {
   // without triggering a render on a component that's about to unmount.
   const confirmed = useRef(false);
 
+  const confirmRef = useRef<HTMLButtonElement>(null);
+  const notYetRef = useRef<HTMLButtonElement>(null);
+
   // Guard: the item disappeared mid-ceremony (deleted / recategorised
   // elsewhere) — clear the orphan ritual so the overlay doesn't hang.
   useEffect(() => {
     if (ritual && !a) closeRitual();
   }, [ritual, a, closeRitual]);
 
-  // Esc closes the ceremony (dialog semantics).
+  // Dialog focus management: move focus to a safe default ("Not yet") on open,
+  // trap Tab between the two buttons, restore focus to the trigger on close,
+  // and close on Esc. Keyed on the ritual's animeId so it runs once per open.
+  const ritualId = ritual?.animeId;
   useEffect(() => {
-    if (!a) return;
+    if (!ritualId) return;
+    const prevActive = document.activeElement as HTMLElement | null;
+    notYetRef.current?.focus();
     const kd = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeRitual();
+      if (e.key === "Escape") {
+        closeRitual();
+        return;
+      }
+      if (e.key === "Tab") {
+        const first = confirmRef.current;
+        const last = notYetRef.current;
+        if (!first || !last) return;
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     };
     window.addEventListener("keydown", kd);
-    return () => window.removeEventListener("keydown", kd);
-  }, [a, closeRitual]);
+    return () => {
+      window.removeEventListener("keydown", kd);
+      prevActive?.focus?.();
+    };
+  }, [ritualId, closeRitual]);
 
   if (!a) return null;
 
@@ -166,6 +192,7 @@ export const ReleaseCeremony: FC<{ garden: GardenAnime[] }> = ({ garden }) => {
           }}
         >
           <button
+            ref={confirmRef}
             type="button"
             className="mg-release-confirm"
             onClick={confirm}
@@ -184,6 +211,7 @@ export const ReleaseCeremony: FC<{ garden: GardenAnime[] }> = ({ garden }) => {
             Release it 放流
           </button>
           <button
+            ref={notYetRef}
             type="button"
             className="mg-ghost-btn"
             onClick={closeRitual}

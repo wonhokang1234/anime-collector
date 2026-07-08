@@ -25,6 +25,9 @@ export default function HomePage() {
 
   useEffect(() => {
     if (loading || user) return;
+    // GSAP sets inline styles the global reduced-motion CSS rule can't reach;
+    // skip the timeline entirely so elements stay at their natural visible state.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const container = contentRef.current;
     if (!container) return;
 
@@ -83,7 +86,7 @@ export default function HomePage() {
     };
   }, [loading, user]);
 
-  if (loading || user) return null;
+  if (user) return null;
 
   return (
     <div

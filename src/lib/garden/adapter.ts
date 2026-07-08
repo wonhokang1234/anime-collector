@@ -31,11 +31,24 @@ export function toGardenAnime(
     favorite: item.category === "favorite",
     progress: item.current_episode,
     eps: Math.max(1, item.total_episodes),
+    epsKnown: item.total_episodes > 0,
     rating: item.rating ?? 0,
     c1: colors.c1,
     c2: colors.c2,
     imageUrl: item.image_url,
   };
+}
+
+/**
+ * Growth fraction [0,1] for tree height / bloom stage / progress bars.
+ * Known-length titles bloom at their episode count; unknown-length (airing,
+ * `total_episodes = 0`) titles grow toward — but never fully reach — bloom,
+ * so they are never pushed into an instant Release.
+ */
+export function growthPct(a: GardenAnime): number {
+  return a.epsKnown
+    ? Math.min(1, a.progress / a.eps)
+    : Math.min(0.9, a.progress / 24);
 }
 
 export interface DerivedGarden {

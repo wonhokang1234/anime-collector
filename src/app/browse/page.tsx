@@ -204,6 +204,7 @@ export default function BrowsePage() {
     <div
       className="moss"
       data-mood={mood}
+      suppressHydrationWarning
       style={{ minHeight: "calc(100vh - var(--navbar-height))" }}
     >
       <div className="mx-auto max-w-7xl px-4 relative">

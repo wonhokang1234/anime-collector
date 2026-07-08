@@ -3,7 +3,11 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useCollectionStore } from "@/stores/collection-store";
 import { useGardenMetaStore } from "@/stores/garden-meta-store";
-import { useGardenColorsStore, accentFor } from "@/lib/garden/colors";
+import {
+  useGardenColorsStore,
+  accentFor,
+  accentToHex,
+} from "@/lib/garden/colors";
 import {
   useGardenStore,
   ZONES,
@@ -13,6 +17,7 @@ import {
 import {
   toGardenAnime,
   deriveGarden,
+  growthPct,
   type DerivedGarden,
 } from "@/lib/garden/adapter";
 import { Garden3D } from "@/lib/garden/garden3d";
@@ -27,10 +32,11 @@ import type { GardenView } from "@/lib/garden/types";
 function pushData(engine: Garden3D, d: DerivedGarden) {
   engine.updateData({
     trees: d.growing.map((a) => ({
-      // clamp: eps>=1 (adapter) but progress can exceed eps — keep pct in [0,1]
-      pct: Math.round(Math.min(1, a.progress / a.eps) * 100) / 100,
+      // growthPct keeps pct in [0,1]; unknown-length titles grow toward Budding
+      pct: Math.round(growthPct(a) * 100) / 100,
     })),
-    koi: d.done.map((a) => ({ c1: a.c1, c2: a.c2 })),
+    // engine parses hex; accents are hsl(...) strings — convert at the boundary
+    koi: d.done.map((a) => ({ c1: accentToHex(a.c1), c2: accentToHex(a.c2) })),
     seeds: d.seeds.length,
   });
 }
@@ -106,6 +112,9 @@ export function GardenExperience() {
     const e = engineRef.current;
     if (!e) return;
     e.setPaused(g.view !== "world" || !!g.transit || !!g.ritual || g.qtOpen);
+    // Skip rendering only when an opaque interior fully covers the world;
+    // keep drawing during transit and ritual so the scene stays visible.
+    e.setHidden(g.view !== "world" && !g.transit);
     if (e.mood !== g.mood) e.setMood(g.mood);
     if (g.pendingExitFrom && g.view === "world") {
       const exit = EXITS[g.pendingExitFrom];

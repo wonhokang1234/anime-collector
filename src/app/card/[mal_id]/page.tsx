@@ -123,6 +123,7 @@ export default function CardDetailPage() {
       <div
         className="moss"
         data-mood={mood}
+        suppressHydrationWarning
         style={{ background: "var(--bg)", minHeight: "100vh" }}
       >
         {/* Zone 1 skeleton */}
@@ -217,6 +218,7 @@ export default function CardDetailPage() {
     <div
       className="moss"
       data-mood={mood}
+      suppressHydrationWarning
       style={{ background: "var(--bg)", minHeight: "100vh" }}
     >
       {/* Back navigation */}

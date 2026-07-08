@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCollectionStore } from "@/stores/collection-store";
 import { useGardenStore } from "@/stores/garden-store";
 import type { GardenAnime } from "@/lib/garden/types";
@@ -14,17 +15,36 @@ export function SeedsView({ garden }: { garden: GardenAnime[] }) {
 
   if (seeds.length === 0) {
     return (
-      <p
+      <div
         style={{
           textAlign: "center",
           padding: "40px 20px",
-          fontStyle: "italic",
-          color: "var(--dim)",
-          fontSize: 13.5,
         }}
       >
-        The store is empty. Every story you gathered is growing or has bloomed.
-      </p>
+        <p
+          style={{
+            margin: "0 0 14px",
+            fontStyle: "italic",
+            color: "var(--dim)",
+            fontSize: 13.5,
+          }}
+        >
+          The store is empty. Every story you gathered is growing or has
+          bloomed.
+        </p>
+        <Link
+          href="/browse"
+          className="mg-link"
+          style={{
+            fontFamily: "var(--font-mincho), serif",
+            fontSize: "0.8125rem",
+            letterSpacing: "0.04em",
+            textDecoration: "none",
+          }}
+        >
+          Visit the seed market ⟶
+        </Link>
+      </div>
     );
   }
 

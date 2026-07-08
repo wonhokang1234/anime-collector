@@ -3,6 +3,7 @@
 import { useCollectionStore } from "@/stores/collection-store";
 import { useGardenStore } from "@/stores/garden-store";
 import type { GardenAnime } from "@/lib/garden/types";
+import { growthPct } from "@/lib/garden/adapter";
 import { useReveal } from "./use-reveal";
 
 const CLUMP_DEFS = [
@@ -45,7 +46,7 @@ export function GroveView({ garden }: { garden: GardenAnime[] }) {
       }}
     >
       {growing.map((a) => {
-        const pct = Math.min(1, a.progress / a.eps);
+        const pct = growthPct(a);
         const trunkH = Math.round(26 + pct * 66);
         const stage =
           pct >= 1
@@ -57,7 +58,7 @@ export function GroveView({ garden }: { garden: GardenAnime[] }) {
                 : pct > 0
                   ? "Sprouting"
                   : "Seed in soil";
-        const done = a.progress >= a.eps;
+        const done = a.epsKnown && a.progress >= a.eps;
 
         return (
           <div
@@ -217,7 +218,7 @@ export function GroveView({ garden }: { garden: GardenAnime[] }) {
                 letterSpacing: ".12em",
               }}
             >
-              {stage} · ep {a.progress} / {a.eps}
+              {stage} · ep {a.progress} / {a.epsKnown ? a.eps : "?"}
             </p>
             <div
               style={{
@@ -267,7 +268,12 @@ export function GroveView({ garden }: { garden: GardenAnime[] }) {
                   <button
                     type="button"
                     onClick={() =>
-                      updateEpisode(a.id, Math.min(a.eps, a.progress + 1))
+                      updateEpisode(
+                        a.id,
+                        a.epsKnown
+                          ? Math.min(a.eps, a.progress + 1)
+                          : a.progress + 1,
+                      )
                     }
                     className="mg-water-btn"
                     aria-label={`Water ${a.title}`}

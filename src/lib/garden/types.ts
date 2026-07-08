@@ -12,6 +12,7 @@ export interface GardenAnime {
   favorite: boolean; // golden-koi flag (approved mapping for "favorite")
   progress: number; // current_episode
   eps: number; // total_episodes, min 1 (guard airing/unknown = 0)
+  epsKnown: boolean; // total_episodes > 0; false for airing/unknown-length titles
   rating: number; // 0–5, null → 0
   c1: string; // accent from cover art
   c2: string; // secondary accent (darker)

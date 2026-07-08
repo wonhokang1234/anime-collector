@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { AREAS, useGardenStore } from "@/stores/garden-store";
 import type { GardenView, Mood } from "@/lib/garden/types";
 import type { DerivedGarden } from "@/lib/garden/adapter";
@@ -20,6 +21,7 @@ const rowBase: React.CSSProperties = {
 };
 
 export function QuickTravel({ derived }: QuickTravelProps) {
+  const router = useRouter();
   const qtOpen = useGardenStore((s) => s.qtOpen);
   const view = useGardenStore((s) => s.view);
   const mood = useGardenStore((s) => s.mood);
@@ -182,6 +184,9 @@ export function QuickTravel({ derived }: QuickTravelProps) {
 
           {/* Mood toggle */}
           <MoodRow mood={mood} setMood={setMood} />
+
+          {/* Seed Market — the one door out to the rest of the app */}
+          <MarketRow onGo={() => router.push("/browse")} />
         </div>
       )}
     </div>
@@ -214,6 +219,8 @@ function MoodRow({
           setMood(other);
         }
       }}
+      aria-pressed={mood === "dawn"}
+      aria-label="Toggle garden mood"
       style={{
         ...rowBase,
         marginTop: 6,
@@ -244,6 +251,59 @@ function MoodRow({
           {label}
         </p>
         <p style={{ margin: 0, fontSize: 10.5, color: "var(--dim)" }}>{stat}</p>
+      </div>
+    </div>
+  );
+}
+
+/** The one path out of the garden — travels to /browse to gather new stories. */
+function MarketRow({ onGo }: { onGo: () => void }) {
+  return (
+    <div
+      onClick={onGo}
+      className="mg-qt-row"
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          e.stopPropagation();
+          onGo();
+        }
+      }}
+      aria-label="The Seed Market — gather new stories"
+      style={{
+        ...rowBase,
+        marginTop: 6,
+        paddingTop: 12,
+        borderTop: "1px solid var(--line)",
+      }}
+    >
+      <span
+        style={{
+          fontFamily: "var(--font-mincho), serif",
+          fontSize: 15,
+          fontWeight: 700,
+          color: "var(--moss)",
+          width: 36,
+        }}
+      >
+        市
+      </span>
+      <div style={{ flex: 1 }}>
+        <p
+          style={{
+            margin: 0,
+            fontSize: 12.5,
+            fontWeight: 700,
+            color: "var(--ink)",
+          }}
+        >
+          The Seed Market
+        </p>
+        <p style={{ margin: 0, fontSize: 10.5, color: "var(--dim)" }}>
+          gather new stories
+        </p>
       </div>
     </div>
   );

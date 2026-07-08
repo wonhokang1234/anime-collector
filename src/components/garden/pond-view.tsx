@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useCollectionStore } from "@/stores/collection-store";
 import { useGardenStore } from "@/stores/garden-store";
 import type { GardenAnime } from "@/lib/garden/types";
@@ -31,6 +31,17 @@ export function PondView({ garden }: { garden: GardenAnime[] }) {
   const sel = selectedKoi
     ? (done.find((a) => a.id === selectedKoi) ?? null)
     : null;
+
+  // Esc closes the koi info panel (listener active only while it's open;
+  // harmlessly co-fires with the shell's Esc-closes-quick-travel).
+  useEffect(() => {
+    if (!selectedKoi) return;
+    const kd = (e: KeyboardEvent) => {
+      if (e.key === "Escape") selectKoi(null);
+    };
+    window.addEventListener("keydown", kd);
+    return () => window.removeEventListener("keydown", kd);
+  }, [selectedKoi, selectKoi]);
 
   return (
     <div

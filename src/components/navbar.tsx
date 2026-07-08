@@ -32,6 +32,8 @@ export function Navbar() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const drawerRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const hamburgerRef = useRef<HTMLButtonElement>(null);
+  const hadOpened = useRef(false);
 
   useEffect(() => {
     if (!drawerOpen) return;
@@ -61,8 +63,11 @@ export function Navbar() {
     if (drawerOpen) {
       document.body.style.overflow = "hidden";
       closeRef.current?.focus();
+      hadOpened.current = true;
     } else {
       document.body.style.overflow = "";
+      // Restore focus to the trigger only after a real open (not on mount).
+      if (hadOpened.current) hamburgerRef.current?.focus();
     }
     return () => {
       document.body.style.overflow = "";
@@ -196,6 +201,7 @@ export function Navbar() {
 
           {/* Hamburger button — mobile only */}
           <button
+            ref={hamburgerRef}
             type="button"
             aria-label="Open navigation menu"
             aria-expanded={drawerOpen}

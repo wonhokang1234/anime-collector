@@ -51,7 +51,7 @@ export function AuthForm({ mode }: AuthFormProps) {
     if (result.error) {
       setError(result.error);
     } else if (isLogin) {
-      router.push("/browse");
+      router.push("/garden");
     } else {
       setSignUpSuccess(true);
     }
@@ -153,6 +153,7 @@ export function AuthForm({ mode }: AuthFormProps) {
 
       {error && (
         <div
+          role="alert"
           className="px-4 py-3 text-sm"
           style={{
             border:
@@ -181,6 +182,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           id="email"
           type="email"
           required
+          autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
@@ -211,6 +213,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           type="password"
           required
           minLength={6}
+          autoComplete={isLogin ? "current-password" : "new-password"}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="At least 6 characters"

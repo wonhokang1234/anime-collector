@@ -110,6 +110,7 @@ export class Garden3D {
   onNear!: (zone: string | null) => void;
   mood!: "midnight" | "dawn";
   paused!: boolean;
+  hidden!: boolean;
   private _near!: string | null;
   private _keys!: Record<string, boolean>;
   private _dataSig!: string;
@@ -167,6 +168,7 @@ export class Garden3D {
     this.onNear = this.opts.onNear || function () {};
     this.mood = this.opts.mood || "midnight";
     this.paused = false;
+    this.hidden = false;
     this._near = null;
     this._keys = {};
     this._dataSig = "";
@@ -1410,6 +1412,9 @@ export class Garden3D {
           Math.sin(time * 7 + i * 2.3) * 0.08 +
           Math.sin(time * 13.7 + i) * 0.05);
     });
+    // Physics/state above stays warm; skip only the GPU draw while an opaque
+    // interior fully covers the world (see setHidden).
+    if (this.hidden) return;
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -1538,6 +1543,9 @@ export class Garden3D {
 
   setPaused(p: boolean) {
     this.paused = p;
+  }
+  setHidden(h: boolean) {
+    this.hidden = h;
   }
   zoomBy(f: number) {
     this._zoomT = Math.max(0.55, Math.min(2.6, this._zoomT * f));

@@ -122,3 +122,39 @@ export function accentFor(
 ): AccentPair {
   return colors[malId] ?? hashAccent(malId);
 }
+
+/**
+ * Convert an accent CSS color to `#rrggbb` for consumers that parse hex
+ * (the Three.js engine). This module emits `hsl(H S% L%)` (space form), so we
+ * parse that here at the boundary. Passthrough for `#...`; `#c47d7d` fallback
+ * on any parse failure.
+ */
+export function accentToHex(css: string): string {
+  if (!css) return "#c47d7d";
+  const s = css.trim();
+  if (s.startsWith("#")) return s;
+  const m = s.match(/^hsl\(\s*([\d.]+)\s+([\d.]+)%\s+([\d.]+)%\s*\)$/i);
+  if (!m) return "#c47d7d";
+  const h = parseFloat(m[1]);
+  const sat = parseFloat(m[2]) / 100;
+  const l = parseFloat(m[3]) / 100;
+  if (Number.isNaN(h) || Number.isNaN(sat) || Number.isNaN(l)) return "#c47d7d";
+  const c = (1 - Math.abs(2 * l - 1)) * sat;
+  const hp = (((h % 360) + 360) % 360) / 60;
+  const x = c * (1 - Math.abs((hp % 2) - 1));
+  let r = 0,
+    g = 0,
+    b = 0;
+  if (hp < 1) [r, g, b] = [c, x, 0];
+  else if (hp < 2) [r, g, b] = [x, c, 0];
+  else if (hp < 3) [r, g, b] = [0, c, x];
+  else if (hp < 4) [r, g, b] = [0, x, c];
+  else if (hp < 5) [r, g, b] = [x, 0, c];
+  else [r, g, b] = [c, 0, x];
+  const m0 = l - c / 2;
+  const to = (v: number) =>
+    Math.round((v + m0) * 255)
+      .toString(16)
+      .padStart(2, "0");
+  return `#${to(r)}${to(g)}${to(b)}`;
+}

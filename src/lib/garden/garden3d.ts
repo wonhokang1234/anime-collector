@@ -233,6 +233,7 @@ export class Garden3D {
     window.addEventListener("resize", this._onResize);
 
     this._kd = (e) => {
+      if (this.paused) return; // interiors own the keyboard while the world is paused
       if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key))
         e.preventDefault();
       this._keys[e.key.toLowerCase()] = true;
@@ -1543,6 +1544,7 @@ export class Garden3D {
 
   setPaused(p: boolean) {
     this.paused = p;
+    if (p) this._keys = {}; // drop held keys so nothing sticks across an interior visit
   }
   setHidden(h: boolean) {
     this.hidden = h;

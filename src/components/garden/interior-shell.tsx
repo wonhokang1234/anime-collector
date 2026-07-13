@@ -104,7 +104,7 @@ export const InteriorShell: FC<{
         overflowY: "auto",
       }}
     >
-      {/* ambient layer: sand lines + drifting petals + fireflies */}
+      {/* ambient layer: painted backdrop + sand lines + drifting petals + fireflies */}
       <div
         aria-hidden="true"
         style={{
@@ -114,6 +114,25 @@ export const InteriorShell: FC<{
           zIndex: 0,
         }}
       >
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            backgroundImage: `url(/garden/interiors/${view === "stone" ? "records" : view}.webp)`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            opacity: mood === "midnight" ? 0.42 : 0.28,
+            filter: "saturate(.9)",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background:
+              "linear-gradient(180deg, color-mix(in oklab, var(--bg) 45%, transparent) 0%, color-mix(in oklab, var(--bg) 72%, transparent) 55%, var(--bg) 96%)",
+          }}
+        />
         <div
           style={{
             position: "absolute",

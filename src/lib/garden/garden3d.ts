@@ -28,6 +28,7 @@ interface MoodDef {
   dirI: number;
   lanternI: number;
   water: number;
+  waterTex: number; // tint used instead of `water` once the painted map loads
   stars: boolean;
   fogD: number;
   shoji: number;
@@ -45,6 +46,7 @@ const MOODS: Record<string, MoodDef> = {
     dirI: 0.72,
     lanternI: 1.7,
     water: 0x143028,
+    waterTex: 0xd0e2d8,
     stars: true,
     fogD: 0.0052,
     shoji: 1.3,
@@ -60,6 +62,7 @@ const MOODS: Record<string, MoodDef> = {
     dirI: 1.4,
     lanternI: 0.25,
     water: 0x6fb09a,
+    waterTex: 0xffffff,
     stars: false,
     fogD: 0.0038,
     shoji: 0.15,
@@ -146,7 +149,13 @@ export class Garden3D {
   rakeMat!: THREE.MeshStandardMaterial;
   waterMat!: THREE.MeshStandardMaterial;
   moonMat!: THREE.MeshBasicMaterial;
+  moonMesh!: THREE.Mesh;
+  starPoints!: THREE.Points;
   starMat!: THREE.PointsMaterial;
+  mossMat!: THREE.MeshStandardMaterial;
+  private _texLoader!: THREE.TextureLoader;
+  private _texList!: THREE.Texture[];
+  private _sky!: { midnight?: THREE.Texture; dawn?: THREE.Texture };
   petalMat!: THREE.PointsMaterial;
   sakuraMat!: THREE.MeshStandardMaterial;
   sakura!: THREE.Group;
@@ -214,6 +223,10 @@ export class Garden3D {
       gravelPath: this.mat(0x9a9e8e, 1),
     };
 
+    this._texLoader = new THREE.TextureLoader();
+    this._texList = [];
+    this._sky = {};
+
     this._buildLights();
     this._buildStatic();
     this.dynGroup = new THREE.Group();
@@ -221,6 +234,7 @@ export class Garden3D {
     this._buildPlayer();
     this._buildPetals();
     this.setMood(this.mood);
+    this._loadArt();
 
     this._onResize = () => {
       const w = container.clientWidth || window.innerWidth;
@@ -279,6 +293,79 @@ export class Garden3D {
       color,
       roughness: rough == null ? 0.9 : rough,
       metalness: metal || 0,
+    });
+  }
+
+  private _texApply(
+    url: string,
+    rx: number,
+    ry: number,
+    apply: (t: THREE.Texture) => void,
+  ) {
+    const THREE = this.THREE;
+    const t = this._texLoader.load(url, () => {
+      if (!this.renderer) return; // disposed before the image decoded
+      apply(t);
+    });
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.repeat.set(rx, ry);
+    t.anisotropy = this.renderer!.capabilities.getMaxAnisotropy();
+    this._texList.push(t);
+    return t;
+  }
+
+  /* ---- generated art (public/garden) progressively replaces the flat /
+     procedural surfaces; until each image decodes — or if one is missing —
+     the original look renders unchanged ---- */
+  _loadArt() {
+    this._texApply("/garden/textures/moss-ground.webp", 12, 12, (t) => {
+      // mirror-wrap hides the tile seam on the huge ground plane
+      t.wrapS = t.wrapT = this.THREE.MirroredRepeatWrapping;
+      this.groundTex.dispose();
+      this.groundMat.map = t;
+      this.groundMat.needsUpdate = true;
+      const mound = t.clone();
+      mound.repeat.set(5, 5);
+      mound.needsUpdate = true;
+      this._texList.push(mound);
+      if (this.mossMat.map) this.mossMat.map.dispose();
+      this.mossMat.map = mound;
+      this.mossMat.needsUpdate = true;
+    });
+    this._texApply("/garden/textures/gravel-raked.webp", 3, 3, (t) => {
+      this.gravelTex.dispose();
+      this.gravelMat.map = t;
+      this.gravelMat.needsUpdate = true;
+    });
+    this._texApply("/garden/textures/water-pond.webp", 5, 4, (t) => {
+      this.waterMat.map = t;
+      // high metalness blacks out the albedo map without an env map, so
+      // shift toward a dielectric painted surface once the texture drives it
+      this.waterMat.metalness = 0.22;
+      this.waterMat.roughness = 0.4;
+      this.waterMat.needsUpdate = true;
+      this.setMood(this.mood); // switch to the textured water tint
+    });
+    // note: roof-tiles.webp is intentionally NOT applied — the stacked
+    // 4-sided frustum roofs shear any wrapped texture into noise; the flat
+    // charcoal silhouette reads better (texture kept for future use)
+    this._texApply("/garden/textures/wood-planks.webp", 2, 2, (t) => {
+      this.M.woodL.map = t;
+      this.M.woodL.color.setHex(0xffffff);
+      this.M.woodL.needsUpdate = true;
+      this.M.woodM.map = t;
+      this.M.woodM.color.setHex(0xcfc0ae);
+      this.M.woodM.needsUpdate = true;
+    });
+    // painted mood skies replace the flat clear color; the polygon moon and
+    // star points hide because both are painted into the panoramas
+    (["midnight", "dawn"] as const).forEach((m) => {
+      this._texApply(`/garden/sky/${m}.webp`, 1, 1, (t) => {
+        t.wrapS = t.wrapT = this.THREE.ClampToEdgeWrapping;
+        this._sky[m] = t;
+        this.setMood(this.mood);
+      });
     });
   }
 
@@ -705,11 +792,14 @@ export class Garden3D {
 
     // ===== moss grove (soft mounded bed, no hard cylinder) =====
     const mossTex = noiseTexture(THREE, 0x21402d, 0x2c5540, 90, 0.5);
-    const mossMat = new THREE.MeshStandardMaterial({
+    this.mossMat = new THREE.MeshStandardMaterial({
       map: mossTex,
       roughness: 1,
     });
-    const mound = new THREE.Mesh(new THREE.SphereGeometry(13, 28, 20), mossMat);
+    const mound = new THREE.Mesh(
+      new THREE.SphereGeometry(13, 28, 20),
+      this.mossMat,
+    );
     mound.position.set(-28, -11.9, -20);
     mound.scale.y = 1;
     mound.receiveShadow = true;
@@ -938,12 +1028,12 @@ export class Garden3D {
 
     // moon + stars
     this.moonMat = new THREE.MeshBasicMaterial({ color: 0xf2f7ee });
-    const moon = new THREE.Mesh(
+    this.moonMesh = new THREE.Mesh(
       new THREE.SphereGeometry(4.4, 24, 18),
       this.moonMat,
     );
-    moon.position.set(-55, 48, -85);
-    S.add(moon);
+    this.moonMesh.position.set(-55, 48, -85);
+    S.add(this.moonMesh);
     const starGeo = new THREE.BufferGeometry();
     const sp = [];
     for (let i = 0; i < 320; i++) {
@@ -963,7 +1053,8 @@ export class Garden3D {
       transparent: true,
       opacity: 0.8,
     });
-    this.scene.add(new THREE.Points(starGeo, this.starMat));
+    this.starPoints = new THREE.Points(starGeo, this.starMat);
+    this.scene.add(this.starPoints);
 
     // bamboo clusters softening the wall line (inside corners)
     const clump = (x: number, z: number) => {
@@ -1377,8 +1468,14 @@ export class Garden3D {
       (by + 24 * zf - this.camera.position.y) * Math.min(1, dt * 3);
     this.camera.lookAt(this.px, 0.8, this.pz);
     if (this.sakura) this.sakura.rotation.z = Math.sin(time * 0.5) * 0.012;
-    if (this.waterMat)
+    if (this.waterMat) {
       this.waterMat.opacity = 0.9 + Math.sin(time * 1.2) * 0.045;
+      const wm = this.waterMat.map;
+      if (wm) {
+        wm.offset.x = time * 0.006;
+        wm.offset.y = time * 0.0045;
+      }
+    }
     if (this._koi) {
       this._koi.forEach((k, i) => {
         const t = time * k.speed + k.phase;
@@ -1523,7 +1620,10 @@ export class Garden3D {
     const THREE = this.THREE;
     const M = MOODS[mood] || MOODS.midnight;
     this.mood = mood;
-    this.scene.background = new THREE.Color(M.sky);
+    const sky = this._sky[mood];
+    this.scene.background = sky || new THREE.Color(M.sky);
+    if (this.moonMesh) this.moonMesh.visible = !sky;
+    if (this.starPoints) this.starPoints.visible = !sky;
     this.scene.fog = new THREE.FogExp2(M.sky, M.fogD);
     this.ambient.color.setHex(M.ambient);
     this.ambient.intensity = M.ambientI;
@@ -1531,7 +1631,7 @@ export class Garden3D {
     this.dir.intensity = M.dirI;
     this.groundMat.color.setHex(M.groundTint);
     this.gravelMat.color.setHex(M.gravelTint);
-    this.waterMat.color.setHex(M.water);
+    this.waterMat.color.setHex(this.waterMat.map ? M.waterTex : M.water);
     this.starMat.opacity = M.stars ? 0.8 : 0;
     this.moonMat.color.setHex(M.moon);
     this.lanternLights.forEach((l) => {
@@ -1565,6 +1665,7 @@ export class Garden3D {
     window.removeEventListener("keydown", this._kd);
     window.removeEventListener("keyup", this._ku);
     window.removeEventListener("wheel", this._wheel);
+    this._texList.forEach((t) => t.dispose());
     this.renderer.forceContextLoss();
     this.renderer.dispose();
     if (this.renderer.domElement.parentNode)

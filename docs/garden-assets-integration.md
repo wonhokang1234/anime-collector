@@ -34,7 +34,7 @@ const loadTex = (url: string, rx: number, ry: number) => {
 | `moss-ground.webp` | `noiseTexture(THREE, 0x16281c, …)` on the 200×200 ground plane | `_buildStatic()` — `this.groundTex` / `this.groundMat` (repeat ~14×14). Also the moss mound's `mossTex` (repeat ~4×4). |
 | `gravel-raked.webp` | `noiseTexture(THREE, 0x8a8f7f, …)` on the karesansui plaza | `_buildStatic()` — `this.gravelTex` / `this.gravelMat` (repeat ~3×3). The five procedural rake rings can then be removed or kept as accents. |
 | `water-pond.webp` | flat `waterMat` color on the pond circle | `_buildStatic()` — add as `map` on `this.waterMat`, keep the existing color tint + opacity pulse in `_tick()`. Animate `map.offset` slowly (e.g. `t.offset.x = time * 0.008`) for drift. |
-| `roof-tiles.webp` | flat `M.roof` / `M.roofL` charcoal | shared materials in the constructor — add `map` (repeat ~2×1). Used by every `curvedRoof()`, wall caps, gate, pavilion, house, kura. |
+| `roof-tiles.webp` | *(not applied)* | Tried on `M.roof` / `M.roofL`, but the stacked 4-sided frustum roofs shear any wrapped texture into noise — the flat charcoal silhouette reads better. Kept for future use (e.g. proper roof geometry or a bump map). |
 | `wood-planks.webp` | flat `M.woodD` / `M.woodM` / `M.woodL` | shared materials — add `map` (repeat ~2×2). Deck, engawa, bridge planks, gate posts, crates. Keep the per-material color as tint. |
 
 Notes:

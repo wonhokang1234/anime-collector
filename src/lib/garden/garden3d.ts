@@ -180,6 +180,7 @@ export class Garden3D {
   private _groundTintMats!: THREE.MeshStandardMaterial[];
   private _gravelTintMats!: THREE.MeshStandardMaterial[];
   private _halos!: THREE.Sprite[];
+  private _pathPts!: number[];
   private _fireflies!: THREE.Points;
   private _fireflyBase!: Float32Array;
   private _moonStreak!: THREE.Mesh;
@@ -234,6 +235,7 @@ export class Garden3D {
     this._groundTintMats = [];
     this._gravelTintMats = [];
     this._halos = [];
+    this._pathPts = [];
 
     // bloom keeps lanterns / shoji / moonlight ethereal
     this._composer = new EffectComposer(this.renderer);
@@ -539,7 +541,7 @@ export class Garden3D {
      procedural surfaces; until each image decodes — or if one is missing —
      the original look renders unchanged ---- */
   _loadArt() {
-    this._softTex("/garden/textures/moss-painterly.webp", 0x2c5244, 0.42, 18, 18, (t) => {
+    this._softTex("/garden/textures/moss-painterly.webp", 0x2f5546, 0.55, 18, 18, (t) => {
       // mirror-wrap hides the tile seam on the huge ground plane
       t.wrapS = t.wrapT = this.THREE.MirroredRepeatWrapping;
       this.groundTex.dispose();
@@ -735,6 +737,138 @@ export class Garden3D {
     return geo;
   }
 
+  /* ---- painterly grass tuft sprite drawn at runtime: curved tapered
+     blades, dark base to light tip, palette-locked by construction ---- */
+  grassTuftTex() {
+    const c = document.createElement("canvas");
+    c.width = 128;
+    c.height = 128;
+    const g = c.getContext("2d")!;
+    g.lineCap = "round";
+    const darks = ["#3d6b54", "#417257", "#38614c"];
+    const lights = ["#a8d0ac", "#b5dcb4", "#93bf9a"];
+    for (let i = 0; i < 13; i++) {
+      const bx = 14 + (i / 12) * 100 + (Math.random() - 0.5) * 10;
+      const lean = (Math.random() - 0.5) * 54;
+      const h = 50 + Math.random() * 58;
+      const grad = g.createLinearGradient(0, 128, 0, 128 - h);
+      grad.addColorStop(0, darks[i % 3]);
+      grad.addColorStop(1, lights[i % 3]);
+      g.strokeStyle = grad;
+      g.lineWidth = 7 - (i % 3) * 1.5;
+      g.beginPath();
+      g.moveTo(bx, 130);
+      g.quadraticCurveTo(bx + lean * 0.3, 128 - h * 0.6, bx + lean, 128 - h);
+      g.stroke();
+    }
+    const t = new this.THREE.CanvasTexture(c);
+    t.colorSpace = this.THREE.SRGBColorSpace;
+    this._texList.push(t);
+    return t;
+  }
+
+  /* ---- macro light painting: big soft pools of warm light and teal shade
+     blended over the whole ground, the way a background painter blocks in
+     value variation before detailing ---- */
+  _macroShade() {
+    const THREE = this.THREE;
+    const c = document.createElement("canvas");
+    c.width = c.height = 1024;
+    const g = c.getContext("2d")!;
+    const blobs: [number, number, number, number, number, number, number][] = [
+      [200, 260, 300, 150, 190, 150, 0.15],
+      [760, 180, 260, 20, 52, 40, 0.22],
+      [850, 700, 320, 150, 185, 145, 0.13],
+      [330, 800, 300, 18, 48, 38, 0.2],
+      [560, 460, 380, 140, 180, 150, 0.1],
+      [90, 620, 240, 16, 44, 34, 0.18],
+      [960, 420, 220, 150, 190, 155, 0.12],
+      [520, 90, 260, 18, 50, 40, 0.16],
+      [680, 900, 240, 145, 185, 150, 0.12],
+    ];
+    blobs.forEach(([x, y, r, cr, cg, cb, a]) => {
+      const grad = g.createRadialGradient(x, y, 0, x, y, r);
+      grad.addColorStop(0, `rgba(${cr},${cg},${cb},${a})`);
+      grad.addColorStop(1, `rgba(${cr},${cg},${cb},0)`);
+      g.fillStyle = grad;
+      g.fillRect(x - r, y - r, r * 2, r * 2);
+    });
+    const t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.SRGBColorSpace;
+    this._texList.push(t);
+    const mat = new THREE.MeshStandardMaterial({
+      map: t,
+      transparent: true,
+      depthWrite: false,
+      roughness: 1,
+    });
+    mat.color.setHex(MOODS[this.mood].groundTint);
+    this._groundTintMats.push(mat);
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), mat);
+    m.rotation.x = -Math.PI / 2;
+    m.position.y = 0.008;
+    this.scene.add(m);
+  }
+
+  /* ---- instanced grass: thousands of tuft billboards scattered over the
+     moss, avoiding plaza / pond / paths / buildings ---- */
+  _buildGrass() {
+    const THREE = this.THREE;
+    const geo = new THREE.PlaneGeometry(1.15, 0.85);
+    geo.translate(0, 0.4, 0);
+    const mat = new THREE.MeshStandardMaterial({
+      map: this.grassTuftTex(),
+      alphaTest: 0.45,
+      side: THREE.DoubleSide,
+      roughness: 1,
+    });
+    this._groundTintMats.push(mat);
+    const N = 1800;
+    const mesh = new THREE.InstancedMesh(geo, mat, N);
+    const dummy = new THREE.Object3D();
+    const col = new THREE.Color();
+    let placed = 0,
+      guard = 0;
+    while (placed < N && guard++ < N * 40) {
+      const x = (Math.random() - 0.5) * 90;
+      const z = -45 + Math.random() * 84;
+      if (this.blocked(x, z)) continue;
+      if (Math.hypot(x, z) < 14.4) continue; // plaza
+      const pdx = (x - 24) / 24.6,
+        pdz = (z + 6) / 17.6;
+      if (pdx * pdx + pdz * pdz < 1) continue; // pond incl. shore
+      if (Math.abs(Math.abs(x) - 44) < 1.6) continue; // side walls
+      if (Math.abs(z + 38) < 1.6 || Math.abs(z - 42) < 1.6) continue;
+      let nearPath = false;
+      for (let i = 0; i < this._pathPts.length; i += 2) {
+        if (
+          Math.hypot(x - this._pathPts[i], z - this._pathPts[i + 1]) < 2.7
+        ) {
+          nearPath = true;
+          break;
+        }
+      }
+      if (nearPath) continue;
+      dummy.position.set(x, 0, z);
+      dummy.rotation.y = Math.random() * Math.PI;
+      const s = 0.85 + Math.random() * 0.95;
+      dummy.scale.set(s, s * (0.75 + Math.random() * 0.5), s);
+      dummy.updateMatrix();
+      mesh.setMatrixAt(placed, dummy.matrix);
+      col.setHSL(
+        0.36 + Math.random() * 0.05,
+        0.22 + Math.random() * 0.12,
+        0.62 + Math.random() * 0.28,
+      );
+      mesh.setColorAt(placed, col);
+      placed++;
+    }
+    mesh.count = placed;
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    this.scene.add(mesh);
+  }
+
   /* ---- soft radial glow sprite drawn at runtime (petals, fireflies,
      lantern halos, moon streak) ---- */
   glowTex(r: number, g: number, b: number) {
@@ -851,6 +985,7 @@ export class Garden3D {
     for (let i = 0; i <= seg; i++) {
       const t = i / seg;
       const pt = curve.getPoint(t);
+      if (i % 2 === 0) this._pathPts.push(pt.x, pt.z);
       const tg = curve.getTangent(t);
       const nx = -tg.z,
         nz = tg.x;
@@ -1571,6 +1706,10 @@ export class Garden3D {
     shrub(6, -30, 1.1, this.M.leafM);
     shrub(33, 33, 1.3, this.M.leafD);
     shrub(-33, 32, 1.2, this.M.leafM);
+
+    // ground dressing: macro light/shade painting + instanced grass tufts
+    this._macroShade();
+    this._buildGrass();
   }
 
   _buildHouse(hx: number, hz: number) {

@@ -49,13 +49,13 @@ interface MoodDef {
 const MOODS: Record<string, MoodDef> = {
   midnight: {
     sky: 0x0a1612,
-    ambient: 0x42605a,
-    ambientI: 0.72,
+    ambient: 0x4a6a62,
+    ambientI: 0.98,
     dirColor: 0xcfe0d0,
-    dirI: 0.72,
+    dirI: 0.58,
     lanternI: 1.7,
     water: 0x143028,
-    waterTex: 0xd0e2d8,
+    waterTex: 0xbcd8ca,
     stars: true,
     fogD: 0.0052,
     shoji: 1.3,
@@ -70,9 +70,9 @@ const MOODS: Record<string, MoodDef> = {
   dawn: {
     sky: 0xdfe8d6,
     ambient: 0xfff2d8,
-    ambientI: 0.9,
+    ambientI: 1.05,
     dirColor: 0xfff3d0,
-    dirI: 1.4,
+    dirI: 1.05,
     lanternI: 0.25,
     water: 0x6fb09a,
     waterTex: 0xffffff,
@@ -215,7 +215,7 @@ export class Garden3D {
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.08;
+    this.renderer.toneMappingExposure = 1.16;
     container.appendChild(this.renderer.domElement);
     this.renderer.domElement.style.display = "block";
 
@@ -260,8 +260,8 @@ export class Garden3D {
       woodD: this.mat(0x2b2019, 0.85), // dark structural wood
       woodM: this.mat(0x54402e, 0.85), // mid wood
       woodL: this.mat(0x7a5f42, 0.8), // light wood / engawa
-      roof: this.mat(0x272d33, 0.55, 0.18), // charcoal tile
-      roofL: this.mat(0x333a41, 0.55, 0.18),
+      roof: this.mat(0x39424c, 0.55, 0.18), // slate tile
+      roofL: this.mat(0x46505a, 0.55, 0.18),
       plaster: this.mat(0xd8d2bf, 0.95),
       stone: this.mat(0x777c70, 0.95),
       stoneD: this.mat(0x4d5248, 0.95),
@@ -274,10 +274,29 @@ export class Garden3D {
       bark: this.mat(0x453425, 0.95),
       gravelPath: this.mat(0x9a9e8e, 1),
     };
+    // alpha fade across the ribbon width so path edges dissolve into moss
+    const pc = document.createElement("canvas");
+    pc.width = 128;
+    pc.height = 2;
+    const pg = pc.getContext("2d")!;
+    const pgrad = pg.createLinearGradient(0, 0, 128, 0);
+    pgrad.addColorStop(0, "#000");
+    pgrad.addColorStop(0.22, "#fff");
+    pgrad.addColorStop(0.78, "#fff");
+    pgrad.addColorStop(1, "#000");
+    pg.fillStyle = pgrad;
+    pg.fillRect(0, 0, 128, 2);
+    const pathAlpha = new THREE.CanvasTexture(pc);
+    pathAlpha.wrapS = THREE.ClampToEdgeWrapping;
+    pathAlpha.wrapT = THREE.RepeatWrapping;
+    this._texList.push(pathAlpha);
     this.pathMat = new THREE.MeshStandardMaterial({
       color: 0x9a9e8e,
       roughness: 1,
       side: THREE.DoubleSide,
+      transparent: true,
+      alphaMap: pathAlpha,
+      depthWrite: false,
     });
     this._gravelTintMats.push(this.pathMat);
 
@@ -370,15 +389,118 @@ export class Garden3D {
     return t;
   }
 
+  /* ---- palette-locked texture: composites the painted image over a flat
+     palette base at reduced opacity, so every surface shares one color
+     family and reads as cohesive scenery instead of competing patterns ---- */
+  private _softTex(
+    url: string,
+    base: number,
+    alpha: number,
+    rx: number,
+    ry: number,
+    apply: (t: THREE.Texture) => void,
+  ) {
+    new this.THREE.ImageLoader().load(url, (img) => {
+      if (!this.renderer) return;
+      const c = document.createElement("canvas");
+      c.width = c.height = 1024;
+      const g = c.getContext("2d")!;
+      g.fillStyle = "#" + base.toString(16).padStart(6, "0");
+      g.fillRect(0, 0, 1024, 1024);
+      g.globalAlpha = alpha;
+      g.drawImage(img, 0, 0, 1024, 1024);
+      const t = new this.THREE.CanvasTexture(c);
+      t.wrapS = t.wrapT = this.THREE.RepeatWrapping;
+      t.colorSpace = this.THREE.SRGBColorSpace;
+      t.repeat.set(rx, ry);
+      t.anisotropy = this.renderer!.capabilities.getMaxAnisotropy();
+      this._texList.push(t);
+      apply(t);
+    });
+  }
+
+  /* ---- soft feathered disc of a flat color (boulder moss contact,
+     ground transitions) ---- */
+  featherDisc(r: number, g: number, b: number, solid = 0.5) {
+    const c = document.createElement("canvas");
+    c.width = c.height = 128;
+    const ctx = c.getContext("2d")!;
+    const grad = ctx.createRadialGradient(64, 64, 64 * solid * 0.5, 64, 64, 63);
+    grad.addColorStop(0, `rgba(${r},${g},${b},1)`);
+    grad.addColorStop(solid, `rgba(${r},${g},${b},.92)`);
+    grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 128, 128);
+    const t = new this.THREE.CanvasTexture(c);
+    t.colorSpace = this.THREE.SRGBColorSpace;
+    this._texList.push(t);
+    return t;
+  }
+
+  /* ---- feathered moss band straddling a hard surface boundary so
+     circles/ellipses dissolve into the ground instead of ending in a
+     drawn line ---- */
+  _featherBand(
+    x: number,
+    z: number,
+    sx: number,
+    sy: number,
+    color: number,
+    y: number,
+    peak = 0.78,
+    width = 0.18,
+  ) {
+    const THREE = this.THREE;
+    const cr = (color >> 16) & 255,
+      cg = (color >> 8) & 255,
+      cb = color & 255;
+    const c = document.createElement("canvas");
+    c.width = c.height = 512;
+    const ctx = c.getContext("2d")!;
+    const grad = ctx.createRadialGradient(256, 256, 0, 256, 256, 255);
+    grad.addColorStop(Math.max(0, peak - width), `rgba(${cr},${cg},${cb},0)`);
+    grad.addColorStop(peak, `rgba(${cr},${cg},${cb},.9)`);
+    grad.addColorStop(Math.min(1, peak + width), `rgba(${cr},${cg},${cb},0)`);
+    grad.addColorStop(1, `rgba(${cr},${cg},${cb},0)`);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 512, 512);
+    const t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.SRGBColorSpace;
+    this._texList.push(t);
+    const mat = new THREE.MeshStandardMaterial({
+      map: t,
+      transparent: true,
+      depthWrite: false,
+      roughness: 1,
+    });
+    mat.color.setHex(MOODS[this.mood].groundTint);
+    this._groundTintMats.push(mat);
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat);
+    m.rotation.x = -Math.PI / 2;
+    m.scale.set(sx, sy, 1);
+    m.position.set(x, y, z);
+    this.scene.add(m);
+    return m;
+  }
+
   /* ---- soft-edged variation patch: a feathered disc of a painted texture
      laid over the base ground to break tiling repetition ---- */
-  private _patchTex(url: string, cb: (t: THREE.CanvasTexture) => void) {
+  private _patchTex(
+    url: string,
+    base: number,
+    alpha: number,
+    cb: (t: THREE.CanvasTexture) => void,
+  ) {
     new this.THREE.ImageLoader().load(url, (img) => {
       if (!this.renderer) return;
       const c = document.createElement("canvas");
       c.width = c.height = 512;
       const g = c.getContext("2d")!;
+      g.fillStyle = "#" + base.toString(16).padStart(6, "0");
+      g.fillRect(0, 0, 512, 512);
+      g.globalAlpha = alpha;
       g.drawImage(img, 0, 0, 512, 512);
+      g.globalAlpha = 1;
       const grad = g.createRadialGradient(256, 256, 140, 256, 256, 252);
       grad.addColorStop(0, "rgba(0,0,0,1)");
       grad.addColorStop(1, "rgba(0,0,0,0)");
@@ -417,14 +539,14 @@ export class Garden3D {
      procedural surfaces; until each image decodes — or if one is missing —
      the original look renders unchanged ---- */
   _loadArt() {
-    this._texApply("/garden/textures/moss-painterly.webp", 14, 14, (t) => {
+    this._softTex("/garden/textures/moss-painterly.webp", 0x2c5244, 0.42, 18, 18, (t) => {
       // mirror-wrap hides the tile seam on the huge ground plane
       t.wrapS = t.wrapT = this.THREE.MirroredRepeatWrapping;
       this.groundTex.dispose();
       this.groundMat.map = t;
       this.groundMat.needsUpdate = true;
       const mound = t.clone();
-      mound.repeat.set(4, 4);
+      mound.repeat.set(6, 6);
       mound.needsUpdate = true;
       this._texList.push(mound);
       if (this.mossMat.map) this.mossMat.map.dispose();
@@ -458,7 +580,7 @@ export class Garden3D {
     });
     // clover/wildflower and fallen-petal patches break the tiling and give
     // the grounds hand-dressed variety (petals gather under the sakura)
-    this._patchTex("/garden/textures/moss-flowers.webp", (t) => {
+    this._patchTex("/garden/textures/moss-flowers.webp", 0x2c5244, 0.55, (t) => {
       this._addPatches(
         t,
         [
@@ -466,19 +588,15 @@ export class Garden3D {
           [10, -19, 5.5],
           [-18, 3, 6],
           [8, 20, 6.5],
-          [-8, 13, 4.5],
           [18, 30, 7],
-          [-20, 30, 6],
           [34, -30, 7.5],
           [-36, 16, 5.5],
-          [12, -33, 5],
-          [30, 14, 4.5],
           [-30, -2, 6.5],
         ],
         0.02,
       );
     });
-    this._patchTex("/garden/textures/moss-petals.webp", (t) => {
+    this._patchTex("/garden/textures/moss-petals.webp", 0x2c5244, 0.6, (t) => {
       this._addPatches(
         t,
         [
@@ -489,63 +607,69 @@ export class Garden3D {
         0.026,
       );
     });
-    this._texApply("/garden/textures/sand-raked.webp", 2.4, 2.4, (t) => {
+    this._softTex("/garden/textures/sand-raked.webp", 0xd8cfb6, 0.5, 2.4, 2.4, (t) => {
       this.gravelTex.dispose();
       this.gravelMat.map = t;
       this.gravelMat.needsUpdate = true;
       // painted grooves carry the raking now — keep the procedural rings
       // only as a whisper of relief
       this.rakeMat.transparent = true;
-      this.rakeMat.opacity = 0.22;
+      this.rakeMat.opacity = 0.12;
       this.rakeMat.needsUpdate = true;
     });
-    this._texApply("/garden/textures/stone-paving.webp", 1, 1, (t) => {
+    this._softTex("/garden/textures/stone-paving.webp", 0x71776a, 0.5, 1, 1, (t) => {
       this.pathMat.map = t;
       this.pathMat.needsUpdate = true;
     });
-    this._texApply("/garden/textures/gravel-fine.webp", 9, 6, (t) => {
+    this._softTex("/garden/textures/gravel-fine.webp", 0xa39f8b, 0.42, 9, 6, (t) => {
       this.shoreMat.map = t;
       this.shoreMat.needsUpdate = true;
     });
-    this._texApply("/garden/textures/plaster-wall.webp", 1, 1, (t) => {
+    this._softTex("/garden/textures/plaster-wall.webp", 0xe6e0cf, 0.5, 1, 1, (t) => {
       this.M.plaster.map = t;
-      this.M.plaster.color.setHex(0xf5efe2);
+      this.M.plaster.color.setHex(0xfaf5e8);
       this.M.plaster.needsUpdate = true;
     });
-    this._texApply("/garden/textures/bark.webp", 2, 1, (t) => {
+    this._softTex("/garden/textures/bark.webp", 0x463527, 0.45, 2, 1, (t) => {
       this.M.bark.map = t;
-      this.M.bark.color.setHex(0xaa9a88);
+      this.M.bark.color.setHex(0xcabcaa);
       this.M.bark.needsUpdate = true;
     });
     // the rock texture generates as masonry blocks; sample the interior of
     // one large block per material so boulders read as continuous stone
-    this._texApply("/garden/textures/stone-rock.webp", 0.3, 0.2, (t) => {
+    this._softTex("/garden/textures/stone-rock.webp", 0x878d80, 0.5, 0.3, 0.2, (t) => {
       t.offset.set(0.06, 0.32);
       this.M.stone.map = t;
-      this.M.stone.color.setHex(0xc0c4b8);
+      this.M.stone.color.setHex(0xd0d4c8);
       this.M.stone.needsUpdate = true;
       const t2 = t.clone();
       t2.offset.set(0.55, 0.15);
       t2.needsUpdate = true;
       this._texList.push(t2);
       this.M.stoneD.map = t2;
-      this.M.stoneD.color.setHex(0x8e948a);
+      this.M.stoneD.color.setHex(0x9aa094);
       this.M.stoneD.needsUpdate = true;
     });
     // painted moss doubles as painterly foliage for every leaf pad
-    this._texApply("/garden/textures/moss-painterly.webp", 1.5, 1.5, (t) => {
+    this._softTex("/garden/textures/moss-painterly.webp", 0x35604d, 0.32, 1.5, 1.5, (t) => {
       (
         [
-          [this.M.leafD, 0x9cb4a2],
-          [this.M.leafM, 0xc2d6c4],
-          [this.M.leafL, 0xe2eede],
-          [this.M.pine, 0x92b29c],
+          [this.M.leafD, 0xaebfb2],
+          [this.M.leafM, 0xc9dbca],
+          [this.M.leafL, 0xe6f2e2],
+          [this.M.pine, 0xbccfbe],
         ] as [THREE.MeshStandardMaterial, number][]
       ).forEach(([m, tint]) => {
         m.map = t;
         m.color.setHex(tint);
         m.needsUpdate = true;
       });
+    });
+    // soft painterly clusters on the sakura canopy
+    this._softTex("/garden/textures/moss-painterly.webp", 0xc793aa, 0.22, 1.5, 1.5, (t) => {
+      this.sakuraMat.map = t;
+      this.sakuraMat.color.setHex(0xf7dee8);
+      this.sakuraMat.needsUpdate = true;
     });
     this._texApply("/garden/textures/water-pond.webp", 2.2, 1.6, (t) => {
       this.waterMat.map = t;
@@ -562,12 +686,12 @@ export class Garden3D {
     // note: roof-tiles.webp is intentionally NOT applied — the stacked
     // 4-sided frustum roofs shear any wrapped texture into noise; the flat
     // charcoal silhouette reads better (texture kept for future use)
-    this._texApply("/garden/textures/wood-planks.webp", 2, 2, (t) => {
+    this._softTex("/garden/textures/wood-planks.webp", 0x54402e, 0.5, 2, 2, (t) => {
       this.M.woodL.map = t;
-      this.M.woodL.color.setHex(0xffffff);
+      this.M.woodL.color.setHex(0xe6d8c4);
       this.M.woodL.needsUpdate = true;
       this.M.woodM.map = t;
-      this.M.woodM.color.setHex(0xcfc0ae);
+      this.M.woodM.color.setHex(0xc4b29e);
       this.M.woodM.needsUpdate = true;
     });
     // painted mood skies replace the flat clear color; the polygon moon and
@@ -797,11 +921,14 @@ export class Garden3D {
     const THREE = this.THREE;
     this.ambient = new THREE.AmbientLight(0xffffff, 0.7);
     this.scene.add(this.ambient);
-    this.hemi = new THREE.HemisphereLight(0xbfd8c8, 0x101812, 0.4);
+    this.hemi = new THREE.HemisphereLight(0xbfd8c8, 0x18241c, 0.62);
     this.scene.add(this.hemi);
     this.dir = new THREE.DirectionalLight(0xffffff, 0.8);
     this.dir.position.set(-38, 55, -26);
     this.dir.castShadow = true;
+    // half-strength shadows: shading, not black holes
+    this.dir.shadow.intensity = 0.55;
+    this.dir.shadow.radius = 6;
     this.dir.shadow.mapSize.set(2048, 2048);
     this.dir.shadow.camera.left = -65;
     this.dir.shadow.camera.right = 65;
@@ -996,6 +1123,8 @@ export class Garden3D {
     rim.rotation.x = -Math.PI / 2;
     rim.position.y = 0.03;
     S.add(rim);
+    // moss dissolves over the plaza rim instead of ending in a drawn circle
+    this._featherBand(0, 0, 35, 35, 0x3a634f, 0.055);
     this.rakeMat = this.mat(0x6a6f60, 1);
     for (let i = 0; i < 5; i++) {
       const ring = new THREE.Mesh(
@@ -1006,6 +1135,15 @@ export class Garden3D {
       ring.position.y = 0.035;
       S.add(ring);
     }
+    // soft moss contact disc shared by every boulder (feathered, replaces
+    // the old hard-edged dark circles)
+    const mossContact = new THREE.MeshStandardMaterial({
+      map: this.featherDisc(74, 112, 92, 0.35),
+      transparent: true,
+      depthWrite: false,
+      roughness: 1,
+    });
+    this._groundTintMats.push(mossContact);
     // courtyard boulders (smooth)
     const boulder = (x: number, z: number, s: number, m: THREE.Material) => {
       const geo = this.organic(new THREE.SphereGeometry(s, 18, 14), 0.24, 1.1);
@@ -1016,8 +1154,8 @@ export class Garden3D {
       r.castShadow = r.receiveShadow = true;
       S.add(r);
       const mossRing = new THREE.Mesh(
-        new THREE.CircleGeometry(s * 1.3, 16),
-        this.M.leafD,
+        new THREE.CircleGeometry(s * 1.45, 20),
+        mossContact,
       );
       mossRing.rotation.x = -Math.PI / 2;
       mossRing.position.set(x, 0.04, z);
@@ -1093,6 +1231,8 @@ export class Garden3D {
     mound.scale.y = 1;
     mound.receiveShadow = true;
     S.add(mound);
+    // ground moss laps up against the mound base
+    this._featherBand(-28, -20, 33, 33, 0x3a634f, 0.06, 0.72, 0.24);
     // edging stones around grove
     for (let i = 0; i < 20; i++) {
       const a = (i / 20) * Math.PI * 2;
@@ -1123,6 +1263,8 @@ export class Garden3D {
     shore.position.set(24, 0.015, -6);
     shore.receiveShadow = true;
     S.add(shore);
+    // feathered moss transition around the sand shore
+    this._featherBand(24, -6, 61, 43, 0x3a634f, 0.045);
     this.waterMat = new THREE.MeshStandardMaterial({
       color: 0x143028,
       roughness: 0.12,
@@ -1135,22 +1277,22 @@ export class Garden3D {
     pond.scale.set(21, 14, 1);
     pond.position.set(24, 0.06, -6);
     S.add(pond);
-    // moonlight streak across the water (midnight only)
+    // soft moon pool on the water (midnight only) — a gentle oval of light
+    // rather than a streak, so it reads as reflection, not a smudge
     this._moonStreak = new THREE.Mesh(
       new THREE.PlaneGeometry(1, 1),
       new THREE.MeshBasicMaterial({
-        map: this.glowTex(235, 245, 235),
-        color: 0xdcefdf,
+        map: this.glowTex(240, 248, 240),
+        color: 0xe8f4e8,
         transparent: true,
-        opacity: 0.16,
+        opacity: 0.1,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
       }),
     );
     this._moonStreak.rotation.x = -Math.PI / 2;
-    this._moonStreak.rotation.z = -0.5;
-    this._moonStreak.scale.set(4.5, 22, 1);
-    this._moonStreak.position.set(20, 0.09, -7);
+    this._moonStreak.scale.set(9, 6, 1);
+    this._moonStreak.position.set(17, 0.085, -10);
     S.add(this._moonStreak);
     // smooth shore rocks, partially sunk, varied
     for (let i = 0; i < 34; i++) {

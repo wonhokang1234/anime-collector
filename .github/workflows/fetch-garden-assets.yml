@@ -7,11 +7,6 @@ name: Fetch garden assets
 
 on:
   workflow_dispatch:
-  push:
-    branches: ["claude/project-status-tiu3jw"]
-    paths:
-      - "scripts/garden-assets.json"
-      - ".github/workflows/fetch-garden-assets.yml"
 
 permissions:
   contents: write

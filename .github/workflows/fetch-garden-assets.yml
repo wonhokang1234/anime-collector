@@ -7,6 +7,10 @@ name: Fetch garden assets
 
 on:
   workflow_dispatch:
+  push:
+    branches: ["claude/project-status-tiu3jw"]
+    paths:
+      - "scripts/garden-assets.json"
 
 permissions:
   contents: write
@@ -24,6 +28,7 @@ jobs:
           for i in $(seq 0 $((count - 1))); do
             path=$(jq -r ".assets[$i].path" scripts/garden-assets.json)
             url=$(jq -r ".assets[$i].url" scripts/garden-assets.json)
+            if [ -f "$path" ]; then echo "Exists, skipping $path"; continue; fi
             mkdir -p "$(dirname "$path")"
             echo "Fetching $path"
             curl -fSL --retry 3 --retry-delay 2 -o "$path" "$url"

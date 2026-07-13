@@ -73,6 +73,69 @@
       "prompt": "Anime background art panorama of a midnight sky over distant Japanese mountain silhouettes, deep dark teal-green sky #0a1612, full moon glowing softly upper left, scattered stars, thin drifting clouds, faint mist at the horizon, painterly Ghibli-style matte painting, no buildings, no people, tranquil nocturne mood"
     },
     {
+      "path": "public/garden/textures/moss-painterly.webp",
+      "url": "https://mcp-tools-z-image-turbo.hf.space/--replicas/dkrzw/gradio_api/file=/tmp/gradio/9e45365d1870d0881759a4a0b0196d16d97bb7ed1a5e77d7bc20ea68fe978556/image.webp",
+      "seed": 302,
+      "size": "1024x1024",
+      "prompt": "hand-painted stylized game texture, seamless tileable, dense soft moss carpet, anime environment art style, soft painterly brushstrokes, deep dark teal-green palette with subtle emerald highlights, gentle organic variation, top-down view, uniform edge to edge, no flowers, no objects, no borders, Ghibli inspired"
+    },
+    {
+      "path": "public/garden/textures/moss-flowers.webp",
+      "url": "https://mcp-tools-z-image-turbo.hf.space/--replicas/dkrzw/gradio_api/file=/tmp/gradio/9b067f56429bebc6fb1e7a779853e35fd6bc6ac010a435b3d69c0aff1c5193ca/image.webp",
+      "seed": 301,
+      "size": "1024x1024",
+      "prompt": "hand-painted stylized game texture, seamless tileable, lush moss carpet with scattered tiny clover leaves and a few small white wildflowers, anime environment art style, soft painterly brushstrokes, deep teal-green emerald palette, gentle color variation, top-down view, uniform edge to edge, no objects, no borders, Ghibli inspired"
+    },
+    {
+      "path": "public/garden/textures/moss-petals.webp",
+      "url": "https://mcp-tools-z-image-turbo.hf.space/--replicas/dkrzw/gradio_api/file=/tmp/gradio/7120076de1117d73fd95ef4113e0478309c39f451f045fbb5d449b1fee40e1dc/image.webp",
+      "seed": 313,
+      "size": "1024x1024",
+      "prompt": "hand-painted stylized game texture, seamless tileable, soft mossy grass ground with scattered fallen pink cherry blossom petals drifted across it, anime environment art style, painterly brushstrokes, deep teal-green grass and moss, rose-pink petals of varied sizes, organic natural arrangement, top-down view, edge to edge, no stones, no tiles, no grid, no objects, Ghibli inspired"
+    },
+    {
+      "path": "public/garden/textures/gravel-fine.webp",
+      "url": "https://mcp-tools-z-image-turbo.hf.space/--replicas/dkrzw/gradio_api/file=/tmp/gradio/b0b7e0e4b31318aacc73edc17a1113bf810a63b7614c3c990a678b3ba893299f/image.webp",
+      "seed": 304,
+      "size": "1024x1024",
+      "prompt": "hand-painted stylized game texture, seamless tileable, fine light grey garden path gravel with small scattered pebbles, anime environment art style, soft painterly brushstrokes, warm grey-sage palette, subtle variation, top-down view, uniform edge to edge, no rake lines, no objects, no borders, Ghibli inspired"
+    },
+    {
+      "path": "public/garden/textures/sand-raked.webp",
+      "url": "https://mcp-tools-z-image-turbo.hf.space/--replicas/dkrzw/gradio_api/file=/tmp/gradio/6935e7047aedb53ed0f15576d1752bc70ed049ceb9c044a8cf4d4d903732a7aa/image.webp",
+      "seed": 315,
+      "size": "1024x1024",
+      "prompt": "hand-painted stylized game texture, seamless tileable, zen garden raked sand, perfectly straight thin parallel groove lines running horizontally, evenly spaced, karesansui pattern, anime environment art style, soft painterly wash, pale warm cream-grey sand with soft blue-grey groove shadows, top-down orthographic view, uniform repeating pattern edge to edge, nothing else, Ghibli inspired"
+    },
+    {
+      "path": "public/garden/textures/plaster-wall.webp",
+      "url": "https://mcp-tools-z-image-turbo.hf.space/--replicas/dkrzw/gradio_api/file=/tmp/gradio/c6a08266f9c824e673afb91e901e3f745220649125f43f36598e9a4322c73554/image.webp",
+      "seed": 306,
+      "size": "1024x1024",
+      "prompt": "hand-painted stylized game texture, seamless tileable, aged warm white plaster wall with soft weathering stains and subtle brush texture, traditional Japanese earthen wall, anime environment art style, painterly, warm cream-beige palette with faint grey-green weathering near edges, straight-on view, uniform edge to edge, no objects, Ghibli inspired"
+    },
+    {
+      "path": "public/garden/textures/bark.webp",
+      "url": "https://mcp-tools-z-image-turbo.hf.space/--replicas/dkrzw/gradio_api/file=/tmp/gradio/a823de28e51390d7a654065289394d0353479226c15c73c209f5407b532794d8/image.webp",
+      "seed": 307,
+      "size": "1024x1024",
+      "prompt": "hand-painted stylized game texture, seamless tileable, dark tree bark with vertical ridges and furrows, anime environment art style, painterly brushstrokes, deep warm brown with moss-green tints in the crevices, straight-on view, uniform edge to edge, no objects, Ghibli inspired"
+    },
+    {
+      "path": "public/garden/textures/stone-paving.webp",
+      "url": "https://mcp-tools-z-image-turbo.hf.space/--replicas/dkrzw/gradio_api/file=/tmp/gradio/3eda017ff94a7c9b1492673108e68c6293c31fce6f42df0fb6322f2298c13b4e/image.webp",
+      "seed": 308,
+      "size": "1024x1024",
+      "prompt": "hand-painted stylized game texture, seamless tileable, weathered grey garden stone surface with subtle lichen spots and soft moss tinting in crevices, anime environment art style, painterly brushstrokes, cool grey-green palette, straight-on view, uniform edge to edge, no objects, no borders, Ghibli inspired"
+    },
+    {
+      "path": "public/garden/textures/stone-rock.webp",
+      "url": "https://mcp-tools-z-image-turbo.hf.space/--replicas/dkrzw/gradio_api/file=/tmp/gradio/596bac104f0e89cadb610357777b5491d152031bfb88c257bcb441f5d455e7de/image.webp",
+      "seed": 309,
+      "size": "1024x1024",
+      "prompt": "hand-painted stylized game texture, seamless tileable, one continuous weathered granite rock surface, soft mottled grey stone with faint moss-green lichen patches, anime environment art style, painterly brushstrokes, no bricks, no blocks, no seams, no gaps, single uniform stone material edge to edge, Ghibli inspired"
+    },
+    {
       "path": "public/garden/sky/dawn.webp",
       "url": "https://mcp-tools-z-image-turbo.hf.space/--replicas/dkrzw/gradio_api/file=/tmp/gradio/e5f3417449edcfa6e9a3adabcfad6e4ef7ff04c4ba867558f8084802b7e9e271/image.webp",
       "seed": 202,

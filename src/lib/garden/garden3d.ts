@@ -1,5 +1,10 @@
 /* Garden3D — procedural 3D Japanese estate zen garden (module three build) */
 import * as THREE from "three";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
+import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 
 type ThreeNS = typeof THREE;
 
@@ -35,6 +40,10 @@ interface MoodDef {
   moon: number;
   groundTint: number;
   gravelTint: number;
+  envI: number;
+  bloom: number;
+  haloO: number;
+  fireflyO: number;
 }
 
 const MOODS: Record<string, MoodDef> = {
@@ -53,6 +62,10 @@ const MOODS: Record<string, MoodDef> = {
     moon: 0xf2f7ee,
     groundTint: 0xffffff,
     gravelTint: 0xdddddd,
+    envI: 0.3,
+    bloom: 0.45,
+    haloO: 0.34,
+    fireflyO: 0.9,
   },
   dawn: {
     sky: 0xdfe8d6,
@@ -68,7 +81,11 @@ const MOODS: Record<string, MoodDef> = {
     shoji: 0.15,
     moon: 0xfff3d0,
     groundTint: 0xcccccc,
-    gravelTint: 0xffffff,
+    gravelTint: 0xbdb9ac,
+    envI: 0.55,
+    bloom: 0.18,
+    haloO: 0.08,
+    fireflyO: 0,
   },
 };
 
@@ -153,9 +170,19 @@ export class Garden3D {
   starPoints!: THREE.Points;
   starMat!: THREE.PointsMaterial;
   mossMat!: THREE.MeshStandardMaterial;
+  pathMat!: THREE.MeshStandardMaterial;
+  shoreMat!: THREE.MeshStandardMaterial;
   private _texLoader!: THREE.TextureLoader;
   private _texList!: THREE.Texture[];
   private _sky!: { midnight?: THREE.Texture; dawn?: THREE.Texture };
+  private _composer!: EffectComposer;
+  private _bloom!: UnrealBloomPass;
+  private _groundTintMats!: THREE.MeshStandardMaterial[];
+  private _gravelTintMats!: THREE.MeshStandardMaterial[];
+  private _halos!: THREE.Sprite[];
+  private _fireflies!: THREE.Points;
+  private _fireflyBase!: Float32Array;
+  private _moonStreak!: THREE.Mesh;
   petalMat!: THREE.PointsMaterial;
   sakuraMat!: THREE.MeshStandardMaterial;
   sakura!: THREE.Group;
@@ -195,6 +222,31 @@ export class Garden3D {
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(42, 1, 0.1, 420);
 
+    // soft neutral environment reflections lift every PBR surface (water
+    // especially) out of the flat-albedo look
+    const pmrem = new THREE.PMREMGenerator(this.renderer);
+    const envTex = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    pmrem.dispose();
+    this.scene.environment = envTex;
+    this._texList = [envTex as THREE.Texture];
+    this._texLoader = new THREE.TextureLoader();
+    this._sky = {};
+    this._groundTintMats = [];
+    this._gravelTintMats = [];
+    this._halos = [];
+
+    // bloom keeps lanterns / shoji / moonlight ethereal
+    this._composer = new EffectComposer(this.renderer);
+    this._composer.addPass(new RenderPass(this.scene, this.camera));
+    this._bloom = new UnrealBloomPass(
+      new THREE.Vector2(1, 1),
+      0.42,
+      0.65,
+      0.8,
+    );
+    this._composer.addPass(this._bloom);
+    this._composer.addPass(new OutputPass());
+
     this.px = 0;
     this.pz = 10;
     this.vx = 0;
@@ -222,10 +274,12 @@ export class Garden3D {
       bark: this.mat(0x453425, 0.95),
       gravelPath: this.mat(0x9a9e8e, 1),
     };
-
-    this._texLoader = new THREE.TextureLoader();
-    this._texList = [];
-    this._sky = {};
+    this.pathMat = new THREE.MeshStandardMaterial({
+      color: 0x9a9e8e,
+      roughness: 1,
+      side: THREE.DoubleSide,
+    });
+    this._gravelTintMats.push(this.pathMat);
 
     this._buildLights();
     this._buildStatic();
@@ -242,6 +296,7 @@ export class Garden3D {
       this.camera.aspect = w / h;
       this.camera.updateProjectionMatrix();
       this.renderer!.setSize(w, h);
+      this._composer.setSize(w, h);
     };
     this._onResize();
     window.addEventListener("resize", this._onResize);
@@ -315,35 +370,192 @@ export class Garden3D {
     return t;
   }
 
+  /* ---- soft-edged variation patch: a feathered disc of a painted texture
+     laid over the base ground to break tiling repetition ---- */
+  private _patchTex(url: string, cb: (t: THREE.CanvasTexture) => void) {
+    new this.THREE.ImageLoader().load(url, (img) => {
+      if (!this.renderer) return;
+      const c = document.createElement("canvas");
+      c.width = c.height = 512;
+      const g = c.getContext("2d")!;
+      g.drawImage(img, 0, 0, 512, 512);
+      const grad = g.createRadialGradient(256, 256, 140, 256, 256, 252);
+      grad.addColorStop(0, "rgba(0,0,0,1)");
+      grad.addColorStop(1, "rgba(0,0,0,0)");
+      g.globalCompositeOperation = "destination-in";
+      g.fillStyle = grad;
+      g.fillRect(0, 0, 512, 512);
+      const t = new this.THREE.CanvasTexture(c);
+      t.colorSpace = this.THREE.SRGBColorSpace;
+      this._texList.push(t);
+      cb(t);
+    });
+  }
+
+  private _addPatches(t: THREE.CanvasTexture, spots: number[][], y: number) {
+    const THREE = this.THREE;
+    const mat = new THREE.MeshStandardMaterial({
+      map: t,
+      transparent: true,
+      depthWrite: false,
+      roughness: 1,
+    });
+    mat.color.setHex(MOODS[this.mood].groundTint);
+    this._groundTintMats.push(mat);
+    spots.forEach(([x, z, s], i) => {
+      const p = new THREE.Mesh(new THREE.CircleGeometry(1, 26), mat);
+      p.rotation.x = -Math.PI / 2;
+      p.rotation.z = x * 1.3 + z * 0.7;
+      p.scale.set(s, s * (0.75 + 0.02 * i), 1);
+      p.position.set(x, y + i * 0.0015, z);
+      p.receiveShadow = true;
+      this.scene.add(p);
+    });
+  }
+
   /* ---- generated art (public/garden) progressively replaces the flat /
      procedural surfaces; until each image decodes — or if one is missing —
      the original look renders unchanged ---- */
   _loadArt() {
-    this._texApply("/garden/textures/moss-ground.webp", 12, 12, (t) => {
+    this._texApply("/garden/textures/moss-painterly.webp", 14, 14, (t) => {
       // mirror-wrap hides the tile seam on the huge ground plane
       t.wrapS = t.wrapT = this.THREE.MirroredRepeatWrapping;
       this.groundTex.dispose();
       this.groundMat.map = t;
       this.groundMat.needsUpdate = true;
       const mound = t.clone();
-      mound.repeat.set(5, 5);
+      mound.repeat.set(4, 4);
       mound.needsUpdate = true;
       this._texList.push(mound);
       if (this.mossMat.map) this.mossMat.map.dispose();
       this.mossMat.map = mound;
       this.mossMat.needsUpdate = true;
+      // a rotated large-scale copy blended over the base decorrelates the
+      // tiling so the far field stops reading as a repeated motif
+      const breaker = t.clone();
+      breaker.repeat.set(3.3, 3.3);
+      breaker.center.set(0.5, 0.5);
+      breaker.rotation = Math.PI / 2;
+      breaker.needsUpdate = true;
+      this._texList.push(breaker);
+      const overlayMat = new THREE.MeshStandardMaterial({
+        map: breaker,
+        transparent: true,
+        opacity: 0.42,
+        depthWrite: false,
+        roughness: 1,
+      });
+      overlayMat.color.setHex(MOODS[this.mood].groundTint);
+      this._groundTintMats.push(overlayMat);
+      const overlay = new THREE.Mesh(
+        new THREE.PlaneGeometry(200, 200),
+        overlayMat,
+      );
+      overlay.rotation.x = -Math.PI / 2;
+      overlay.position.y = 0.012;
+      overlay.receiveShadow = true;
+      this.scene.add(overlay);
     });
-    this._texApply("/garden/textures/gravel-raked.webp", 3, 3, (t) => {
+    // clover/wildflower and fallen-petal patches break the tiling and give
+    // the grounds hand-dressed variety (petals gather under the sakura)
+    this._patchTex("/garden/textures/moss-flowers.webp", (t) => {
+      this._addPatches(
+        t,
+        [
+          [-12, -27, 7.5],
+          [10, -19, 5.5],
+          [-18, 3, 6],
+          [8, 20, 6.5],
+          [-8, 13, 4.5],
+          [18, 30, 7],
+          [-20, 30, 6],
+          [34, -30, 7.5],
+          [-36, 16, 5.5],
+          [12, -33, 5],
+          [30, 14, 4.5],
+          [-30, -2, 6.5],
+        ],
+        0.02,
+      );
+    });
+    this._patchTex("/garden/textures/moss-petals.webp", (t) => {
+      this._addPatches(
+        t,
+        [
+          [-4, -16, 5.5],
+          [4.5, -10.5, 4.5],
+          [0.5, -18.5, 3.8],
+        ],
+        0.026,
+      );
+    });
+    this._texApply("/garden/textures/sand-raked.webp", 2.4, 2.4, (t) => {
       this.gravelTex.dispose();
       this.gravelMat.map = t;
       this.gravelMat.needsUpdate = true;
+      // painted grooves carry the raking now — keep the procedural rings
+      // only as a whisper of relief
+      this.rakeMat.transparent = true;
+      this.rakeMat.opacity = 0.22;
+      this.rakeMat.needsUpdate = true;
     });
-    this._texApply("/garden/textures/water-pond.webp", 5, 4, (t) => {
+    this._texApply("/garden/textures/stone-paving.webp", 1, 1, (t) => {
+      this.pathMat.map = t;
+      this.pathMat.needsUpdate = true;
+    });
+    this._texApply("/garden/textures/gravel-fine.webp", 9, 6, (t) => {
+      this.shoreMat.map = t;
+      this.shoreMat.needsUpdate = true;
+    });
+    this._texApply("/garden/textures/plaster-wall.webp", 1, 1, (t) => {
+      this.M.plaster.map = t;
+      this.M.plaster.color.setHex(0xf5efe2);
+      this.M.plaster.needsUpdate = true;
+    });
+    this._texApply("/garden/textures/bark.webp", 2, 1, (t) => {
+      this.M.bark.map = t;
+      this.M.bark.color.setHex(0xaa9a88);
+      this.M.bark.needsUpdate = true;
+    });
+    // the rock texture generates as masonry blocks; sample the interior of
+    // one large block per material so boulders read as continuous stone
+    this._texApply("/garden/textures/stone-rock.webp", 0.3, 0.2, (t) => {
+      t.offset.set(0.06, 0.32);
+      this.M.stone.map = t;
+      this.M.stone.color.setHex(0xc0c4b8);
+      this.M.stone.needsUpdate = true;
+      const t2 = t.clone();
+      t2.offset.set(0.55, 0.15);
+      t2.needsUpdate = true;
+      this._texList.push(t2);
+      this.M.stoneD.map = t2;
+      this.M.stoneD.color.setHex(0x8e948a);
+      this.M.stoneD.needsUpdate = true;
+    });
+    // painted moss doubles as painterly foliage for every leaf pad
+    this._texApply("/garden/textures/moss-painterly.webp", 1.5, 1.5, (t) => {
+      (
+        [
+          [this.M.leafD, 0x9cb4a2],
+          [this.M.leafM, 0xc2d6c4],
+          [this.M.leafL, 0xe2eede],
+          [this.M.pine, 0x92b29c],
+        ] as [THREE.MeshStandardMaterial, number][]
+      ).forEach(([m, tint]) => {
+        m.map = t;
+        m.color.setHex(tint);
+        m.needsUpdate = true;
+      });
+    });
+    this._texApply("/garden/textures/water-pond.webp", 2.2, 1.6, (t) => {
       this.waterMat.map = t;
       // high metalness blacks out the albedo map without an env map, so
-      // shift toward a dielectric painted surface once the texture drives it
-      this.waterMat.metalness = 0.22;
-      this.waterMat.roughness = 0.4;
+      // shift toward a dielectric painted surface once the texture drives
+      // it; envMapIntensity stays low or the room-env light panels reflect
+      // as rectangles on the surface
+      this.waterMat.metalness = 0.15;
+      this.waterMat.roughness = 0.42;
+      this.waterMat.envMapIntensity = 0.25;
       this.waterMat.needsUpdate = true;
       this.setMood(this.mood); // switch to the textured water tint
     });
@@ -377,6 +589,44 @@ export class Garden3D {
       }
     });
     return g;
+  }
+
+  /* ---- deterministic vertex jitter: turns perfect spheres into
+     hand-sculpted foliage pads, boulders, and mounds ---- */
+  organic(geo: THREE.BufferGeometry, amp: number, freq = 1.6) {
+    const p = geo.attributes.position as THREE.BufferAttribute;
+    for (let i = 0; i < p.count; i++) {
+      const x = p.getX(i),
+        y = p.getY(i),
+        z = p.getZ(i);
+      const n =
+        Math.sin(x * freq * 2.1 + y * 1.7) *
+          Math.cos(y * freq * 1.9 + z * 2.3) +
+        Math.sin(z * freq * 2.7 + x * 1.3) * 0.5;
+      const d = 1 + amp * n * 0.55;
+      p.setXYZ(i, x * d, y * d, z * d);
+    }
+    p.needsUpdate = true;
+    geo.computeVertexNormals();
+    return geo;
+  }
+
+  /* ---- soft radial glow sprite drawn at runtime (petals, fireflies,
+     lantern halos, moon streak) ---- */
+  glowTex(r: number, g: number, b: number) {
+    const c = document.createElement("canvas");
+    c.width = c.height = 64;
+    const ctx = c.getContext("2d")!;
+    const grad = ctx.createRadialGradient(32, 32, 2, 32, 32, 31);
+    grad.addColorStop(0, `rgba(${r},${g},${b},1)`);
+    grad.addColorStop(0.55, `rgba(${r},${g},${b},.45)`);
+    grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 64, 64);
+    const t = new this.THREE.CanvasTexture(c);
+    t.colorSpace = this.THREE.SRGBColorSpace;
+    this._texList.push(t);
+    return t;
   }
 
   /* ---- curved Japanese hip roof: stacked 4-side frustums = concave silhouette ---- */
@@ -450,7 +700,7 @@ export class Garden3D {
     ];
     pads.forEach(([px, py, pz, ps]) => {
       const pad = new THREE.Mesh(
-        new THREE.SphereGeometry(ps * s, 14, 10),
+        this.organic(new THREE.SphereGeometry(ps * s, 20, 15), 0.22),
         this.M.pine,
       );
       pad.position.set(px * s + Math.sin(lean) * -2 * s, py * s, pz * s);
@@ -462,22 +712,42 @@ export class Garden3D {
     this.scene.add(g);
   }
 
-  /* ---- continuous gravel path ribbon along a curve ---- */
+  /* ---- smooth stone-paved path ribbon along a curve, gently varying
+     width, replacing the old stacked-disc look ---- */
   pathRibbon(points: number[][], width: number) {
     const THREE = this.THREE;
     const curve = new THREE.CatmullRomCurve3(
       points.map((p) => new THREE.Vector3(p[0], 0, p[1])),
     );
     const len = curve.getLength();
-    const n = Math.ceil(len / 1.0);
-    const geo = new THREE.CylinderGeometry(width, width, 0.07, 12);
-    for (let i = 0; i <= n; i++) {
-      const pt = curve.getPoint(i / n);
-      const m = new THREE.Mesh(geo, this.M.gravelPath);
-      m.position.set(pt.x, 0.035, pt.z);
-      m.receiveShadow = true;
-      this.scene.add(m);
+    const seg = Math.max(10, Math.ceil(len * 2));
+    const pos: number[] = [],
+      uv: number[] = [],
+      idx: number[] = [];
+    for (let i = 0; i <= seg; i++) {
+      const t = i / seg;
+      const pt = curve.getPoint(t);
+      const tg = curve.getTangent(t);
+      const nx = -tg.z,
+        nz = tg.x;
+      const w = width * (1 + 0.16 * Math.sin(t * len * 0.85 + points[0][0]));
+      pos.push(pt.x - nx * w, 0.05, pt.z - nz * w);
+      pos.push(pt.x + nx * w, 0.05, pt.z + nz * w);
+      const v = (t * len) / (width * 2);
+      uv.push(0, v, 1, v);
     }
+    for (let i = 0; i < seg; i++) {
+      const a = i * 2;
+      idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+    geo.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
+    geo.setIndex(idx);
+    geo.computeVertexNormals();
+    const m = new THREE.Mesh(geo, this.pathMat);
+    m.receiveShadow = true;
+    this.scene.add(m);
   }
 
   /* ---- estate wall segment with tile cap ---- */
@@ -545,11 +815,27 @@ export class Garden3D {
   }
 
   _addLanternLight(x: number, y: number, z: number, dist?: number) {
-    const l = new this.THREE.PointLight(0xffc873, 1.4, dist || 16, 2);
+    const THREE = this.THREE;
+    const l = new THREE.PointLight(0xffc873, 1.4, dist || 16, 2);
     l.position.set(x, y, z);
     l.userData.base = 1.4;
     this.scene.add(l);
     this.lanternLights.push(l);
+    // soft additive halo so the flame reads as a glow, not a bare bulb
+    const halo = new THREE.Sprite(
+      new THREE.SpriteMaterial({
+        map: this.glowTex(255, 200, 115),
+        color: 0xffc873,
+        transparent: true,
+        opacity: 0.34,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      }),
+    );
+    halo.position.set(x, y, z);
+    halo.scale.set(3.6, 3.6, 1);
+    this.scene.add(halo);
+    this._halos.push(halo);
     return l;
   }
 
@@ -611,6 +897,7 @@ export class Garden3D {
       map: this.groundTex,
       roughness: 1,
     });
+    this._groundTintMats.push(this.groundMat);
     const ground = new THREE.Mesh(
       new THREE.PlaneGeometry(200, 200),
       this.groundMat,
@@ -693,6 +980,7 @@ export class Garden3D {
       map: this.gravelTex,
       roughness: 1,
     });
+    this._gravelTintMats.push(this.gravelMat);
     const plaza = new THREE.Mesh(
       new THREE.CircleGeometry(13, 64),
       this.gravelMat,
@@ -720,7 +1008,7 @@ export class Garden3D {
     }
     // courtyard boulders (smooth)
     const boulder = (x: number, z: number, s: number, m: THREE.Material) => {
-      const geo = new THREE.SphereGeometry(s, 12, 9);
+      const geo = this.organic(new THREE.SphereGeometry(s, 18, 14), 0.24, 1.1);
       const r = new THREE.Mesh(geo, m);
       r.position.set(x, s * 0.42, z);
       r.scale.set(1, 0.62, 0.84);
@@ -796,8 +1084,9 @@ export class Garden3D {
       map: mossTex,
       roughness: 1,
     });
+    this._groundTintMats.push(this.mossMat);
     const mound = new THREE.Mesh(
-      new THREE.SphereGeometry(13, 28, 20),
+      this.organic(new THREE.SphereGeometry(13, 36, 26), 0.06, 0.35),
       this.mossMat,
     );
     mound.position.set(-28, -11.9, -20);
@@ -808,7 +1097,11 @@ export class Garden3D {
     for (let i = 0; i < 20; i++) {
       const a = (i / 20) * Math.PI * 2;
       const st = new THREE.Mesh(
-        new THREE.SphereGeometry(0.5 + Math.random() * 0.4, 10, 8),
+        this.organic(
+          new THREE.SphereGeometry(0.5 + Math.random() * 0.4, 14, 10),
+          0.28,
+          2.2,
+        ),
         i % 3 ? this.M.stone : this.M.stoneD,
       );
       st.position.set(-28 + Math.cos(a) * 12.6, 0.22, -20 + Math.sin(a) * 12.6);
@@ -819,9 +1112,11 @@ export class Garden3D {
 
     // ===== pond with sand shore + smooth rocks + bridge =====
     // sand shore
+    this.shoreMat = this.mat(0x8a8f7f, 1);
+    this._gravelTintMats.push(this.shoreMat);
     const shore = new THREE.Mesh(
       new THREE.CircleGeometry(1, 64),
-      this.mat(0x8a8f7f, 1),
+      this.shoreMat,
     );
     shore.rotation.x = -Math.PI / 2;
     shore.scale.set(23.4, 16.4, 1);
@@ -840,12 +1135,29 @@ export class Garden3D {
     pond.scale.set(21, 14, 1);
     pond.position.set(24, 0.06, -6);
     S.add(pond);
+    // moonlight streak across the water (midnight only)
+    this._moonStreak = new THREE.Mesh(
+      new THREE.PlaneGeometry(1, 1),
+      new THREE.MeshBasicMaterial({
+        map: this.glowTex(235, 245, 235),
+        color: 0xdcefdf,
+        transparent: true,
+        opacity: 0.16,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      }),
+    );
+    this._moonStreak.rotation.x = -Math.PI / 2;
+    this._moonStreak.rotation.z = -0.5;
+    this._moonStreak.scale.set(4.5, 22, 1);
+    this._moonStreak.position.set(20, 0.09, -7);
+    S.add(this._moonStreak);
     // smooth shore rocks, partially sunk, varied
     for (let i = 0; i < 34; i++) {
       const a = (i / 34) * Math.PI * 2 + Math.random() * 0.1;
       const s = 0.55 + Math.random() * 1.05;
       const r = new THREE.Mesh(
-        new THREE.SphereGeometry(s, 12, 9),
+        this.organic(new THREE.SphereGeometry(s, 16, 12), 0.26, 1.4),
         i % 3 ? this.M.stone : this.M.stoneD,
       );
       r.position.set(
@@ -958,7 +1270,7 @@ export class Garden3D {
       [2.4, 4.4, 0.4, 1.1],
     ].forEach(([x, y, z, s]) => {
       const c = new THREE.Mesh(
-        new THREE.SphereGeometry(s, 16, 12),
+        this.organic(new THREE.SphereGeometry(s, 22, 16), 0.2, 1.2),
         this.sakuraMat,
       );
       c.position.set(x, y, z);
@@ -1073,7 +1385,11 @@ export class Garden3D {
         b.castShadow = true;
         S.add(b);
         const lv = new THREE.Mesh(
-          new THREE.SphereGeometry(0.8 + Math.random() * 0.6, 10, 8),
+          this.organic(
+            new THREE.SphereGeometry(0.8 + Math.random() * 0.6, 14, 10),
+            0.3,
+            2,
+          ),
           this.M.leafD,
         );
         lv.position.set(b.position.x, h - 0.4, b.position.z);
@@ -1094,7 +1410,10 @@ export class Garden3D {
 
     // azalea shrubs (smooth mounds) scattered for cohesion
     const shrub = (x: number, z: number, s: number, m: THREE.Material) => {
-      const sh = new THREE.Mesh(new THREE.SphereGeometry(s, 14, 10), m);
+      const sh = new THREE.Mesh(
+        this.organic(new THREE.SphereGeometry(s, 18, 14), 0.24, 1.5),
+        m,
+      );
       sh.position.set(x, s * 0.4, z);
       sh.scale.y = 0.6;
       sh.castShadow = sh.receiveShadow = true;
@@ -1310,13 +1629,42 @@ export class Garden3D {
     }
     geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
     this.petalMat = new THREE.PointsMaterial({
-      color: 0xdcaac6,
-      size: 0.32,
+      color: 0xf0bcd4,
+      size: 0.5,
+      map: this.glowTex(244, 214, 228),
       transparent: true,
       opacity: 0.85,
+      depthWrite: false,
     });
     this.petals = new THREE.Points(geo, this.petalMat);
     this.scene.add(this.petals);
+
+    // fireflies drifting low over the moss (midnight only)
+    const fn = 42;
+    const fpos = new Float32Array(fn * 3);
+    this._fireflyBase = new Float32Array(fn * 3);
+    for (let i = 0; i < fn; i++) {
+      const x = (Math.random() - 0.5) * 80;
+      const y = 0.6 + Math.random() * 2.2;
+      const z = (Math.random() - 0.5) * 76;
+      fpos.set([x, y, z], i * 3);
+      this._fireflyBase.set([x, y, z], i * 3);
+    }
+    const fgeo = new THREE.BufferGeometry();
+    fgeo.setAttribute("position", new THREE.BufferAttribute(fpos, 3));
+    this._fireflies = new THREE.Points(
+      fgeo,
+      new THREE.PointsMaterial({
+        color: 0xffd98a,
+        size: 0.55,
+        map: this.glowTex(255, 217, 138),
+        transparent: true,
+        opacity: 0.9,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      }),
+    );
+    this.scene.add(this._fireflies);
   }
 
   blocked(x: number, z: number) {
@@ -1510,10 +1858,27 @@ export class Garden3D {
           Math.sin(time * 7 + i * 2.3) * 0.08 +
           Math.sin(time * 13.7 + i) * 0.05);
     });
+    if (
+      this._fireflies &&
+      (this._fireflies.material as THREE.PointsMaterial).opacity > 0
+    ) {
+      const fp = this._fireflies.geometry.attributes
+        .position as THREE.BufferAttribute;
+      for (let i = 0; i < fp.count; i++) {
+        const b = i * 3;
+        fp.setXYZ(
+          i,
+          this._fireflyBase[b] + Math.sin(time * 0.7 + i * 2.1) * 1.7,
+          this._fireflyBase[b + 1] + Math.sin(time * 1.1 + i) * 0.5,
+          this._fireflyBase[b + 2] + Math.cos(time * 0.5 + i * 1.7) * 1.7,
+        );
+      }
+      fp.needsUpdate = true;
+    }
     // Physics/state above stays warm; skip only the GPU draw while an opaque
     // interior fully covers the world (see setHidden).
     if (this.hidden) return;
-    this.renderer.render(this.scene, this.camera);
+    this._composer.render();
   }
 
   updateData(data: Garden3DData) {
@@ -1557,7 +1922,10 @@ export class Garden3D {
           [0.55, h - 0.35, -0.3, 0.4 + t.pct * 0.42, this.M.leafL],
         ] as [number, number, number, number, THREE.MeshStandardMaterial][]
       ).forEach(([x, y, z, s, m]) => {
-        const c = new THREE.Mesh(new THREE.SphereGeometry(s, 14, 10), m);
+        const c = new THREE.Mesh(
+          this.organic(new THREE.SphereGeometry(s, 18, 14), 0.22, 1.8),
+          m,
+        );
         c.position.set(x, y, z);
         c.scale.y = 0.62;
         g.add(c);
@@ -1629,11 +1997,19 @@ export class Garden3D {
     this.ambient.intensity = M.ambientI;
     this.dir.color.setHex(M.dirColor);
     this.dir.intensity = M.dirI;
-    this.groundMat.color.setHex(M.groundTint);
-    this.gravelMat.color.setHex(M.gravelTint);
+    this._groundTintMats.forEach((m) => m.color.setHex(M.groundTint));
+    this._gravelTintMats.forEach((m) => m.color.setHex(M.gravelTint));
     this.waterMat.color.setHex(this.waterMat.map ? M.waterTex : M.water);
     this.starMat.opacity = M.stars ? 0.8 : 0;
     this.moonMat.color.setHex(M.moon);
+    this.scene.environmentIntensity = M.envI;
+    this._bloom.strength = M.bloom;
+    this._halos.forEach((h) => {
+      h.material.opacity = M.haloO;
+    });
+    if (this._fireflies)
+      (this._fireflies.material as THREE.PointsMaterial).opacity = M.fireflyO;
+    if (this._moonStreak) this._moonStreak.visible = mood === "midnight";
     this.lanternLights.forEach((l) => {
       l.userData.base = M.lanternI;
     });
@@ -1666,6 +2042,7 @@ export class Garden3D {
     window.removeEventListener("keyup", this._ku);
     window.removeEventListener("wheel", this._wheel);
     this._texList.forEach((t) => t.dispose());
+    this._composer.dispose();
     this.renderer.forceContextLoss();
     this.renderer.dispose();
     if (this.renderer.domElement.parentNode)

@@ -86,6 +86,18 @@ Options, in increasing effort:
    `setMood()`. Keep `scene.fog` as-is; the fog color already matches each
    sky's base tone so the horizon blends.
 
+## Round 2 — painterly art overhaul
+
+A second texture set (see `scripts/garden-assets.json`, seeds 301–315) moved
+the world to a hand-painted anime style: painterly moss base + clover/flower
+and sakura-petal variation patches, watercolor raked sand, stone paving for
+the path ribbons, plaster walls, bark, and rock (sampled from one block of
+the generated masonry via UV offset). `garden3d.ts` gained: environment
+lighting + bloom (`EffectComposer`), deterministic vertex jitter (`organic()`)
+for foliage/rocks/mound, smooth ribbon path geometry, feathered ground
+patches, soft-sprite petals/fireflies, lantern halo sprites, and a moonlight
+streak on the pond — all mood-aware via extended `MOODS` fields.
+
 ## Regeneration
 
 Every asset's prompt + seed is in `scripts/garden-assets.json`. The gradio

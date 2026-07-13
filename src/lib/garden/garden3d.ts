@@ -163,7 +163,6 @@ export class Garden3D {
   groundMat!: THREE.MeshStandardMaterial;
   gravelTex!: THREE.CanvasTexture;
   gravelMat!: THREE.MeshStandardMaterial;
-  rakeMat!: THREE.MeshStandardMaterial;
   waterMat!: THREE.MeshStandardMaterial;
   moonMat!: THREE.MeshBasicMaterial;
   moonMesh!: THREE.Mesh;
@@ -609,16 +608,18 @@ export class Garden3D {
         0.026,
       );
     });
-    this._softTex("/garden/textures/sand-raked.webp", 0xd8cfb6, 0.5, 2.4, 2.4, (t) => {
-      this.gravelTex.dispose();
-      this.gravelMat.map = t;
-      this.gravelMat.needsUpdate = true;
-      // painted grooves carry the raking now — keep the procedural rings
-      // only as a whisper of relief
-      this.rakeMat.transparent = true;
-      this.rakeMat.opacity = 0.12;
-      this.rakeMat.needsUpdate = true;
-    });
+    // rebuild the authored karesansui with painted gravel grain under the
+    // furrows once the image is available
+    new this.THREE.ImageLoader().load(
+      "/garden/textures/gravel-fine.webp",
+      (img) => {
+        if (!this.renderer) return;
+        const old = this.gravelMat.map;
+        this.gravelMat.map = this._karesansuiTex(img);
+        this.gravelMat.needsUpdate = true;
+        if (old) old.dispose();
+      },
+    );
     this._softTex("/garden/textures/stone-paving.webp", 0x71776a, 0.5, 1, 1, (t) => {
       this.pathMat.map = t;
       this.pathMat.needsUpdate = true;
@@ -867,6 +868,88 @@ export class Garden3D {
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     this.scene.add(mesh);
+  }
+
+  /* ---- authored karesansui: the plaza is one hand-drawn canvas following
+     real dry-garden raking conventions — straight samon furrows (calm
+     water) across the field, sazanami ripple rings around each rock island,
+     border-following furrows at the enclosure edge ---- */
+  _karesansuiTex(grain?: HTMLImageElement) {
+    const THREE = this.THREE;
+    const c = document.createElement("canvas");
+    c.width = c.height = 1024;
+    const g = c.getContext("2d")!;
+    const BASE = "#ddd4bc";
+    g.fillStyle = BASE;
+    g.fillRect(0, 0, 1024, 1024);
+    if (grain) {
+      g.globalAlpha = 0.3;
+      g.drawImage(grain, 0, 0, 1024, 1024);
+      g.globalAlpha = 1;
+    }
+    const groove = (draw: () => void) => {
+      // every furrow is a dark cut with a light crest above — reads as relief
+      g.strokeStyle = "rgba(118,110,86,.5)";
+      g.lineWidth = 2.6;
+      draw();
+      g.translate(0, -2.2);
+      g.strokeStyle = "rgba(255,250,232,.42)";
+      g.lineWidth = 1.3;
+      draw();
+      g.setTransform(1, 0, 0, 1, 0, 0);
+    };
+    // 1. straight samon furrows across the whole field (calm water)
+    for (let y = 8; y < 1024; y += 16) {
+      const phase = y * 0.45;
+      groove(() => {
+        g.beginPath();
+        for (let x = 0; x <= 1024; x += 16) {
+          const yy = y + Math.sin(x * 0.013 + phase) * 1.1;
+          if (x === 0) g.moveTo(x, yy);
+          else g.lineTo(x, yy);
+        }
+        g.stroke();
+      });
+    }
+    // 2. border-following furrows just inside the enclosure edge
+    g.fillStyle = BASE;
+    g.beginPath();
+    g.arc(512, 512, 512, 0, 7);
+    g.arc(512, 512, 462, 0, 7, true);
+    g.fill();
+    [468, 482, 496].forEach((r) => {
+      groove(() => {
+        g.beginPath();
+        g.arc(512, 512, r, 0, Math.PI * 2);
+        g.stroke();
+      });
+    });
+    // 3. rock islands: erase the field, then ripple rings lapping outward
+    //    (canvas px = (world+13)/26*1024; groups match the stone clusters)
+    const islands: [number, number, number][] = [
+      [323, 406, 128], // main triad
+      [719, 616, 100], // flat pair
+      [486, 807, 84], // south pair
+    ];
+    islands.forEach(([cx, cy, r0]) => {
+      g.fillStyle = BASE;
+      g.beginPath();
+      g.arc(cx, cy, r0 + 62, 0, 7);
+      g.fill();
+      for (let r = r0 - 20; r <= r0 + 58; r += 15) {
+        groove(() => {
+          g.beginPath();
+          g.arc(cx, cy, r, 0, Math.PI * 2);
+          g.stroke();
+        });
+      }
+    });
+    const t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
+    t.anisotropy = this.renderer!.capabilities.getMaxAnisotropy();
+    this._texList.push(t);
+    return t;
   }
 
   /* ---- soft radial glow sprite drawn at runtime (petals, fireflies,
@@ -1239,9 +1322,10 @@ export class Garden3D {
     this.gravelTex = noiseTexture(THREE, 0x8a8f7f, 0x767b6b, 80, 0.3);
     this.gravelTex.repeat.set(3, 3);
     this.gravelMat = new THREE.MeshStandardMaterial({
-      map: this.gravelTex,
+      map: this._karesansuiTex(),
       roughness: 1,
     });
+    this.gravelTex.dispose();
     this._gravelTintMats.push(this.gravelMat);
     const plaza = new THREE.Mesh(
       new THREE.CircleGeometry(13, 64),
@@ -1260,16 +1344,6 @@ export class Garden3D {
     S.add(rim);
     // moss dissolves over the plaza rim instead of ending in a drawn circle
     this._featherBand(0, 0, 35, 35, 0x3a634f, 0.055);
-    this.rakeMat = this.mat(0x6a6f60, 1);
-    for (let i = 0; i < 5; i++) {
-      const ring = new THREE.Mesh(
-        new THREE.RingGeometry(2.4 + i * 2.05, 2.52 + i * 2.05, 72),
-        this.rakeMat,
-      );
-      ring.rotation.x = -Math.PI / 2;
-      ring.position.y = 0.035;
-      S.add(ring);
-    }
     // soft moss contact disc shared by every boulder (feathered, replaces
     // the old hard-edged dark circles)
     const mossContact = new THREE.MeshStandardMaterial({
@@ -1279,12 +1353,20 @@ export class Garden3D {
       roughness: 1,
     });
     this._groundTintMats.push(mossContact);
-    // courtyard boulders (smooth)
-    const boulder = (x: number, z: number, s: number, m: THREE.Material) => {
+    // courtyard stones — asymmetric odd-count island groups in the
+    // karesansui manner: a standing stone with flat companions, each group
+    // skirted in moss, ripple rings drawn around them in the sand
+    const boulder = (
+      x: number,
+      z: number,
+      s: number,
+      m: THREE.Material,
+      sy = 0.62,
+    ) => {
       const geo = this.organic(new THREE.SphereGeometry(s, 18, 14), 0.24, 1.1);
       const r = new THREE.Mesh(geo, m);
-      r.position.set(x, s * 0.42, z);
-      r.scale.set(1, 0.62, 0.84);
+      r.position.set(x, s * sy * 0.72, z);
+      r.scale.set(1, sy, 0.84);
       r.rotation.y = x * 2.1;
       r.castShadow = r.receiveShadow = true;
       S.add(r);
@@ -1296,9 +1378,16 @@ export class Garden3D {
       mossRing.position.set(x, 0.04, z);
       S.add(mossRing);
     };
-    boulder(-4, -3, 1.6, this.M.stone);
-    boulder(-2.4, -1.9, 0.8, this.M.stoneD);
-    boulder(5, 2, 1.15, this.M.stone);
+    // main triad — tall standing stone flanked by a flat and a small stone
+    boulder(-5.0, -3.6, 1.15, this.M.stone, 1.9);
+    boulder(-3.5, -2.5, 0.95, this.M.stoneD, 0.55);
+    boulder(-5.9, -2.0, 0.55, this.M.stone, 0.6);
+    // flat pair
+    boulder(5.8, 2.1, 1.05, this.M.stone, 0.5);
+    boulder(4.7, 3.2, 0.6, this.M.stoneD, 0.7);
+    // south pair
+    boulder(-1.2, 7.2, 0.8, this.M.stone, 0.6);
+    boulder(-0.1, 7.8, 0.45, this.M.stoneD, 0.65);
 
     // ===== continuous gravel paths =====
     this.pathRibbon(
@@ -1967,8 +2056,12 @@ export class Garden3D {
     // gate posts
     if (Math.hypot(x + 3.2, z + 38) < 0.9 || Math.hypot(x - 3.2, z + 38) < 0.9)
       return true;
-    // boulders
-    if (Math.hypot(x + 4, z + 3) < 2.0 || Math.hypot(x - 5, z - 2) < 1.5)
+    // stone islands
+    if (
+      Math.hypot(x + 4.8, z + 2.8) < 3.0 ||
+      Math.hypot(x - 5.3, z - 2.6) < 2.3 ||
+      Math.hypot(x + 0.7, z - 7.5) < 1.9
+    )
       return true;
     // lanterns
     if (

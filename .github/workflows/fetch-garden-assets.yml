@@ -1,0 +1,41 @@
+name: Fetch garden assets
+
+# Downloads the AI-generated visual assets listed in scripts/garden-assets.json
+# and commits them to the branch this workflow is dispatched on. The asset URLs
+# point at temporary Hugging Face Space files that the sandboxed dev environment
+# cannot reach directly, so a runner fetches them instead.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download assets from manifest
+        run: |
+          set -euo pipefail
+          count=$(jq '.assets | length' scripts/garden-assets.json)
+          for i in $(seq 0 $((count - 1))); do
+            path=$(jq -r ".assets[$i].path" scripts/garden-assets.json)
+            url=$(jq -r ".assets[$i].url" scripts/garden-assets.json)
+            mkdir -p "$(dirname "$path")"
+            echo "Fetching $path"
+            curl -fSL --retry 3 --retry-delay 2 -o "$path" "$url"
+            file "$path"
+          done
+
+      - name: Commit and push
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/garden
+          git diff --cached --quiet && { echo "No changes"; exit 0; }
+          git commit -m "assets: add generated garden textures, interior backdrops, and skies"
+          git push

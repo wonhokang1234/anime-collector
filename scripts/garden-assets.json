@@ -1,0 +1,83 @@
+{
+  "comment": "Generated visual assets for the Moss Garden. Each entry maps a repo path under public/garden/ to the Hugging Face Space URL of the generated image. Generated 2026-07-13 with Z-Image-Turbo (space: mcp-tools/Z-Image-Turbo) via the Hugging Face MCP. Seeds and prompts recorded for reproducibility. Note: gradio file URLs are temporary; re-generate with the recorded prompt+seed if a URL has expired.",
+  "model": "Z-Image-Turbo",
+  "assets": [
+    {
+      "path": "public/garden/textures/moss-ground.webp",
+      "url": "https://mcp-tools-z-image-turbo.hf.space/--replicas/dkrzw/gradio_api/file=/tmp/gradio/d70a9c97d97456dfc98ea61bc9e5ec83166cb9d3bcd502b276365d8726e71558/image.webp",
+      "seed": 11,
+      "size": "1024x1024",
+      "prompt": "seamless tileable texture, top-down view of dense soft moss carpet, deep dark teal-green forest moss with subtle emerald highlights, tiny moss fronds, slightly damp, uniform coverage edge to edge, no objects, no borders, photorealistic game texture, flat even lighting, dark muted palette #16281c to #2c5540"
+    },
+    {
+      "path": "public/garden/textures/gravel-raked.webp",
+      "url": "https://mcp-tools-z-image-turbo.hf.space/--replicas/dkrzw/gradio_api/file=/tmp/gradio/533625b8f4084d268cef08f371e2a8f8ebf8abff01b6a4e8b583857a30d2ebc9/image.webp",
+      "seed": 7,
+      "size": "1024x1024",
+      "prompt": "seamless tileable texture, top-down view of raked zen garden gravel, fine grey-sage pebbles with long parallel raked groove lines, karesansui dry garden sand, subtle warm grey-green tint, uniform pattern edge to edge, no objects, no shadows of objects, photorealistic game texture, flat even lighting, muted palette #8a8f7f"
+    },
+    {
+      "path": "public/garden/textures/water-pond.webp",
+      "url": "https://mcp-tools-z-image-turbo.hf.space/--replicas/dkrzw/gradio_api/file=/tmp/gradio/5a0da05e524053bc32f28b15ce0bf2957ec6a47e87278bccde2975ac1559d7d3/image.webp",
+      "seed": 21,
+      "size": "1024x1024",
+      "prompt": "seamless tileable texture, top-down view of dark koi pond water surface at night, deep teal-green water #143028, gentle ripples and subtle moonlight reflections, small caustic highlights, uniform edge to edge, no objects, no fish, photorealistic game water texture, flat even lighting"
+    },
+    {
+      "path": "public/garden/textures/roof-tiles.webp",
+      "url": "https://mcp-tools-z-image-turbo.hf.space/--replicas/dkrzw/gradio_api/file=/tmp/gradio/c5362dd8c9341ef6917008034cd50730b2ad50a57471460b5d65a55f83efc793/image.webp",
+      "seed": 33,
+      "size": "1024x1024",
+      "prompt": "seamless tileable texture, traditional Japanese kawara roof tiles viewed straight on, dark charcoal grey ceramic tiles in overlapping rows, subtle blue-slate sheen, uniform repeating rounded tile pattern edge to edge, no edges of roof, photorealistic architectural game texture, flat even lighting, palette #272d33"
+    },
+    {
+      "path": "public/garden/textures/wood-planks.webp",
+      "url": "https://mcp-tools-z-image-turbo.hf.space/--replicas/dkrzw/gradio_api/file=/tmp/gradio/ed1f1069dd6304419128d0e976de6056b3fb3a29e149ea303c26533121d800b4/image.webp",
+      "seed": 44,
+      "size": "1024x1024",
+      "prompt": "seamless tileable texture, dark aged Japanese cedar wood planks viewed straight on, vertical grain, deep warm brown #54402e with darker knots, weathered smooth engawa deck boards, uniform repeating plank pattern edge to edge, photorealistic architectural game texture, flat even lighting"
+    },
+    {
+      "path": "public/garden/interiors/grove.webp",
+      "url": "https://mcp-tools-z-image-turbo.hf.space/--replicas/dkrzw/gradio_api/file=/tmp/gradio/fe1ba91451a713118f110f201ef701d4ccb5ee6a0e36ca54a672c66d2e1d6022/image.webp",
+      "seed": 101,
+      "size": "1536x864",
+      "prompt": "Serene anime background art of a moonlit Japanese bonsai grove at night, rows of small bonsai trees on soft mossy mounds, gentle mist, deep teal-green and dark emerald palette, warm amber stone lantern glow, drifting fireflies, painterly Ghibli-style scenery matte painting, no people, wide establishing shot, tranquil mysterious mood"
+    },
+    {
+      "path": "public/garden/interiors/pond.webp",
+      "url": "https://mcp-tools-z-image-turbo.hf.space/--replicas/dkrzw/gradio_api/file=/tmp/gradio/c322f2efbbf5baebc22a29619bac505a80c91dee6bb29fe4ee19d9ef57cac102/image.webp",
+      "seed": 102,
+      "size": "1536x864",
+      "prompt": "Serene anime background art of a Japanese koi pond at night viewed from the water's edge, colorful koi fish swimming beneath dark teal-green water, lily pads, moonlight reflection, sakura petals floating on the surface, warm lantern glow from a vermilion arched bridge in the background, painterly Ghibli-style scenery matte painting, no people, tranquil mood"
+    },
+    {
+      "path": "public/garden/interiors/seeds.webp",
+      "url": "https://mcp-tools-z-image-turbo.hf.space/--replicas/dkrzw/gradio_api/file=/tmp/gradio/63d290e6929c06f2772fede1f82d9b91fe937e048718dfa7e4f402591c793844/image.webp",
+      "seed": 103,
+      "size": "1536x864",
+      "prompt": "Cozy anime background art of a traditional Japanese seed merchant shop interior at night, wooden shelves stacked with small drawers, paper seed packets and woven baskets, hanging paper lanterns casting warm amber light, tatami floor, dark green and warm wood palette, painterly Ghibli-style interior matte painting, no people, inviting quiet mood"
+    },
+    {
+      "path": "public/garden/interiors/records.webp",
+      "url": "https://mcp-tools-z-image-turbo.hf.space/--replicas/dkrzw/gradio_api/file=/tmp/gradio/6ff406d09b6402bc393a58b20c307fb826117cb835f935325fdc4a46c99937f8/image.webp",
+      "seed": 104,
+      "size": "1536x864",
+      "prompt": "Atmospheric anime background art of a traditional Japanese records archive library interior at night, tall dark wooden shelves with bound journals and scrolls, a low writing desk with an ink brush and open ledger, single warm paper lantern, moonlight through shoji screen, dark wood and deep green palette, painterly Ghibli-style interior matte painting, no people, scholarly quiet mood"
+    },
+    {
+      "path": "public/garden/sky/midnight.webp",
+      "url": "https://mcp-tools-z-image-turbo.hf.space/--replicas/dkrzw/gradio_api/file=/tmp/gradio/066cdc5c102a947fce332970b74da7d64b3b3684460080fdc9b17c501adb3d15/image.webp",
+      "seed": 201,
+      "size": "2016x864",
+      "prompt": "Anime background art panorama of a midnight sky over distant Japanese mountain silhouettes, deep dark teal-green sky #0a1612, full moon glowing softly upper left, scattered stars, thin drifting clouds, faint mist at the horizon, painterly Ghibli-style matte painting, no buildings, no people, tranquil nocturne mood"
+    },
+    {
+      "path": "public/garden/sky/dawn.webp",
+      "url": "https://mcp-tools-z-image-turbo.hf.space/--replicas/dkrzw/gradio_api/file=/tmp/gradio/e5f3417449edcfa6e9a3adabcfad6e4ef7ff04c4ba867558f8084802b7e9e271/image.webp",
+      "seed": 202,
+      "size": "2016x864",
+      "prompt": "Anime background art panorama of a soft dawn sky over distant Japanese mountain silhouettes, pale sage-green and warm cream sky #dfe8d6, gentle golden sunrise light low on the horizon, thin luminous clouds, morning haze, painterly Ghibli-style matte painting, no buildings, no people, calm hopeful morning mood"
+    }
+  ]
+}

@@ -44,6 +44,7 @@ interface MoodDef {
   bloom: number;
   haloO: number;
   fireflyO: number;
+  mist: number;
 }
 
 const MOODS: Record<string, MoodDef> = {
@@ -66,6 +67,7 @@ const MOODS: Record<string, MoodDef> = {
     bloom: 0.45,
     haloO: 0.34,
     fireflyO: 0.9,
+    mist: 1,
   },
   dawn: {
     sky: 0xdfe8d6,
@@ -86,6 +88,7 @@ const MOODS: Record<string, MoodDef> = {
     bloom: 0.18,
     haloO: 0.08,
     fireflyO: 0,
+    mist: 0.45,
   },
 };
 
@@ -191,11 +194,15 @@ export class Garden3D {
   petals!: THREE.Points;
   private _koi?: {
     g: THREE.Group;
+    ripple: THREE.Mesh;
     rx: number;
     rz: number;
     speed: number;
     phase: number;
   }[];
+  private _rippleTex?: THREE.CanvasTexture;
+  private _mists!: THREE.Sprite[];
+  private _playerShadow!: THREE.Mesh;
 
   constructor(container: HTMLElement, opts: Garden3DOptions) {
     this.THREE = THREE;
@@ -235,6 +242,7 @@ export class Garden3D {
     this._gravelTintMats = [];
     this._halos = [];
     this._pathPts = [];
+    this._mists = [];
 
     // bloom keeps lanterns / shoji / moonlight ethereal
     this._composer = new EffectComposer(this.renderer);
@@ -1016,36 +1024,59 @@ export class Garden3D {
     return g;
   }
 
-  /* ---- matsu pine: leaning trunk, layered cloud pads ---- */
+  /* ---- matsu pine in the niwaki manner: S-curved trunk built from
+     stacked leaning segments, asymmetric layered cloud pads that shrink
+     toward the crown, small dark branch stubs reaching into each pad ---- */
   pine(x: number, z: number, s: number, lean: number) {
     const THREE = this.THREE;
     const g = new THREE.Group();
-    const t1 = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.16 * s, 0.26 * s, 2.4 * s, 8),
-      this.M.bark,
-    );
-    t1.position.y = 1.2 * s;
-    t1.rotation.z = lean;
-    const t2 = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.1 * s, 0.16 * s, 1.6 * s, 8),
-      this.M.bark,
-    );
-    t2.position.set(Math.sin(lean) * -2.4 * s, 2.7 * s, 0);
-    t2.rotation.z = lean * 1.8;
-    g.add(t1, t2);
-    const pads = [
-      [0, 3.4, 0, 1.5],
-      [-1.1, 2.7, 0.5, 1.0],
-      [0.9, 2.9, -0.4, 0.9],
-      [-0.3, 4.0, 0.2, 0.85],
+    // S-curve trunk: three segments, alternating lean
+    const segs: [number, number, number, number][] = [
+      // [baseY, height, leanMul, radius]
+      [0, 2.0, 1, 0.24],
+      [1.8, 1.6, -0.7, 0.17],
+      [3.1, 1.3, 1.4, 0.12],
+    ];
+    let ox = 0;
+    segs.forEach(([by, h, lm, r]) => {
+      const seg = new THREE.Mesh(
+        new THREE.CylinderGeometry(r * 0.72 * s, r * s, h * s, 8),
+        this.M.bark,
+      );
+      const a = lean * lm;
+      seg.position.set(ox + Math.sin(a) * h * 0.5 * s, (by + h / 2) * s, 0);
+      seg.rotation.z = -a;
+      g.add(seg);
+      ox += Math.sin(a) * h * s;
+    });
+    // asymmetric cloud pads, widest low, smallest at the crown
+    const pads: [number, number, number, number][] = [
+      [ox / s - 1.5, 2.5, 0.5, 1.25],
+      [ox / s + 1.3, 3.1, -0.4, 1.0],
+      [ox / s - 0.5, 3.7, 0.35, 0.95],
+      [ox / s + 0.5, 4.4, -0.2, 0.7],
+      [ox / s, 4.9, 0.1, 0.5],
     ];
     pads.forEach(([px, py, pz, ps]) => {
+      // branch stub reaching from the trunk into the pad
+      const stub = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.05 * s, 0.09 * s, 1.1 * s, 6),
+        this.M.bark,
+      );
+      stub.position.set(
+        (ox / s + px) * 0.5 * s,
+        (py - 0.25) * s,
+        pz * 0.5 * s,
+      );
+      stub.rotation.z = px > ox / s ? -1.2 : 1.2;
+      stub.rotation.x = pz > 0 ? 0.5 : -0.5;
+      g.add(stub);
       const pad = new THREE.Mesh(
-        this.organic(new THREE.SphereGeometry(ps * s, 20, 15), 0.22),
+        this.organic(new THREE.SphereGeometry(ps * s, 20, 15), 0.24),
         this.M.pine,
       );
-      pad.position.set(px * s + Math.sin(lean) * -2 * s, py * s, pz * s);
-      pad.scale.y = 0.38;
+      pad.position.set(px * s, py * s, pz * s);
+      pad.scale.y = 0.32;
       g.add(pad);
     });
     g.position.set(x, 0, z);
@@ -1536,13 +1567,13 @@ export class Garden3D {
       r.castShadow = r.receiveShadow = true;
       S.add(r);
     }
-    // lily pads
+    // lily pads, two carrying blossoms
     [
       [18, -12, 1.1],
       [30, -2, 1.4],
       [21, 2, 0.9],
       [28, -11, 0.8],
-    ].forEach(([x, z, s]) => {
+    ].forEach(([x, z, s], i) => {
       const p = new THREE.Mesh(
         new THREE.CircleGeometry(s, 22, 0.4, 5.6),
         this.M.leafD,
@@ -1550,6 +1581,15 @@ export class Garden3D {
       p.rotation.x = -Math.PI / 2;
       p.position.set(x, 0.1, z);
       S.add(p);
+      if (i % 2 === 0) {
+        const bloom = new THREE.Mesh(
+          this.organic(new THREE.SphereGeometry(s * 0.22, 12, 9), 0.3, 4),
+          this.sakuraMat,
+        );
+        bloom.position.set(x + s * 0.3, 0.16, z - s * 0.2);
+        bloom.scale.y = 0.7;
+        S.add(bloom);
+      }
     });
     // vermilion arched bridge
     const bridgeG = new THREE.Group();
@@ -1799,6 +1839,35 @@ export class Garden3D {
     // ground dressing: macro light/shade painting + instanced grass tufts
     this._macroShade();
     this._buildGrass();
+
+    // low drifting mist ribbons — the ethereal layer over the grounds
+    const mistTex = this.glowTex(205, 228, 215);
+    (
+      [
+        [-30, 1.4, -30, 44, 10, 0.09],
+        [20, 1.2, -20, 38, 8, 0.07],
+        [35, 1.5, 10, 50, 11, 0.08],
+        [-10, 1.1, 25, 42, 9, 0.08],
+        [-35, 1.3, 10, 46, 10, 0.07],
+        [5, 1.6, -40, 40, 9, 0.09],
+        [25, 1.0, 30, 52, 11, 0.06],
+      ] as const
+    ).forEach(([mx, my, mz, sw, sh, o], i) => {
+      const sp = new THREE.Sprite(
+        new THREE.SpriteMaterial({
+          map: mistTex,
+          color: 0xdcece2,
+          transparent: true,
+          opacity: o,
+          depthWrite: false,
+        }),
+      );
+      sp.position.set(mx, my, mz);
+      sp.scale.set(sw, sh, 1);
+      sp.userData = { bx: mx, bz: mz, o, ph: i * 1.7 };
+      S.add(sp);
+      this._mists.push(sp);
+    });
   }
 
   _buildHouse(hx: number, hz: number) {
@@ -1982,6 +2051,18 @@ export class Garden3D {
     });
     this.player = g;
     this.scene.add(g);
+    // soft contact shadow keeps the player grounded while bobbing
+    this._playerShadow = new THREE.Mesh(
+      new THREE.CircleGeometry(0.62, 20),
+      new THREE.MeshBasicMaterial({
+        map: this.featherDisc(10, 16, 12, 0.3),
+        transparent: true,
+        opacity: 0.38,
+        depthWrite: false,
+      }),
+    );
+    this._playerShadow.rotation.x = -Math.PI / 2;
+    this.scene.add(this._playerShadow);
     this.camera.position.set(0, 27, 30);
   }
 
@@ -2160,7 +2241,15 @@ export class Garden3D {
       this.vx = this.vz = 0;
       this.moving = false;
     }
+    this._mists.forEach((sp) => {
+      sp.position.x =
+        sp.userData.bx + Math.sin(time * 0.04 + sp.userData.ph) * 5;
+      sp.position.z =
+        sp.userData.bz + Math.cos(time * 0.03 + sp.userData.ph) * 4;
+    });
     const by = this.bridgeY(this.px, this.pz);
+    if (this._playerShadow)
+      this._playerShadow.position.set(this.px, by + 0.028, this.pz);
     this.player.position.set(
       this.px,
       by + (this.moving ? Math.abs(Math.sin(time * 9)) * 0.14 : 0),
@@ -2201,12 +2290,17 @@ export class Garden3D {
     if (this._koi) {
       this._koi.forEach((k, i) => {
         const t = time * k.speed + k.phase;
-        k.g.position.set(
-          24 + Math.cos(t) * k.rx,
-          0.22,
-          -6 + Math.sin(t) * k.rz,
-        );
+        const kx = 24 + Math.cos(t) * k.rx;
+        const kz = -6 + Math.sin(t) * k.rz;
+        k.g.position.set(kx, 0.22, kz);
         k.g.rotation.y = -t - Math.PI / 2 + Math.sin(time * 3 + i) * 0.15;
+        // expanding, fading swim ripple on the surface
+        const ph = (time * 0.45 + i * 0.41) % 1;
+        const rs = 0.9 + ph * 2.3;
+        k.ripple.position.set(kx, 0.075, kz);
+        k.ripple.scale.set(rs, rs, 1);
+        (k.ripple.material as THREE.MeshBasicMaterial).opacity =
+          0.3 * (1 - ph);
       });
     }
     if (this.petals) {
@@ -2317,12 +2411,50 @@ export class Garden3D {
       g.position.set(TP[i % TP.length][0], 1.0, TP[i % TP.length][1]);
       this.dynGroup.add(g);
     });
-    // koi
+    // koi — white body painted with each fish's own accent blotches, plus a
+    // surface ripple ring that trails its swimming
+    if (!this._rippleTex) {
+      const rc = document.createElement("canvas");
+      rc.width = rc.height = 128;
+      const rg = rc.getContext("2d")!;
+      rg.strokeStyle = "rgba(235,245,238,.9)";
+      rg.lineWidth = 5;
+      rg.shadowColor = "rgba(235,245,238,.8)";
+      rg.shadowBlur = 7;
+      rg.beginPath();
+      rg.arc(64, 64, 46, 0, Math.PI * 2);
+      rg.stroke();
+      this._rippleTex = new THREE.CanvasTexture(rc);
+      this._rippleTex.colorSpace = THREE.SRGBColorSpace;
+      this._texList.push(this._rippleTex);
+    }
     (data.koi || []).slice(0, 12).forEach((k, i) => {
       const g = new THREE.Group();
+      const kc = document.createElement("canvas");
+      kc.width = 128;
+      kc.height = 64;
+      const kg = kc.getContext("2d")!;
+      kg.fillStyle = "#f2ede4";
+      kg.fillRect(0, 0, 128, 64);
+      const blot = (color: string, n: number, rMin: number, rMax: number) => {
+        kg.fillStyle = color;
+        for (let b = 0; b < n; b++) {
+          const bx = 14 + ((i * 37 + b * 53) % 100);
+          const by = 8 + ((i * 23 + b * 31) % 48);
+          const br = rMin + ((i * 13 + b * 17) % (rMax - rMin));
+          kg.beginPath();
+          kg.ellipse(bx, by, br, br * 0.7, b, 0, 7);
+          kg.fill();
+        }
+      };
+      blot(k.c1 || "#c47d7d", 4, 9, 18);
+      blot(k.c2 || "#894a4a", 3, 5, 10);
+      const bodyTex = new THREE.CanvasTexture(kc);
+      bodyTex.colorSpace = THREE.SRGBColorSpace;
+      this._texList.push(bodyTex);
       const body = new THREE.Mesh(
         new THREE.CapsuleGeometry(0.22, 0.6, 6, 12),
-        this.mat(parseInt((k.c1 || "#c47d7d").slice(1), 16), 0.55),
+        new THREE.MeshStandardMaterial({ map: bodyTex, roughness: 0.5 }),
       );
       body.rotation.x = Math.PI / 2;
       const tail = new THREE.Mesh(
@@ -2331,10 +2463,23 @@ export class Garden3D {
       );
       tail.rotation.x = -Math.PI / 2;
       tail.position.z = -0.7;
+      tail.scale.x = 0.45;
       g.add(body, tail);
       this.dynGroup.add(g);
+      const ripple = new THREE.Mesh(
+        new THREE.PlaneGeometry(1, 1),
+        new THREE.MeshBasicMaterial({
+          map: this._rippleTex,
+          transparent: true,
+          opacity: 0,
+          depthWrite: false,
+        }),
+      );
+      ripple.rotation.x = -Math.PI / 2;
+      this.dynGroup.add(ripple);
       this._koi!.push({
         g,
+        ripple,
         rx: 6 + (i % 5) * 2.6,
         rz: 4 + (i % 4) * 2.1,
         speed: 0.25 + (i % 3) * 0.09,
@@ -2384,6 +2529,9 @@ export class Garden3D {
     if (this._fireflies)
       (this._fireflies.material as THREE.PointsMaterial).opacity = M.fireflyO;
     if (this._moonStreak) this._moonStreak.visible = mood === "midnight";
+    this._mists.forEach((sp) => {
+      sp.material.opacity = (sp.userData.o as number) * M.mist;
+    });
     this.lanternLights.forEach((l) => {
       l.userData.base = M.lanternI;
     });
